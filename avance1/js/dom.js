@@ -1,4 +1,4 @@
-/** Construye nodos de texto sin interpretar los datos del usuario como HTML. */
+/** Crea elementos con texto seguro, sin interpretar HTML del usuario. */
 export function elemento(etiqueta, texto, clases = '') {
   const nodo = document.createElement(etiqueta);
   nodo.textContent = texto;
@@ -10,7 +10,14 @@ export function elemento(etiqueta, texto, clases = '') {
   return nodo;
 }
 
-/** Sustituye el mensaje de estado anterior por el nuevo. */
-export function estado(contenedor, mensaje, clase = 'text-body-secondary') {
-  contenedor.replaceChildren(elemento('p', mensaje, clase));
+/** Sustituye el mensaje y aplica al contenedor su estilo actual. */
+export function estado(
+  contenedor,
+  mensaje,
+  clase = 'text-body-secondary'
+) {
+  contenedor.className = clase;
+  contenedor.replaceChildren(
+    elemento('p', mensaje, 'mb-0')
+  );
 }

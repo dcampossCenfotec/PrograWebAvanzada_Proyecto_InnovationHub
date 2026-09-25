@@ -26,7 +26,7 @@ function dibujar(iniciativa) {
   acciones.replaceChildren();
   estado(aviso, '');
 
-  // RN-03: una iniciativa restringida no muestra su contenido completo.
+  // RN-03: una iniciativa restringida solo muestra su resumen.
   if (iniciativa.visibilidad === 'restringida') {
     articulo.append(
       elemento('h1', 'Iniciativa restringida'),
@@ -54,19 +54,20 @@ function dibujar(iniciativa) {
     linea('Visibilidad', iniciativa.visibilidad)
   );
 
-  const participar = elemento(
-    'a',
-    'Solicitar participación',
-    'btn btn-primary'
-  );
+  if (iniciativa.propietario !== USUARIO_ACTUAL) {
+    // El usuario puede solicitar participar en proyectos ajenos.
+    const participar = elemento(
+      'a',
+      'Solicitar participación',
+      'btn btn-primary'
+    );
 
-  participar.href =
-    `participar.html?id=${encodeURIComponent(iniciativa.id)}`;
+    participar.href =
+      `participar.html?id=${encodeURIComponent(iniciativa.id)}`;
 
-  acciones.append(participar);
-
-  // La opción de edición aparece únicamente para iniciativas propias.
-  if (iniciativa.propietario === USUARIO_ACTUAL) {
+    acciones.append(participar);
+  } else {
+    // En sus propios proyectos puede editar, pero no solicitar ingreso.
     const editar = elemento(
       'a',
       'Editar iniciativa',
