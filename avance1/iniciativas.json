@@ -1,0 +1,66 @@
+[
+  {
+    "id": "ini-001", "titulo": "Huertos escolares", "tipo": "idea", "resumen": "Crear huertos educativos en escuelas públicas.",
+    "descripcion": "Diseñar huertos piloto con docentes y estudiantes para aprender cultivo sostenible.",
+    "problema": "Pocos espacios prácticos para educación ambiental.", "beneficiarios": "Estudiantes y docentes",
+    "categoria": "Educación", "competencias": ["Diseño", "Agronomía"], "participantesEstimados": 5,
+    "visibilidad": "publica", "etiquetas": ["sostenibilidad", "escuelas"], "propietario": "Usuario de prueba",
+    "miembros": ["Usuario de prueba"], "estado": "Abierta"
+  },
+  {
+    "id": "ini-002", "titulo": "Accesibilidad urbana", "tipo": "necesidad", "resumen": "Identificar rutas accesibles para personas con movilidad reducida.",
+    "descripcion": "Levantar información de aceras y entradas para construir un mapa colaborativo.",
+    "problema": "Falta información clara de rutas accesibles.", "beneficiarios": "Personas con movilidad reducida",
+    "categoria": "Comunidad", "competencias": ["Investigación", "Desarrollo web"], "participantesEstimados": 4,
+    "visibilidad": "publica", "etiquetas": ["accesibilidad"], "propietario": "Equipo Comunidad",
+    "miembros": ["Equipo Comunidad"], "estado": "Abierta"
+  },
+  {
+    "id": "ini-003", "titulo": "Reto de reciclaje inteligente", "tipo": "reto", "resumen": "Proponer un sistema para facilitar la separación de residuos.",
+    "descripcion": "Diseñar una interfaz que explique cómo clasificar residuos comunes.",
+    "problema": "La clasificación doméstica genera dudas.", "beneficiarios": "Hogares de la comunidad",
+    "categoria": "Ambiente", "competencias": ["UX", "Desarrollo web"], "participantesEstimados": 6,
+    "visibilidad": "restringida", "etiquetas": ["reciclaje"], "propietario": "Equipo Ambiente",
+    "miembros": ["Equipo Ambiente"], "estado": "En evaluación"
+  },
+  {
+    "id": "ini-004", "titulo": "Mentorías tecnológicas", "tipo": "idea", "resumen": "Vincular estudiantes con mentores voluntarios.",
+    "descripcion": "Organizar sesiones breves para acompañar proyectos académicos.",
+    "problema": "Faltan espacios de asesoría práctica.", "beneficiarios": "Estudiantes",
+    "categoria": "Educación", "competencias": ["Docencia", "Programación"], "participantesEstimados": 3,
+    "visibilidad": "comunidad", "etiquetas": ["mentoría"], "propietario": "Usuario de prueba",
+    "miembros": ["Usuario de prueba"], "estado": "Abierta"
+  },
+  {
+    "id": "ini-005", "titulo": "Banco de alimentos", "tipo": "necesidad", "resumen": "Coordinar donaciones con organizaciones locales.",
+    "descripcion": "Registrar donantes, puntos de entrega y necesidades semanales.",
+    "problema": "Las donaciones no siempre llegan a tiempo.", "beneficiarios": "Familias vulnerables",
+    "categoria": "Comunidad", "competencias": ["Logística", "Comunicación"], "participantesEstimados": 8,
+    "visibilidad": "publica", "etiquetas": ["alimentos"], "propietario": "Red Solidaria",
+    "miembros": ["Red Solidaria"], "estado": "Abierta"
+  },
+  {
+    "id": "ini-006", "titulo": "Datos de calidad del aire", "tipo": "reto", "resumen": "Visualizar lecturas ambientales en un tablero sencillo.",
+    "descripcion": "Crear gráficos claros con mediciones simuladas de diferentes zonas.",
+    "problema": "Los datos disponibles son difíciles de interpretar.", "beneficiarios": "Habitantes y docentes",
+    "categoria": "Tecnología", "competencias": ["Datos", "Diseño"], "participantesEstimados": 4,
+    "visibilidad": "equipo", "etiquetas": ["datos", "ambiente"], "propietario": "Laboratorio Abierto",
+    "miembros": ["Laboratorio Abierto"], "estado": "En evaluación"
+  },
+  {
+    "id": "ini-007", "titulo": "Lectura compartida", "tipo": "idea", "resumen": "Organizar intercambio de libros entre vecinos.",
+    "descripcion": "Habilitar un registro de libros disponibles y jornadas de intercambio.",
+    "problema": "Hay libros sin uso y poca oferta comunitaria.", "beneficiarios": "Vecinos y estudiantes",
+    "categoria": "Cultura", "competencias": ["Comunicación", "Organización"], "participantesEstimados": 5,
+    "visibilidad": "publica", "etiquetas": ["lectura"], "propietario": "Biblioteca Vecinal",
+    "miembros": ["Biblioteca Vecinal"], "estado": "Abierta"
+  },
+  {
+    "id": "ini-008", "titulo": "Orientación laboral", "tipo": "necesidad", "resumen": "Crear recursos de preparación para entrevistas.",
+    "descripcion": "Reunir guías y ofrecer espacios de práctica con voluntarios.",
+    "problema": "Personas sin experiencia requieren apoyo para postularse.", "beneficiarios": "Personas en búsqueda de empleo",
+    "categoria": "Educación", "competencias": ["Recursos humanos", "Comunicación"], "participantesEstimados": 4,
+    "visibilidad": "publica", "etiquetas": ["empleo"], "propietario": "Usuario de prueba",
+    "miembros": ["Usuario de prueba"], "estado": "Abierta"
+  }
+]
