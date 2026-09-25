@@ -1,16 +1,11 @@
 import {
   cargarIniciativas,
-  obtenerIniciativa
+  obtenerIniciativa,
+  USUARIO_ACTUAL
 } from './iniciativas.js';
+import { elemento, estado } from './dom.js';
 
-import {
-  elemento,
-  estado
-} from './dom.js';
-
-// El enlace llega con una URL como detalle.html?id=ini-001.
 const identificador = new URLSearchParams(location.search).get('id');
-
 const articulo = document.querySelector('#detalle');
 const acciones = document.querySelector('#accionesDetalle');
 const aviso = document.querySelector('#estadoDetalle');
@@ -31,7 +26,7 @@ function dibujar(iniciativa) {
   acciones.replaceChildren();
   estado(aviso, '');
 
-  // RN-03: una iniciativa restringida muestra solamente su resumen.
+  // RN-03: una iniciativa restringida no muestra su contenido completo.
   if (iniciativa.visibilidad === 'restringida') {
     articulo.append(
       elemento('h1', 'Iniciativa restringida'),
@@ -69,6 +64,20 @@ function dibujar(iniciativa) {
     `participar.html?id=${encodeURIComponent(iniciativa.id)}`;
 
   acciones.append(participar);
+
+  // La opción de edición aparece únicamente para iniciativas propias.
+  if (iniciativa.propietario === USUARIO_ACTUAL) {
+    const editar = elemento(
+      'a',
+      'Editar iniciativa',
+      'btn btn-outline-primary'
+    );
+
+    editar.href =
+      `formulario.html?id=${encodeURIComponent(iniciativa.id)}`;
+
+    acciones.append(editar);
+  }
 }
 
 try {

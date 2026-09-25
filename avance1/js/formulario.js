@@ -1,11 +1,18 @@
 /** Registro y edición comparten el mismo formulario y sus reglas. */
-import { cargarIniciativas, crearIniciativa } from './iniciativas.js';
+import {
+  cargarIniciativas,
+  crearIniciativa,
+  obtenerIniciativa,
+  actualizarIniciativa,
+  USUARIO_ACTUAL
+} from './iniciativas.js';
 import { validarIniciativa, mostrarErrores } from './validacion.js';
 import { estado } from './dom.js';
 
 const formulario = document.querySelector('#formularioIniciativa');
 const competencias = formulario.querySelector('#competencias');
 const aviso = document.querySelector('#estadoFormulario');
+const idEdicion = new URLSearchParams(location.search).get('id');
 
 function agregarCompetencia(valor = '') {
   const fila = document.createElement('div');
@@ -40,7 +47,7 @@ formulario
   .querySelector('#agregarCompetencia')
   .addEventListener('click', () => agregarCompetencia());
 
-// Un listener sirve para las filas iniciales y las agregadas después.
+// Atiende también las filas de competencias agregadas posteriormente.
 competencias.addEventListener('click', (evento) => {
   if (!evento.target.closest('[data-accion="quitar-competencia"]')) {
     return;
@@ -51,7 +58,7 @@ competencias.addEventListener('click', (evento) => {
 
 agregarCompetencia();
 
-/** Convierte los controles del formulario en datos para validar y guardar. */
+/** Lee y prepara los valores para validarlos o guardarlos. */
 function leerFormulario() {
   const valor = (nombre) =>
     formulario.elements.namedItem(nombre).value.trim();
@@ -75,12 +82,61 @@ function leerFormulario() {
   };
 }
 
-// Primero se cargan las iniciativas existentes para conservarlas.
+/** Coloca en el formulario los datos existentes al entrar en modo edición. */
+function llenarFormulario(iniciativa) {
+  const campos = [
+    'titulo',
+    'tipo',
+    'categoria',
+    'resumen',
+    'descripcion',
+    'problema',
+    'beneficiarios',
+    'participantesEstimados',
+    'visibilidad'
+  ];
+
+  for (const campo of campos) {
+    formulario.elements.namedItem(campo).value = iniciativa[campo];
+  }
+
+  formulario.elements.namedItem('etiquetas').value =
+    iniciativa.etiquetas.join(', ');
+
+  competencias.replaceChildren();
+  iniciativa.competencias.forEach((competencia) =>
+    agregarCompetencia(competencia)
+  );
+
+  document.querySelector('#tituloPagina').textContent =
+    'Editar iniciativa';
+  document.title = 'Editar iniciativa | Innovation Hub';
+  formulario.querySelector('#guardar').textContent = 'Guardar cambios';
+}
+
+// La carga inicial evita reemplazar las iniciativas ya existentes.
 formulario.querySelector('#guardar').disabled = true;
 estado(aviso, 'Preparando datos…');
 
 try {
   await cargarIniciativas();
+
+  if (idEdicion) {
+    const original = obtenerIniciativa(idEdicion);
+
+    if (!original) {
+      throw new Error('La iniciativa que deseas editar no existe.');
+    }
+
+    if (original.propietario !== USUARIO_ACTUAL) {
+      throw new Error(
+        'Solo puedes editar tus propias iniciativas en esta demostración.'
+      );
+    }
+
+    llenarFormulario(original);
+  }
+
   estado(aviso, '');
   formulario.querySelector('#guardar').disabled = false;
 } catch (error) {
@@ -92,7 +148,6 @@ try {
 }
 
 formulario.addEventListener('submit', (evento) => {
-  // Evita que el navegador recargue la página al enviar.
   evento.preventDefault();
 
   const datos = leerFormulario();
@@ -108,20 +163,38 @@ formulario.addEventListener('submit', (evento) => {
     return;
   }
 
-  // La función del commit 3 agrega la iniciativa al estado local.
-  const creada = crearIniciativa(datos);
+  // Con id actualiza el registro; sin id crea uno nuevo.
+  const guardada = idEdicion
+    ? actualizarIniciativa(idEdicion, datos)
+    : crearIniciativa(datos);
+
+  if (!guardada) {
+    estado(
+      aviso,
+      'La iniciativa ya no está disponible para edición.',
+      'alert alert-danger'
+    );
+    return;
+  }
 
   const enlace = document.createElement('a');
-  enlace.href = `detalle.html?id=${encodeURIComponent(creada.id)}`;
-  enlace.textContent = 'Ver la iniciativa registrada';
+  enlace.href = `detalle.html?id=${encodeURIComponent(guardada.id)}`;
+  enlace.textContent = 'Ver la iniciativa';
 
   aviso.replaceChildren(
-    document.createTextNode('Iniciativa guardada localmente. '),
+    document.createTextNode(
+      idEdicion
+        ? 'Cambios guardados localmente. '
+        : 'Iniciativa guardada localmente. '
+    ),
     enlace
   );
   aviso.className = 'alert alert-success';
 
-  formulario.reset();
-  competencias.replaceChildren();
-  agregarCompetencia();
+  // Al editar conservamos los valores visibles; al crear limpiamos el formulario.
+  if (!idEdicion) {
+    formulario.reset();
+    competencias.replaceChildren();
+    agregarCompetencia();
+  }
 });
