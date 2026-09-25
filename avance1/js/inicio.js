@@ -1,15 +1,21 @@
 import {
   cargarIniciativas,
   alCambiarIniciativas,
+  eliminarIniciativa,
   USUARIO_ACTUAL
 } from './iniciativas.js';
 import { elemento, estado } from './dom.js';
 
 const lista = document.querySelector('#listaIniciativas');
 const aviso = document.querySelector('#estadoIniciativas');
+const modal = new bootstrap.Modal(
+  document.querySelector('#modalEliminar')
+);
+
+let idPendiente = null;
 
 function dibujar(iniciativas) {
-  // Limpia las tarjetas anteriores antes de mostrar la lista actualizada.
+  // Borra las tarjetas anteriores para reflejar los cambios inmediatamente.
   lista.replaceChildren();
 
   estado(
@@ -42,16 +48,8 @@ function dibujar(iniciativas) {
         iniciativa.tipo,
         'badge text-bg-secondary align-self-start mb-2'
       ),
-      elemento(
-        'h3',
-        iniciativa.titulo,
-        'h5 card-title'
-      ),
-      elemento(
-        'p',
-        iniciativa.resumen,
-        'card-text'
-      )
+      elemento('h3', iniciativa.titulo, 'h5 card-title'),
+      elemento('p', iniciativa.resumen, 'card-text')
     );
 
     const enlace = elemento(
@@ -65,7 +63,7 @@ function dibujar(iniciativas) {
 
     cuerpo.append(enlace);
 
-    // El usuario de prueba puede editar las iniciativas que publicó.
+    // Solo las iniciativas propias muestran acciones de edición y borrado.
     if (iniciativa.propietario === USUARIO_ACTUAL) {
       const editar = elemento(
         'a',
@@ -76,7 +74,16 @@ function dibujar(iniciativas) {
       editar.href =
         `paginas/formulario.html?id=${encodeURIComponent(iniciativa.id)}`;
 
-      cuerpo.append(editar);
+      const eliminar = elemento(
+        'button',
+        'Eliminar',
+        'btn btn-outline-danger mt-2'
+      );
+
+      eliminar.type = 'button';
+      eliminar.dataset.eliminarId = iniciativa.id;
+
+      cuerpo.append(editar, eliminar);
     }
 
     tarjeta.append(cuerpo);
@@ -84,6 +91,38 @@ function dibujar(iniciativas) {
     lista.append(columna);
   }
 }
+
+// Un único listener funciona incluso después de volver a dibujar las tarjetas.
+lista.addEventListener('click', (evento) => {
+  const boton = evento.target.closest('[data-eliminar-id]');
+
+  if (!boton) return;
+
+  idPendiente = boton.dataset.eliminarId;
+
+  document.querySelector('#mensajeEliminar').textContent =
+    '¿Deseas eliminar esta iniciativa?';
+
+  modal.show();
+});
+
+document
+  .querySelector('#confirmarEliminar')
+  .addEventListener('click', () => {
+    if (!idPendiente) return;
+
+    const eliminada = eliminarIniciativa(idPendiente);
+    idPendiente = null;
+    modal.hide();
+
+    estado(
+      aviso,
+      eliminada
+        ? 'Iniciativa eliminada. El listado ya está actualizado.'
+        : 'No se pudo eliminar esta iniciativa.',
+      eliminada ? 'alert alert-success' : 'alert alert-danger'
+    );
+  });
 
 estado(aviso, 'Cargando iniciativas…');
 

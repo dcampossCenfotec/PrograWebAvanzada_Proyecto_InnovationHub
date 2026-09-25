@@ -17,12 +17,13 @@ function copia(valor) {
 
 function notificar() {
   localStorage.setItem(CLAVE, JSON.stringify(iniciativas));
+
   window.dispatchEvent(
     new CustomEvent(EVENTO, { detail: copia(iniciativas) })
   );
 }
 
-/** Carga las iniciativas guardadas o, si aún no hay cambios, el JSON inicial. */
+/** Carga las iniciativas guardadas o el JSON inicial. */
 export async function cargarIniciativas() {
   if (iniciativas !== null) return copia(iniciativas);
 
@@ -90,7 +91,7 @@ export function crearIniciativa(campos) {
   return copia(nueva);
 }
 
-/** Actualiza solamente iniciativas que pertenecen al usuario de prueba. */
+/** Actualiza solamente iniciativas del usuario de prueba. */
 export function actualizarIniciativa(id, campos) {
   if (iniciativas === null) {
     throw new Error('Primero se deben cargar las iniciativas.');
@@ -103,7 +104,7 @@ export function actualizarIniciativa(id, campos) {
   if (indice === -1) return null;
   if (iniciativas[indice].propietario !== USUARIO_ACTUAL) return null;
 
-  // El identificador y el propietario pertenecen al registro original.
+  // Conserva el identificador y el propietario originales.
   iniciativas[indice] = {
     ...iniciativas[indice],
     ...copia(campos),
@@ -115,6 +116,7 @@ export function actualizarIniciativa(id, campos) {
   return copia(iniciativas[indice]);
 }
 
+/** Elimina solamente iniciativas del usuario de prueba. */
 export function eliminarIniciativa(id) {
   if (iniciativas === null) {
     throw new Error('Primero se deben cargar las iniciativas.');
@@ -125,6 +127,7 @@ export function eliminarIniciativa(id) {
   );
 
   if (indice === -1) return false;
+  if (iniciativas[indice].propietario !== USUARIO_ACTUAL) return false;
 
   iniciativas.splice(indice, 1);
   notificar();

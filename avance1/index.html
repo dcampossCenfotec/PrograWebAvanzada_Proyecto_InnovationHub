@@ -11,19 +11,20 @@
   <a class="visually-hidden-focusable" href="#contenido">Saltar al contenido</a>
 
   <header>
-    <nav class="navbar navbar-expand-lg bg-body-tertiary" aria-label="Navegación principal">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary"
+         aria-label="Navegación principal">
       <div class="container">
-        <a class="navbar-brand fw-bold" href="index.html">Innovation Hub</a>
+        <a class="navbar-brand fw-bold" href="index.html">
+          Innovation Hub
+        </a>
 
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#menuPrincipal"
-          aria-controls="menuPrincipal"
-          aria-expanded="false"
-          aria-label="Abrir menú"
-        >
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#menuPrincipal"
+                aria-controls="menuPrincipal"
+                aria-expanded="false"
+                aria-label="Abrir menú">
           <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -33,7 +34,9 @@
               <a class="nav-link" href="index.html">Mis iniciativas</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="paginas/formulario.html">Publicar iniciativa</a>
+              <a class="nav-link" href="paginas/formulario.html">
+                Publicar iniciativa
+              </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="paginas/perfil.html">Perfil</a>
@@ -47,7 +50,10 @@
   <main id="contenido" class="container py-5">
     <h1>Gestión de iniciativas</h1>
     <p class="lead">Área inicial del bloque de gestión y participación.</p>
-    <p>La página principal informativa y el catálogo se incorporarán con el bloque de Discovery.</p>
+    <p>
+      La página principal informativa y el catálogo se incorporarán
+      con el bloque de Discovery.
+    </p>
 
     <a class="btn btn-primary" href="paginas/formulario.html">
       Publicar una iniciativa
@@ -63,6 +69,45 @@
   <footer class="container py-4 border-top">
     <small>Innovation Hub · Prototipo Avance 1</small>
   </footer>
+
+  <!-- Se muestra antes de eliminar una iniciativa. -->
+  <div class="modal fade"
+       id="modalEliminar"
+       tabindex="-1"
+       aria-labelledby="tituloModalEliminar"
+       aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="tituloModalEliminar">
+            Confirmar eliminación
+          </h2>
+          <button type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Cerrar"></button>
+        </div>
+
+        <div class="modal-body">
+          <p id="mensajeEliminar"></p>
+          <p>Esta acción quitará la iniciativa de los datos locales.</p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button"
+                  class="btn btn-outline-secondary"
+                  data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="button"
+                  class="btn btn-danger"
+                  id="confirmarEliminar">
+            Eliminar iniciativa
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module" src="js/inicio.js"></script>
