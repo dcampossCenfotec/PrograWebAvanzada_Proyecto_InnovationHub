@@ -1,0 +1,16 @@
+// Parcial adicional: ajustes reutilizables para formularios y tarjetas.
+.site-intro {
+  max-width: 68ch;
+}
+
+.card {
+  border-color: rgba(37, 95, 117, .15);
+}
+
+.field-error {
+  min-height: 1.35em;
+}
+
+.initiative-description {
+  white-space: pre-line;
+}

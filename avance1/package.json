@@ -1,0 +1,12 @@
+{
+  "name": "innovation-hub-avance1",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:css": "sass --no-source-map --load-path=node_modules scss/app.scss css/app.css"
+  },
+  "devDependencies": {
+    "bootstrap": "5.3.3",
+    "sass": "1.105.0"
+  }
+}
