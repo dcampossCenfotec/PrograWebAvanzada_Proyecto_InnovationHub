@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Inicio de gestión | Innovation Hub</title>
+  <title>Inicio | Innovation Hub</title>
   <!-- Bootstrap personalizado, compilado desde Sass y guardado en el repositorio. -->
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <a class="visually-hidden-focusable" href="#contenido">Saltar al contenido</a>
 
-  <header>
+  <header class="site-header sticky-top shadow-sm">
     <nav class="navbar navbar-expand-lg bg-body-tertiary"
          aria-label="Navegación principal">
       <div class="container">
@@ -57,16 +57,105 @@
   </header>
 
   <main id="contenido" class="container py-5">
-    <h1>Gestión de iniciativas</h1>
-    <p class="lead">Área inicial del bloque de gestión y participación.</p>
-    <p>
-      La página principal informativa y el catálogo se incorporarán
-      con el bloque de Discovery.
-    </p>
+    <section class="site-hero rounded-4 p-4 p-lg-5" aria-labelledby="tituloInicio">
+      <div class="row align-items-center g-4">
+        <div class="col-12 col-lg-8">
+          <p class="text-primary fw-semibold mb-2">Ideas, necesidades y retos</p>
+          <h1 id="tituloInicio" class="display-5 fw-bold">
+            Conecta tus ideas con personas que pueden hacerlas realidad
+          </h1>
+          <p class="lead site-intro">
+            Innovation Hub es un espacio para compartir iniciativas, encontrar
+            oportunidades de colaboración y aportar tus competencias a proyectos
+            de la comunidad.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary" href="#catalogo">Explorar el catálogo</a>
+            <a class="btn btn-outline-primary" href="paginas/formulario.html">
+              Publicar una iniciativa
+            </a>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="bg-body rounded-3 p-4 border">
+            <h2 class="h5">Hay distintas formas de aportar</h2>
+            <p class="mb-0">
+              Comparte una propuesta, plantea una necesidad o encuentra un reto
+              en el que puedas colaborar con tus conocimientos.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <a class="btn btn-primary" href="paginas/formulario.html">
-      Publicar una iniciativa
-    </a>
+    <section class="mt-5" aria-labelledby="tituloTipos">
+      <h2 id="tituloTipos">¿Qué puedes encontrar?</h2>
+      <p class="text-body-secondary">Tres puntos de partida para trabajar en conjunto.</p>
+      <div class="row g-4">
+        <div class="col-12 col-md-4">
+          <article class="card h-100">
+            <div class="card-body">
+              <h3 class="h5 text-primary">Ideas</h3>
+              <p class="card-text">
+                Propuestas que buscan personas para desarrollarse y convertirse
+                en proyectos concretos.
+              </p>
+            </div>
+          </article>
+        </div>
+        <div class="col-12 col-md-4">
+          <article class="card h-100">
+            <div class="card-body">
+              <h3 class="h5 text-primary">Necesidades</h3>
+              <p class="card-text">
+                Problemas de la comunidad que requieren conocimientos y
+                colaboración para encontrar una solución.
+              </p>
+            </div>
+          </article>
+        </div>
+        <div class="col-12 col-md-4">
+          <article class="card h-100">
+            <div class="card-body">
+              <h3 class="h5 text-primary">Retos</h3>
+              <p class="card-text">
+                Desafíos que invitan a proponer soluciones y reunir un equipo
+                con competencias complementarias.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-5" aria-labelledby="tituloColaborar">
+      <h2 id="tituloColaborar">Cómo comenzar</h2>
+      <div class="row g-4">
+        <div class="col-12 col-md-6">
+          <h3 class="h5">Publica una iniciativa</h3>
+          <ol class="ps-3">
+            <li>Abre el formulario de publicación.</li>
+            <li>Describe tu propuesta, su tipo y las competencias necesarias.</li>
+            <li>Define la visibilidad y guarda la iniciativa.</li>
+          </ol>
+          <a href="paginas/formulario.html">Ir al formulario de publicación</a>
+        </div>
+        <div class="col-12 col-md-6">
+          <h3 class="h5">Solicita participar</h3>
+          <ol class="ps-3">
+            <li>Explora el catálogo y abre el detalle de una iniciativa ajena.</li>
+            <li>Si permite solicitudes, selecciona Solicitar participación.</li>
+            <li>Indica qué puedes aportar, tu rol y tu disponibilidad.</li>
+          </ol>
+          <a href="#catalogo">Encontrar una iniciativa</a>
+        </div>
+      </div>
+      <p class="text-body-secondary mt-4 mb-0">
+        En este prototipo, las iniciativas y solicitudes se guardan en este
+        navegador. Solicitar participación no implica ingresar automáticamente
+        al equipo.
+      </p>
+    </section>
 
     <section id="catalogo" class="mt-5" aria-labelledby="tituloIniciativas">
       <h2 id="tituloIniciativas">Iniciativas disponibles</h2>

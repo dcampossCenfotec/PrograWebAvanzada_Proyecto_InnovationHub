@@ -11875,3 +11875,36 @@ textarea.form-control-lg {
 .initiative-description {
   white-space: pre-line;
 }
+
+.site-hero {
+  background-color: rgb(93.1607843137%, 94.9803921569%, 95.6705882353%);
+  border: 1px solid rgba(37, 95, 117, 0.15);
+}
+
+.site-header {
+  background-color: #f5f8f9;
+}
+.site-header .navbar {
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow-y: auto;
+}
+
+html {
+  scroll-padding-top: 6rem;
+}
+
+@media (max-width: 991.98px) {
+  html:has(.site-header .navbar-collapse.show),
+  html:has(.site-header .navbar-collapse.collapsing) {
+    scroll-padding-top: 18rem;
+  }
+}
+body > .visually-hidden-focusable:focus {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1021;
+  padding: 0.5rem 1rem;
+  background-color: #f5f8f9;
+}

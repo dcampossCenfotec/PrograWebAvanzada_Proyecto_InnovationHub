@@ -14,3 +14,41 @@
 .initiative-description {
   white-space: pre-line;
 }
+
+.site-hero {
+  background-color: tint-color($primary, 92%);
+  border: 1px solid rgba($primary, .15);
+}
+
+.site-header {
+  background-color: $body-bg;
+
+  // Permite recorrer el menú expandido en pantallas de poca altura.
+  .navbar {
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow-y: auto;
+  }
+}
+
+// Evita que el encabezado tape los destinos de los enlaces internos.
+html {
+  scroll-padding-top: 6rem;
+}
+
+@include media-breakpoint-down(lg) {
+  html:has(.site-header .navbar-collapse.show),
+  html:has(.site-header .navbar-collapse.collapsing) {
+    scroll-padding-top: 18rem;
+  }
+}
+
+// Mantiene el enlace de salto por encima del encabezado al recibir el foco.
+body > .visually-hidden-focusable:focus {
+  position: fixed;
+  top: .5rem;
+  left: .5rem;
+  z-index: $zindex-sticky + 1;
+  padding: .5rem 1rem;
+  background-color: $body-bg;
+}
