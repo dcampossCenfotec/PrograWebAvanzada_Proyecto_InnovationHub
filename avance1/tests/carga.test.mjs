@@ -44,7 +44,7 @@ function texto(nodo) {
 const nodos = new Map([
   '#listaIniciativas', '#estadoIniciativas', '#estadoOperacion',
   '#reintentarCarga', '#modalEliminar', '#mensajeEliminar',
-  '#confirmarEliminar', '#tituloIniciativas', '#busquedaIniciativas'
+  '#confirmarEliminar', '#tituloIniciativas', '#busquedaIniciativas', '#filtroTipo'
 ].map((selector) => [selector, new Nodo()]));
 
 const lista = nodos.get('#listaIniciativas');
@@ -104,6 +104,7 @@ function comprobarError() {
   assert.equal(lista.atributos['aria-busy'], 'false');
   assert.equal(lista.children.length, 0);
   assert.equal(nodos.get('#busquedaIniciativas').disabled, true);
+  assert.equal(nodos.get('#filtroTipo').disabled, true);
 }
 
 test('gestiona fallos, reintentos, carga, vacío y actualizaciones de la vista', async (t) => {
@@ -175,12 +176,36 @@ test('gestiona fallos, reintentos, carga, vacío y actualizaciones de la vista',
     busqueda.value = 'sin coincidencias';
     busqueda.escuchas.get('input')();
     assert.equal(lista.children.length, 0);
-    assert.match(texto(aviso), /No se encontraron iniciativas con ese texto/);
+    assert.match(texto(aviso), /No se encontraron iniciativas con estos criterios/);
     assert.equal(document.activeElement, busqueda);
 
     api.actualizarIniciativa(nueva.id, { titulo: 'Sin coincidencias anteriores' });
     assert.equal(lista.children.length, 1);
     assert.equal(busqueda.value, 'sin coincidencias');
+
+    const filtroTipo = nodos.get('#filtroTipo');
+    assert.equal(filtroTipo.disabled, false);
+    filtroTipo.focus();
+    filtroTipo.value = 'reto';
+    filtroTipo.escuchas.get('change')();
+    assert.equal(lista.children.length, 0);
+    assert.match(texto(aviso), /No se encontraron iniciativas con estos criterios/);
+    assert.equal(busqueda.value, 'sin coincidencias');
+    assert.equal(document.activeElement, filtroTipo);
+
+    api.actualizarIniciativa(nueva.id, { tipo: 'reto' });
+    assert.equal(lista.children.length, 1);
+    assert.equal(filtroTipo.value, 'reto');
+
+    busqueda.value = 'texto que no existe';
+    busqueda.escuchas.get('input')();
+    assert.equal(lista.children.length, 0);
+    assert.equal(filtroTipo.value, 'reto');
+
+    filtroTipo.value = '';
+    filtroTipo.escuchas.get('change')();
+    assert.equal(lista.children.length, 0);
+    assert.equal(busqueda.value, 'texto que no existe');
 
     busqueda.value = '';
     busqueda.escuchas.get('input')();

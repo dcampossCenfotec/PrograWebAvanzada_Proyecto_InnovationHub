@@ -12,6 +12,7 @@ const aviso = document.querySelector('#estadoIniciativas');
 const avisoOperacion = document.querySelector('#estadoOperacion');
 const reintentar = document.querySelector('#reintentarCarga');
 const busqueda = document.querySelector('#busquedaIniciativas');
+const filtroTipo = document.querySelector('#filtroTipo');
 const modal = new bootstrap.Modal(
   document.querySelector('#modalEliminar')
 );
@@ -27,7 +28,8 @@ function actualizarCatalogo(iniciativas) {
 
 function dibujar() {
   const iniciativas = filtrarIniciativas(iniciativasCargadas, {
-    texto: busqueda.value
+    texto: busqueda.value,
+    tipo: filtroTipo.value
   });
   // Borra las tarjetas anteriores para reflejar los cambios inmediatamente.
   const tarjetas = iniciativas.map(crearTarjeta);
@@ -38,7 +40,7 @@ function dibujar() {
     iniciativas.length
       ? `Iniciativas disponibles: ${iniciativas.length}.`
       : iniciativasCargadas.length
-        ? 'No se encontraron iniciativas con ese texto.'
+        ? 'No se encontraron iniciativas con estos criterios.'
         : 'No hay iniciativas disponibles.',
     iniciativas.length ? 'text-body-secondary mb-3' : 'alert alert-info'
   );
@@ -84,6 +86,7 @@ async function cargarCatalogo() {
   cargando = true;
   reintentar.disabled = true;
   busqueda.disabled = true;
+  filtroTipo.disabled = true;
   lista.setAttribute('aria-busy', 'true');
   lista.replaceChildren();
   estado(avisoOperacion, '');
@@ -92,6 +95,7 @@ async function cargarCatalogo() {
   try {
     actualizarCatalogo(await cargarIniciativas());
     busqueda.disabled = false;
+    filtroTipo.disabled = false;
     reintentar.hidden = true;
 
     if (devolverFoco) {
@@ -123,6 +127,12 @@ async function cargarCatalogo() {
 alCambiarIniciativas(actualizarCatalogo);
 busqueda.addEventListener('input', () => {
   if (busqueda.disabled) return;
+
+  estado(avisoOperacion, '');
+  dibujar();
+});
+filtroTipo.addEventListener('change', () => {
+  if (filtroTipo.disabled) return;
 
   estado(avisoOperacion, '');
   dibujar();

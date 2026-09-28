@@ -10,8 +10,16 @@ export function normalizarTexto(texto) {
 /** Devuelve un arreglo filtrado sin modificar la colección compartida. */
 export function filtrarIniciativas(iniciativas, criterios = {}) {
   const consulta = normalizarTexto(criterios.texto || '');
+  const tipo = criterios.tipo || '';
 
   return iniciativas.filter((iniciativa) => {
+    // No permite deducir el tipo oculto de una iniciativa restringida.
+    if (tipo && (
+      iniciativa.visibilidad === 'restringida' || iniciativa.tipo !== tipo
+    )) {
+      return false;
+    }
+
     if (!consulta) return true;
 
     // La búsqueda tampoco debe revelar el título de una iniciativa restringida.

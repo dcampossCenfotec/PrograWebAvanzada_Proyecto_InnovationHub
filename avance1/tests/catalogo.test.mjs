@@ -50,3 +50,48 @@ test('no modifica los datos originales al buscar ni al cambiar el arreglo result
   filtrarIniciativas(iniciativas, { texto: 'EDUCACION' });
   assert.deepEqual(iniciativas, originales);
 });
+
+const iniciativasPorTipo = [
+  { ...iniciativas[0], id: 'idea', tipo: 'idea' },
+  { ...iniciativas[0], id: 'necesidad', tipo: 'necesidad', visibilidad: 'comunidad' },
+  { ...iniciativas[0], id: 'reto', tipo: 'reto', visibilidad: 'equipo' },
+  { ...iniciativas[1], tipo: 'reto' }
+];
+
+test('filtra los tres tipos y recupera la colección completa al seleccionar Todos', () => {
+  for (const tipo of ['idea', 'necesidad', 'reto']) {
+    assert.deepEqual(
+      filtrarIniciativas(iniciativasPorTipo, { tipo }).map((iniciativa) => iniciativa.id),
+      [tipo]
+    );
+  }
+
+  assert.deepEqual(filtrarIniciativas(iniciativasPorTipo, { tipo: '' }), iniciativasPorTipo);
+  assert.deepEqual(filtrarIniciativas(iniciativasPorTipo, { tipo: 'desconocido' }), []);
+});
+
+test('combina búsqueda y tipo exigiendo ambos criterios sin modificar los datos', () => {
+  const originales = structuredClone(iniciativasPorTipo);
+  assert.deepEqual(
+    filtrarIniciativas(iniciativasPorTipo, { texto: 'MENTORIAS', tipo: 'necesidad' })
+      .map((iniciativa) => iniciativa.id),
+    ['necesidad']
+  );
+  assert.deepEqual(
+    filtrarIniciativas(iniciativasPorTipo, { texto: 'inexistente', tipo: 'idea' }),
+    []
+  );
+  assert.deepEqual(iniciativasPorTipo, originales);
+});
+
+test('no revela el tipo de restringidas aunque coincidan texto y tipo', () => {
+  assert.deepEqual(
+    filtrarIniciativas(iniciativasPorTipo, { texto: 'ambientales', tipo: 'reto' }),
+    []
+  );
+  assert.deepEqual(
+    filtrarIniciativas(iniciativasPorTipo, { texto: 'ambientales', tipo: '' })
+      .map((iniciativa) => iniciativa.id),
+    ['restringida']
+  );
+});
