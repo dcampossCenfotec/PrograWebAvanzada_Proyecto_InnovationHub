@@ -16,11 +16,12 @@ const filtroTipo = document.querySelector('#filtroTipo');
 const filtroCategoria = document.querySelector('#filtroCategoria');
 const filtroCompetencia = document.querySelector('#filtroCompetencia');
 const limpiarFiltros = document.querySelector('#limpiarFiltros');
-const modal = new bootstrap.Modal(
-  document.querySelector('#modalEliminar')
-);
+const contenedorModal = document.querySelector('#modalEliminar');
+const modal = new bootstrap.Modal(contenedorModal);
 
 let idPendiente = null;
+let botonOrigen = null;
+let recargaPendiente = false;
 let cargando = false;
 let iniciativasCargadas = [];
 
@@ -95,11 +96,27 @@ lista.addEventListener('click', (evento) => {
   if (!boton) return;
 
   idPendiente = boton.dataset.eliminarId;
+  botonOrigen = boton;
 
   document.querySelector('#mensajeEliminar').textContent =
     '¿Deseas eliminar esta iniciativa?';
 
   modal.show();
+});
+
+// Bootstrap termina de cerrar el modal antes de devolver el foco.
+contenedorModal.addEventListener('hidden.bs.modal', () => {
+  idPendiente = null;
+
+  if (botonOrigen?.isConnected) {
+    botonOrigen.focus();
+  } else if (botonOrigen) {
+    const titulo = document.querySelector('#tituloIniciativas');
+    titulo.setAttribute('tabindex', '-1');
+    titulo.focus();
+  }
+
+  botonOrigen = null;
 });
 
 document
@@ -121,9 +138,10 @@ document
   });
 
 /** Reutiliza la API compartida y evita cargas simultáneas desde esta vista. */
-async function cargarCatalogo() {
+async function cargarCatalogo(recargar = false) {
   if (cargando) return;
 
+  recargaPendiente = recargaPendiente || recargar;
   const devolverFoco = document.activeElement === reintentar;
   cargando = true;
   reintentar.disabled = true;
@@ -138,7 +156,8 @@ async function cargarCatalogo() {
   estado(aviso, 'Cargando iniciativas…', 'text-body-secondary mb-3');
 
   try {
-    actualizarCatalogo(await cargarIniciativas());
+    actualizarCatalogo(await cargarIniciativas({ recargar: recargaPendiente }));
+    recargaPendiente = false;
     busqueda.disabled = false;
     filtroTipo.disabled = false;
     filtroCategoria.disabled = false;
@@ -199,6 +218,10 @@ limpiarFiltros.addEventListener('click', () => {
   actualizarCatalogo(iniciativasCargadas);
   busqueda.focus();
 });
-reintentar.addEventListener('click', cargarCatalogo);
+reintentar.addEventListener('click', () => cargarCatalogo());
+window.addEventListener('pageshow', (evento) => {
+  // Atrás puede restaurar también la memoria antigua del módulo de datos.
+  if (evento.persisted) return cargarCatalogo(true);
+});
 
 await cargarCatalogo();

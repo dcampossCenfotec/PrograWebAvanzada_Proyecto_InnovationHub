@@ -65,9 +65,11 @@ globalThis.bootstrap = {
   }
 };
 let suscripciones = 0;
+const eventosVentana = new Map();
 globalThis.window = new class extends EventTarget {
   addEventListener(tipo, escucha) {
     if (tipo === 'iniciativas:actualizadas') suscripciones += 1;
+    eventosVentana.set(tipo, escucha);
     super.addEventListener(tipo, escucha);
   }
 }();
@@ -310,5 +312,61 @@ test('gestiona fallos, reintentos, carga, vacío y actualizaciones de la vista',
     assert.match(texto(aviso), /Mostrando 0 de 0 iniciativas/);
     assert.match(texto(aviso), /No hay iniciativas disponibles/);
     assert.doesNotMatch(texto(aviso), /No se encontraron/);
+  });
+
+  await t.test('cancelar el modal descarta el ID y devuelve el foco sin eliminar', async () => {
+    const api = await import('../js/iniciativas.js');
+    const [campos] = JSON.parse(await readFile(
+      new URL('../datos/iniciativas.json', import.meta.url), 'utf8'
+    ));
+    const nueva = api.crearIniciativa(campos);
+    const boton = new Nodo();
+    boton.dataset.eliminarId = nueva.id;
+    boton.isConnected = true;
+    lista.escuchas.get('click')({ target: { closest: () => boton } });
+    nodos.get('#modalEliminar').escuchas.get('hidden.bs.modal')();
+    assert.equal(document.activeElement, boton);
+    nodos.get('#confirmarEliminar').escuchas.get('click')();
+    assert.ok(api.obtenerIniciativa(nueva.id));
+
+    lista.escuchas.get('click')({ target: { closest: () => boton } });
+    nodos.get('#confirmarEliminar').escuchas.get('click')();
+    boton.isConnected = false;
+    nodos.get('#modalEliminar').escuchas.get('hidden.bs.modal')();
+    assert.equal(api.obtenerIniciativa(nueva.id), null);
+    assert.equal(document.activeElement, nodos.get('#tituloIniciativas'));
+  });
+
+  await t.test('restaurar con Atrás relee persistencia y conserva los filtros incluso tras un error', async () => {
+    const api = await import('../js/iniciativas.js');
+    const [campos] = JSON.parse(await readFile(
+      new URL('../datos/iniciativas.json', import.meta.url), 'utf8'
+    ));
+    const busqueda = nodos.get('#busquedaIniciativas');
+    const tipo = nodos.get('#filtroTipo');
+    busqueda.value = 'restaurada';
+    tipo.value = 'reto';
+    const externa = { ...campos, id: 'externa', titulo: 'Iniciativa restaurada', tipo: 'reto' };
+    almacenamiento.set(clave, JSON.stringify([externa]));
+    await eventosVentana.get('pageshow')({ persisted: false });
+    assert.equal(lista.children.length, 0);
+    await eventosVentana.get('pageshow')({ persisted: true });
+    assert.equal(lista.children.length, 1);
+    assert.equal(api.obtenerIniciativa('externa').titulo, externa.titulo);
+    assert.equal(busqueda.value, 'restaurada');
+    assert.equal(tipo.value, 'reto');
+    assert.equal(cargas, 5);
+
+    almacenamiento.set(clave, '{');
+    await eventosVentana.get('pageshow')({ persisted: true });
+    comprobarError();
+    assert.equal(almacenamiento.get(clave), '{');
+    almacenamiento.set(clave, '[]');
+    await reintentarCarga();
+    assert.equal(lista.children.length, 0);
+    assert.equal(api.obtenerIniciativa('externa'), null);
+    assert.equal(busqueda.value, 'restaurada');
+    assert.equal(tipo.value, 'reto');
+    assert.equal(suscripciones, 1);
   });
 });

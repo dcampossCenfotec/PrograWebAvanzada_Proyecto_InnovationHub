@@ -23,9 +23,9 @@ function notificar() {
   );
 }
 
-/** Carga las iniciativas guardadas o el JSON inicial. */
-export async function cargarIniciativas() {
-  if (iniciativas !== null) return copia(iniciativas);
+/** Permite releer la persistencia al restaurar una página desde la caché. */
+export async function cargarIniciativas({ recargar = false } = {}) {
+  if (iniciativas !== null && !recargar) return copia(iniciativas);
 
   const persistidas = localStorage.getItem(CLAVE);
 
