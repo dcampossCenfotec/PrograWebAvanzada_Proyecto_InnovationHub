@@ -31,7 +31,14 @@
         <div class="collapse navbar-collapse" id="menuPrincipal">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <a class="nav-link" href="index.html">Mis iniciativas</a>
+              <a class="nav-link active" href="index.html" aria-current="page">
+                Inicio
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#catalogo">
+                Catálogo
+              </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="paginas/formulario.html">
@@ -39,7 +46,9 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="paginas/perfil.html">Perfil</a>
+              <a class="nav-link" href="paginas/perfil.html">
+                Perfil
+              </a>
             </li>
           </ul>
         </div>
@@ -59,7 +68,7 @@
       Publicar una iniciativa
     </a>
 
-    <section class="mt-5" aria-labelledby="tituloIniciativas">
+    <section id="catalogo" class="mt-5" aria-labelledby="tituloIniciativas">
       <h2 id="tituloIniciativas">Iniciativas disponibles</h2>
       <div id="estadoIniciativas" role="status" aria-live="polite"></div>
       <div id="listaIniciativas" class="row g-4"></div>
