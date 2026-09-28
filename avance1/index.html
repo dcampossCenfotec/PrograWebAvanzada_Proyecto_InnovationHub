@@ -160,7 +160,7 @@
     <section id="catalogo" class="mt-5" aria-labelledby="tituloIniciativas">
       <h2 id="tituloIniciativas">Iniciativas disponibles</h2>
       <div class="row g-3 mb-4">
-        <div class="col-12 col-lg-8">
+        <div class="col-12">
           <label for="busquedaIniciativas" class="form-label">Buscar iniciativas</label>
           <input id="busquedaIniciativas"
                  type="search"
@@ -174,11 +174,11 @@
             busca en el resumen.
           </div>
         </div>
-        <div class="col-12 col-lg-4">
+        <div class="col-12 col-md-4">
           <label for="filtroTipo" class="form-label">Tipo de iniciativa</label>
           <select id="filtroTipo"
                   class="form-select"
-                  aria-describedby="ayudaTipo"
+                  aria-describedby="ayudaFiltros"
                   aria-controls="listaIniciativas"
                   disabled>
             <option value="">Todos</option>
@@ -186,9 +186,33 @@
             <option value="necesidad">Necesidades</option>
             <option value="reto">Retos</option>
           </select>
-          <div id="ayudaTipo" class="form-text">
-            Las iniciativas restringidas solo aparecen al seleccionar Todos.
-          </div>
+
+        </div>
+        <div class="col-12 col-md-4">
+          <label for="filtroCategoria" class="form-label">Categoría</label>
+          <select id="filtroCategoria"
+                  class="form-select"
+                  aria-describedby="ayudaFiltros"
+                  aria-controls="listaIniciativas"
+                  disabled>
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label for="filtroCompetencia" class="form-label">Competencia</label>
+          <select id="filtroCompetencia"
+                  class="form-select"
+                  aria-describedby="ayudaFiltros"
+                  aria-controls="listaIniciativas"
+                  disabled>
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <p id="ayudaFiltros" class="form-text mb-0">
+            Las iniciativas restringidas solo aparecen sin filtros de tipo,
+            categoría o competencia. Puedes encontrarlas por su resumen.
+          </p>
         </div>
       </div>
       <div id="estadoIniciativas" role="status" aria-live="polite" aria-atomic="true">

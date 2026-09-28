@@ -44,7 +44,8 @@ function texto(nodo) {
 const nodos = new Map([
   '#listaIniciativas', '#estadoIniciativas', '#estadoOperacion',
   '#reintentarCarga', '#modalEliminar', '#mensajeEliminar',
-  '#confirmarEliminar', '#tituloIniciativas', '#busquedaIniciativas', '#filtroTipo'
+  '#confirmarEliminar', '#tituloIniciativas', '#busquedaIniciativas', '#filtroTipo',
+  '#filtroCategoria', '#filtroCompetencia'
 ].map((selector) => [selector, new Nodo()]));
 
 const lista = nodos.get('#listaIniciativas');
@@ -105,6 +106,8 @@ function comprobarError() {
   assert.equal(lista.children.length, 0);
   assert.equal(nodos.get('#busquedaIniciativas').disabled, true);
   assert.equal(nodos.get('#filtroTipo').disabled, true);
+  assert.equal(nodos.get('#filtroCategoria').disabled, true);
+  assert.equal(nodos.get('#filtroCompetencia').disabled, true);
 }
 
 test('gestiona fallos, reintentos, carga, vacío y actualizaciones de la vista', async (t) => {
@@ -209,6 +212,35 @@ test('gestiona fallos, reintentos, carga, vacío y actualizaciones de la vista',
 
     busqueda.value = '';
     busqueda.escuchas.get('input')();
+    assert.equal(lista.children.length, 1);
+
+    const categoria = nodos.get('#filtroCategoria');
+    const competencia = nodos.get('#filtroCompetencia');
+    assert.equal(categoria.disabled, false);
+    assert.equal(competencia.disabled, false);
+    categoria.value = 'educacion';
+    competencia.value = 'agronomia';
+    categoria.escuchas.get('change')();
+    competencia.escuchas.get('change')();
+    assert.equal(lista.children.length, 1);
+
+    const opcionesAntes = competencia.children.map((opcion) => opcion.value);
+    busqueda.value = 'sin resultados';
+    busqueda.escuchas.get('input')();
+    assert.equal(lista.children.length, 0);
+    assert.deepEqual(competencia.children.map((opcion) => opcion.value), opcionesAntes);
+    busqueda.value = '';
+    busqueda.escuchas.get('input')();
+
+    api.actualizarIniciativa(nueva.id, { competencias: ['Robótica'] });
+    assert.equal(lista.children.length, 0);
+    assert.equal(competencia.value, 'agronomia');
+    assert.ok(competencia.children.some((opcion) => opcion.value === 'robotica'));
+    assert.ok(competencia.children.some(
+      (opcion) => opcion.textContent === 'Agronomía (sin disponibles)'
+    ));
+    competencia.value = 'robotica';
+    competencia.escuchas.get('change')();
     assert.equal(lista.children.length, 1);
 
     await lista.escuchas.get('click')({

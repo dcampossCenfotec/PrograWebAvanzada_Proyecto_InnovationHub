@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { filtrarIniciativas, normalizarTexto } from '../js/filtros.js';
+import { filtrarIniciativas, normalizarTexto, obtenerOpciones } from '../js/filtros.js';
 
 const iniciativas = [
   {
@@ -92,6 +92,95 @@ test('no revela el tipo de restringidas aunque coincidan texto y tipo', () => {
   assert.deepEqual(
     filtrarIniciativas(iniciativasPorTipo, { texto: 'ambientales', tipo: '' })
       .map((iniciativa) => iniciativa.id),
+    ['restringida']
+  );
+});
+
+const iniciativasCompletas = [
+  {
+    ...iniciativasPorTipo[0],
+    categoria: 'Educación',
+    competencias: ['Docencia', 'Agronomía']
+  },
+  {
+    ...iniciativasPorTipo[1],
+    categoria: 'Ambiente',
+    competencias: [' agronomía ', 'Diseño']
+  },
+  {
+    ...iniciativasPorTipo[2],
+    categoria: 'educacion',
+    competencias: ['DOCENCIA', 'Robótica']
+  },
+  {
+    ...iniciativasPorTipo[3],
+    categoria: 'Categoría privada',
+    competencias: ['Competencia privada']
+  }
+];
+
+test('genera opciones únicas ordenadas sin metadatos restringidos ni cambios en los datos', () => {
+  const originales = structuredClone(iniciativasCompletas);
+  const opciones = obtenerOpciones(iniciativasCompletas);
+  assert.deepEqual(opciones.categorias, [
+    { valor: 'ambiente', etiqueta: 'Ambiente' },
+    { valor: 'educacion', etiqueta: 'Educación' }
+  ]);
+  assert.deepEqual(opciones.competencias, [
+    { valor: 'agronomia', etiqueta: 'Agronomía' },
+    { valor: 'diseno', etiqueta: 'Diseño' },
+    { valor: 'docencia', etiqueta: 'Docencia' },
+    { valor: 'robotica', etiqueta: 'Robótica' }
+  ]);
+  assert.deepEqual(iniciativasCompletas, originales);
+  assert.deepEqual(obtenerOpciones([]), { categorias: [], competencias: [] });
+});
+
+test('filtra por categoría y por pertenencia a competencias, sin coincidencias parciales', () => {
+  assert.deepEqual(
+    filtrarIniciativas(iniciativasCompletas, { categoria: 'EDUCACIÓN' })
+      .map((iniciativa) => iniciativa.id),
+    ['idea', 'reto']
+  );
+  assert.deepEqual(
+    filtrarIniciativas(iniciativasCompletas, { competencia: 'agronomia' })
+      .map((iniciativa) => iniciativa.id),
+    ['idea', 'necesidad']
+  );
+  assert.deepEqual(
+    filtrarIniciativas(iniciativasCompletas, { competencia: 'agro' }), []
+  );
+});
+
+test('exige simultáneamente texto, tipo, categoría y competencia', () => {
+  const criterios = {
+    texto: 'MENTORIAS', tipo: 'idea', categoria: 'educacion', competencia: 'docencia'
+  };
+  assert.deepEqual(
+    filtrarIniciativas(iniciativasCompletas, criterios).map((iniciativa) => iniciativa.id),
+    ['idea']
+  );
+  for (const [campo, valor] of [
+    ['texto', 'inexistente'], ['tipo', 'necesidad'],
+    ['categoria', 'ambiente'], ['competencia', 'robotica']
+  ]) {
+    assert.deepEqual(
+      filtrarIniciativas(iniciativasCompletas, { ...criterios, [campo]: valor }), []
+    );
+  }
+});
+
+test('excluye restringidas cuando hay un filtro por categoría o competencia', () => {
+  for (const criterios of [
+    { categoria: 'Categoría privada' },
+    { competencia: 'Competencia privada' }
+  ]) {
+    assert.deepEqual(filtrarIniciativas(iniciativasCompletas, criterios), []);
+  }
+  assert.deepEqual(
+    filtrarIniciativas(iniciativasCompletas, {
+      texto: 'ambientales', categoria: '', competencia: ''
+    }).map((iniciativa) => iniciativa.id),
     ['restringida']
   );
 });

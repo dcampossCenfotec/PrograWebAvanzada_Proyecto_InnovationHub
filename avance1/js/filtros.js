@@ -11,11 +11,23 @@ export function normalizarTexto(texto) {
 export function filtrarIniciativas(iniciativas, criterios = {}) {
   const consulta = normalizarTexto(criterios.texto || '');
   const tipo = criterios.tipo || '';
+  const categoria = normalizarTexto(criterios.categoria || '');
+  const competencia = normalizarTexto(criterios.competencia || '');
 
   return iniciativas.filter((iniciativa) => {
-    // No permite deducir el tipo oculto de una iniciativa restringida.
-    if (tipo && (
-      iniciativa.visibilidad === 'restringida' || iniciativa.tipo !== tipo
+    // Los filtros no deben revelar metadatos de iniciativas restringidas.
+    if (iniciativa.visibilidad === 'restringida' && (
+      tipo || categoria || competencia
+    )) {
+      return false;
+    }
+
+    if (tipo && iniciativa.tipo !== tipo) return false;
+    if (categoria && normalizarTexto(iniciativa.categoria) !== categoria) {
+      return false;
+    }
+    if (competencia && !iniciativa.competencias.some(
+      (valor) => normalizarTexto(valor) === competencia
     )) {
       return false;
     }
@@ -29,4 +41,35 @@ export function filtrarIniciativas(iniciativas, criterios = {}) {
 
     return campos.some((campo) => normalizarTexto(campo).includes(consulta));
   });
+}
+
+/** Obtiene opciones únicas de toda la colección, sin exponer datos restringidos. */
+export function obtenerOpciones(iniciativas) {
+  const categorias = new Map();
+  const competencias = new Map();
+
+  for (const iniciativa of iniciativas) {
+    if (iniciativa.visibilidad === 'restringida') continue;
+
+    agregar(categorias, iniciativa.categoria);
+    iniciativa.competencias.forEach((valor) => agregar(competencias, valor));
+  }
+
+  return {
+    categorias: ordenar(categorias),
+    competencias: ordenar(competencias)
+  };
+}
+
+function agregar(opciones, texto) {
+  const valor = normalizarTexto(texto);
+
+  if (valor && !opciones.has(valor)) {
+    opciones.set(valor, texto.trim());
+  }
+}
+
+function ordenar(opciones) {
+  return [...opciones].map(([valor, etiqueta]) => ({ valor, etiqueta }))
+    .sort((a, b) => a.etiqueta.localeCompare(b.etiqueta, 'es'));
 }

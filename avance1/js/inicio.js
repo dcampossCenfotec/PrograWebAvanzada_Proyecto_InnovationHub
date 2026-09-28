@@ -3,9 +3,9 @@ import {
   alCambiarIniciativas,
   eliminarIniciativa
 } from './iniciativas.js';
-import { estado } from './dom.js';
+import { elemento, estado } from './dom.js';
 import { crearTarjeta } from './tarjetas.js';
-import { filtrarIniciativas } from './filtros.js';
+import { filtrarIniciativas, obtenerOpciones } from './filtros.js';
 
 const lista = document.querySelector('#listaIniciativas');
 const aviso = document.querySelector('#estadoIniciativas');
@@ -13,6 +13,8 @@ const avisoOperacion = document.querySelector('#estadoOperacion');
 const reintentar = document.querySelector('#reintentarCarga');
 const busqueda = document.querySelector('#busquedaIniciativas');
 const filtroTipo = document.querySelector('#filtroTipo');
+const filtroCategoria = document.querySelector('#filtroCategoria');
+const filtroCompetencia = document.querySelector('#filtroCompetencia');
 const modal = new bootstrap.Modal(
   document.querySelector('#modalEliminar')
 );
@@ -23,13 +25,46 @@ let iniciativasCargadas = [];
 
 function actualizarCatalogo(iniciativas) {
   iniciativasCargadas = iniciativas;
+  const opciones = obtenerOpciones(iniciativasCargadas);
+  llenarSelector(filtroCategoria, opciones.categorias);
+  llenarSelector(filtroCompetencia, opciones.competencias);
   dibujar();
+}
+
+/** Conserva el criterio seleccionado aunque ya no existan coincidencias. */
+function llenarSelector(selector, opciones) {
+  const seleccion = selector.value;
+  const anterior = [...selector.children].find(
+    (opcion) => opcion.value === seleccion
+  );
+  const todas = elemento('option', 'Todas');
+  todas.value = '';
+  const nodos = opciones.map(({ valor, etiqueta }) => {
+    const opcion = elemento('option', etiqueta);
+    opcion.value = valor;
+    return opcion;
+  });
+
+  if (seleccion && !opciones.some((opcion) => opcion.valor === seleccion)) {
+    const etiqueta = anterior?.textContent || seleccion;
+    const pendiente = elemento(
+      'option',
+      `${etiqueta.replace(/ \(sin disponibles\)$/, '')} (sin disponibles)`
+    );
+    pendiente.value = seleccion;
+    nodos.push(pendiente);
+  }
+
+  selector.replaceChildren(todas, ...nodos);
+  selector.value = seleccion;
 }
 
 function dibujar() {
   const iniciativas = filtrarIniciativas(iniciativasCargadas, {
     texto: busqueda.value,
-    tipo: filtroTipo.value
+    tipo: filtroTipo.value,
+    categoria: filtroCategoria.value,
+    competencia: filtroCompetencia.value
   });
   // Borra las tarjetas anteriores para reflejar los cambios inmediatamente.
   const tarjetas = iniciativas.map(crearTarjeta);
@@ -87,6 +122,8 @@ async function cargarCatalogo() {
   reintentar.disabled = true;
   busqueda.disabled = true;
   filtroTipo.disabled = true;
+  filtroCategoria.disabled = true;
+  filtroCompetencia.disabled = true;
   lista.setAttribute('aria-busy', 'true');
   lista.replaceChildren();
   estado(avisoOperacion, '');
@@ -96,6 +133,8 @@ async function cargarCatalogo() {
     actualizarCatalogo(await cargarIniciativas());
     busqueda.disabled = false;
     filtroTipo.disabled = false;
+    filtroCategoria.disabled = false;
+    filtroCompetencia.disabled = false;
     reintentar.hidden = true;
 
     if (devolverFoco) {
@@ -131,12 +170,14 @@ busqueda.addEventListener('input', () => {
   estado(avisoOperacion, '');
   dibujar();
 });
-filtroTipo.addEventListener('change', () => {
-  if (filtroTipo.disabled) return;
+for (const selector of [filtroTipo, filtroCategoria, filtroCompetencia]) {
+  selector.addEventListener('change', () => {
+    if (selector.disabled) return;
 
-  estado(avisoOperacion, '');
-  dibujar();
-});
+    estado(avisoOperacion, '');
+    dibujar();
+  });
+}
 reintentar.addEventListener('click', cargarCatalogo);
 
 await cargarCatalogo();
