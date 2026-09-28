@@ -159,8 +159,17 @@
 
     <section id="catalogo" class="mt-5" aria-labelledby="tituloIniciativas">
       <h2 id="tituloIniciativas">Iniciativas disponibles</h2>
-      <div id="estadoIniciativas" role="status" aria-live="polite"></div>
-      <div id="listaIniciativas" class="row g-4"></div>
+      <div id="estadoIniciativas" role="status" aria-live="polite" aria-atomic="true">
+        <p class="mb-0">Cargando iniciativas…</p>
+      </div>
+      <button id="reintentarCarga"
+              type="button"
+              class="btn btn-outline-primary my-3"
+              hidden>
+        Reintentar carga
+      </button>
+      <div id="estadoOperacion" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div id="listaIniciativas" class="row g-4" aria-busy="true"></div>
     </section>
   </main>
 

@@ -8,24 +8,27 @@ import { crearTarjeta } from './tarjetas.js';
 
 const lista = document.querySelector('#listaIniciativas');
 const aviso = document.querySelector('#estadoIniciativas');
+const avisoOperacion = document.querySelector('#estadoOperacion');
+const reintentar = document.querySelector('#reintentarCarga');
 const modal = new bootstrap.Modal(
   document.querySelector('#modalEliminar')
 );
 
 let idPendiente = null;
+let cargando = false;
 
 function dibujar(iniciativas) {
   // Borra las tarjetas anteriores para reflejar los cambios inmediatamente.
-  lista.replaceChildren();
+  const tarjetas = iniciativas.map(crearTarjeta);
+  lista.replaceChildren(...tarjetas);
 
   estado(
     aviso,
-    iniciativas.length ? '' : 'No hay iniciativas disponibles.'
+    iniciativas.length
+      ? `Iniciativas disponibles: ${iniciativas.length}.`
+      : 'No hay iniciativas disponibles.',
+    iniciativas.length ? 'text-body-secondary mb-3' : 'alert alert-info'
   );
-
-  for (const iniciativa of iniciativas) {
-    lista.append(crearTarjeta(iniciativa));
-  }
 }
 
 // Un único listener funciona incluso después de volver a dibujar las tarjetas.
@@ -52,7 +55,7 @@ document
     modal.hide();
 
     estado(
-      aviso,
+      avisoOperacion,
       eliminada
         ? 'Iniciativa eliminada. El listado ya está actualizado.'
         : 'No se pudo eliminar esta iniciativa.',
@@ -60,15 +63,49 @@ document
     );
   });
 
-estado(aviso, 'Cargando iniciativas…');
+/** Reutiliza la API compartida y evita cargas simultáneas desde esta vista. */
+async function cargarCatalogo() {
+  if (cargando) return;
 
-try {
-  dibujar(await cargarIniciativas());
-  alCambiarIniciativas(dibujar);
-} catch (error) {
-  estado(
-    aviso,
-    `No se pudieron cargar las iniciativas: ${error.message}`,
-    'alert alert-danger'
-  );
+  const devolverFoco = document.activeElement === reintentar;
+  cargando = true;
+  reintentar.disabled = true;
+  lista.setAttribute('aria-busy', 'true');
+  lista.replaceChildren();
+  estado(avisoOperacion, '');
+  estado(aviso, 'Cargando iniciativas…', 'text-body-secondary mb-3');
+
+  try {
+    dibujar(await cargarIniciativas());
+    reintentar.hidden = true;
+
+    if (devolverFoco) {
+      const titulo = document.querySelector('#tituloIniciativas');
+      titulo.setAttribute('tabindex', '-1');
+      titulo.focus();
+    }
+  } catch (error) {
+    lista.replaceChildren();
+    estado(
+      aviso,
+      `No se pudieron cargar las iniciativas: ${error.message} Puedes reintentar la carga.`,
+      'alert alert-danger'
+    );
+    reintentar.hidden = false;
+
+    if (devolverFoco) {
+      reintentar.disabled = false;
+      reintentar.focus();
+    }
+  } finally {
+    cargando = false;
+    reintentar.disabled = false;
+    lista.setAttribute('aria-busy', 'false');
+  }
 }
+
+// Se registran una sola vez, independientemente del número de reintentos.
+alCambiarIniciativas(dibujar);
+reintentar.addEventListener('click', cargarCatalogo);
+
+await cargarCatalogo();
