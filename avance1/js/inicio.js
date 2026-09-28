@@ -15,6 +15,7 @@ const busqueda = document.querySelector('#busquedaIniciativas');
 const filtroTipo = document.querySelector('#filtroTipo');
 const filtroCategoria = document.querySelector('#filtroCategoria');
 const filtroCompetencia = document.querySelector('#filtroCompetencia');
+const limpiarFiltros = document.querySelector('#limpiarFiltros');
 const modal = new bootstrap.Modal(
   document.querySelector('#modalEliminar')
 );
@@ -70,13 +71,19 @@ function dibujar() {
   const tarjetas = iniciativas.map(crearTarjeta);
   lista.replaceChildren(...tarjetas);
 
+  const total = iniciativasCargadas.length;
+  const contador = `Mostrando ${iniciativas.length} de ${total} ${
+    total === 1 ? 'iniciativa' : 'iniciativas'
+  }.`;
+  const mensaje = total === 0
+    ? 'No hay iniciativas disponibles. Puedes publicar una nueva iniciativa.'
+    : iniciativas.length === 0
+      ? 'No se encontraron iniciativas con estos criterios. Cambia los criterios o pulsa Limpiar filtros.'
+      : '';
+
   estado(
     aviso,
-    iniciativas.length
-      ? `Iniciativas disponibles: ${iniciativas.length}.`
-      : iniciativasCargadas.length
-        ? 'No se encontraron iniciativas con estos criterios.'
-        : 'No hay iniciativas disponibles.',
+    mensaje ? `${contador} ${mensaje}` : contador,
     iniciativas.length ? 'text-body-secondary mb-3' : 'alert alert-info'
   );
 }
@@ -124,6 +131,7 @@ async function cargarCatalogo() {
   filtroTipo.disabled = true;
   filtroCategoria.disabled = true;
   filtroCompetencia.disabled = true;
+  limpiarFiltros.disabled = true;
   lista.setAttribute('aria-busy', 'true');
   lista.replaceChildren();
   estado(avisoOperacion, '');
@@ -135,6 +143,7 @@ async function cargarCatalogo() {
     filtroTipo.disabled = false;
     filtroCategoria.disabled = false;
     filtroCompetencia.disabled = false;
+    limpiarFiltros.disabled = false;
     reintentar.hidden = true;
 
     if (devolverFoco) {
@@ -178,6 +187,18 @@ for (const selector of [filtroTipo, filtroCategoria, filtroCompetencia]) {
     dibujar();
   });
 }
+limpiarFiltros.addEventListener('click', () => {
+  if (limpiarFiltros.disabled) return;
+
+  busqueda.value = '';
+  filtroTipo.value = '';
+  filtroCategoria.value = '';
+  filtroCompetencia.value = '';
+  estado(avisoOperacion, '');
+  // Regenera opciones para retirar criterios antiguos marcados sin disponibles.
+  actualizarCatalogo(iniciativasCargadas);
+  busqueda.focus();
+});
 reintentar.addEventListener('click', cargarCatalogo);
 
 await cargarCatalogo();

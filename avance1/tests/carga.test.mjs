@@ -45,7 +45,7 @@ const nodos = new Map([
   '#listaIniciativas', '#estadoIniciativas', '#estadoOperacion',
   '#reintentarCarga', '#modalEliminar', '#mensajeEliminar',
   '#confirmarEliminar', '#tituloIniciativas', '#busquedaIniciativas', '#filtroTipo',
-  '#filtroCategoria', '#filtroCompetencia'
+  '#filtroCategoria', '#filtroCompetencia', '#limpiarFiltros'
 ].map((selector) => [selector, new Nodo()]));
 
 const lista = nodos.get('#listaIniciativas');
@@ -108,6 +108,7 @@ function comprobarError() {
   assert.equal(nodos.get('#filtroTipo').disabled, true);
   assert.equal(nodos.get('#filtroCategoria').disabled, true);
   assert.equal(nodos.get('#filtroCompetencia').disabled, true);
+  assert.equal(nodos.get('#limpiarFiltros').disabled, true);
 }
 
 test('gestiona fallos, reintentos, carga, vacío y actualizaciones de la vista', async (t) => {
@@ -171,7 +172,7 @@ test('gestiona fallos, reintentos, carga, vacío y actualizaciones de la vista',
     ));
     const nueva = api.crearIniciativa(campos);
     assert.equal(lista.children.length, 1);
-    assert.match(texto(aviso), /Iniciativas disponibles: 1/);
+    assert.match(texto(aviso), /Mostrando 1 de 1 iniciativa\./);
 
     const busqueda = nodos.get('#busquedaIniciativas');
     assert.equal(busqueda.disabled, false);
@@ -254,5 +255,60 @@ test('gestiona fallos, reintentos, carga, vacío y actualizaciones de la vista',
     assert.match(texto(nodos.get('#estadoOperacion')), /Iniciativa eliminada/);
     assert.equal(cargas, 5);
     assert.equal(suscripciones, 1);
+  });
+
+  await t.test('limpia todos los criterios, retira opciones obsoletas y recupera los resultados', async () => {
+    const api = await import('../js/iniciativas.js');
+    const [campos] = JSON.parse(await readFile(
+      new URL('../datos/iniciativas.json', import.meta.url), 'utf8'
+    ));
+    const primera = api.crearIniciativa(campos);
+    const segunda = api.crearIniciativa({ ...campos, tipo: 'reto' });
+    const busqueda = nodos.get('#busquedaIniciativas');
+    const tipo = nodos.get('#filtroTipo');
+    const categoria = nodos.get('#filtroCategoria');
+    const competencia = nodos.get('#filtroCompetencia');
+    const limpiar = nodos.get('#limpiarFiltros');
+
+    limpiar.escuchas.get('click')();
+    assert.match(texto(aviso), /Mostrando 2 de 2 iniciativas/);
+    busqueda.value = 'huertos';
+    tipo.value = 'idea';
+    categoria.value = 'educacion';
+    competencia.value = 'agronomia';
+    competencia.focus();
+    competencia.escuchas.get('change')();
+    assert.equal(lista.children.length, 1);
+    assert.match(texto(aviso), /Mostrando 1 de 2 iniciativas/);
+    assert.equal(document.activeElement, competencia);
+
+    api.actualizarIniciativa(primera.id, { competencias: ['Robótica'] });
+    api.actualizarIniciativa(segunda.id, { competencias: ['Robótica'] });
+    assert.match(texto(aviso), /Mostrando 0 de 2 iniciativas/);
+    assert.match(texto(aviso), /pulsa Limpiar filtros/);
+    assert.ok(competencia.children.some(
+      (opcion) => opcion.textContent === 'Agronomía (sin disponibles)'
+    ));
+
+    const persistidas = almacenamiento.get(clave);
+    limpiar.focus();
+    limpiar.escuchas.get('click')();
+    for (const control of [busqueda, tipo, categoria, competencia]) {
+      assert.equal(control.value, '');
+    }
+    assert.equal(lista.children.length, 2);
+    assert.match(texto(aviso), /Mostrando 2 de 2 iniciativas/);
+    assert.equal(document.activeElement, busqueda);
+    assert.ok(!competencia.children.some((opcion) => opcion.value === 'agronomia'));
+    assert.equal(almacenamiento.get(clave), persistidas);
+    assert.equal(cargas, 5);
+    assert.equal(suscripciones, 1);
+
+    api.eliminarIniciativa(primera.id);
+    api.eliminarIniciativa(segunda.id);
+    limpiar.escuchas.get('click')();
+    assert.match(texto(aviso), /Mostrando 0 de 0 iniciativas/);
+    assert.match(texto(aviso), /No hay iniciativas disponibles/);
+    assert.doesNotMatch(texto(aviso), /No se encontraron/);
   });
 });

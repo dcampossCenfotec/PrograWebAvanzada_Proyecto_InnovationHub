@@ -184,3 +184,27 @@ test('excluye restringidas cuando hay un filtro por categoría o competencia', (
     ['restringida']
   );
 });
+
+test('resuelve las 16 combinaciones de criterios activos y vacíos', () => {
+  const criterios = {
+    texto: 'mentorias', tipo: 'idea', categoria: 'educacion', competencia: 'docencia'
+  };
+  const campos = Object.keys(criterios);
+
+  for (let mascara = 0; mascara < 16; mascara += 1) {
+    const activos = Object.fromEntries(campos.map((campo, indice) => [
+      campo, mascara & (1 << indice) ? criterios[campo] : ''
+    ]));
+    const resultado = filtrarIniciativas(iniciativasCompletas, activos)
+      .map((iniciativa) => iniciativa.id);
+    const esperados = activos.tipo
+      ? ['idea']
+      : activos.categoria || activos.competencia
+        ? ['idea', 'reto']
+        : activos.texto
+          ? ['idea', 'necesidad', 'reto']
+          : ['idea', 'necesidad', 'reto', 'restringida'];
+
+    assert.deepEqual(resultado, esperados, JSON.stringify(activos));
+  }
+});
