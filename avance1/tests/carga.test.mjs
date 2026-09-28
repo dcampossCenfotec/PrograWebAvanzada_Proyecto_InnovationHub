@@ -6,6 +6,7 @@ import { readFile } from 'node:fs/promises';
 class Nodo {
   constructor() {
     this.textContent = '';
+    this.value = '';
     this.children = [];
     this.dataset = {};
     this.atributos = {};
@@ -43,7 +44,7 @@ function texto(nodo) {
 const nodos = new Map([
   '#listaIniciativas', '#estadoIniciativas', '#estadoOperacion',
   '#reintentarCarga', '#modalEliminar', '#mensajeEliminar',
-  '#confirmarEliminar', '#tituloIniciativas'
+  '#confirmarEliminar', '#tituloIniciativas', '#busquedaIniciativas'
 ].map((selector) => [selector, new Nodo()]));
 
 const lista = nodos.get('#listaIniciativas');
@@ -102,6 +103,7 @@ function comprobarError() {
   assert.equal(reintentar.disabled, false);
   assert.equal(lista.atributos['aria-busy'], 'false');
   assert.equal(lista.children.length, 0);
+  assert.equal(nodos.get('#busquedaIniciativas').disabled, true);
 }
 
 test('gestiona fallos, reintentos, carga, vacío y actualizaciones de la vista', async (t) => {
@@ -166,6 +168,23 @@ test('gestiona fallos, reintentos, carga, vacío y actualizaciones de la vista',
     const nueva = api.crearIniciativa(campos);
     assert.equal(lista.children.length, 1);
     assert.match(texto(aviso), /Iniciativas disponibles: 1/);
+
+    const busqueda = nodos.get('#busquedaIniciativas');
+    assert.equal(busqueda.disabled, false);
+    busqueda.focus();
+    busqueda.value = 'sin coincidencias';
+    busqueda.escuchas.get('input')();
+    assert.equal(lista.children.length, 0);
+    assert.match(texto(aviso), /No se encontraron iniciativas con ese texto/);
+    assert.equal(document.activeElement, busqueda);
+
+    api.actualizarIniciativa(nueva.id, { titulo: 'Sin coincidencias anteriores' });
+    assert.equal(lista.children.length, 1);
+    assert.equal(busqueda.value, 'sin coincidencias');
+
+    busqueda.value = '';
+    busqueda.escuchas.get('input')();
+    assert.equal(lista.children.length, 1);
 
     await lista.escuchas.get('click')({
       target: {

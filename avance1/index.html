@@ -159,6 +159,22 @@
 
     <section id="catalogo" class="mt-5" aria-labelledby="tituloIniciativas">
       <h2 id="tituloIniciativas">Iniciativas disponibles</h2>
+      <div class="row mb-4">
+        <div class="col-12 col-lg-8">
+          <label for="busquedaIniciativas" class="form-label">Buscar iniciativas</label>
+          <input id="busquedaIniciativas"
+                 type="search"
+                 class="form-control"
+                 placeholder="Ejemplo: huertos o accesibilidad"
+                 aria-describedby="ayudaBusqueda"
+                 aria-controls="listaIniciativas"
+                 disabled>
+          <div id="ayudaBusqueda" class="form-text">
+            Busca por título o resumen. En iniciativas restringidas, solo se
+            busca en el resumen.
+          </div>
+        </div>
+      </div>
       <div id="estadoIniciativas" role="status" aria-live="polite" aria-atomic="true">
         <p class="mb-0">Cargando iniciativas…</p>
       </div>
