@@ -1,10 +1,10 @@
 import {
   cargarIniciativas,
   alCambiarIniciativas,
-  eliminarIniciativa,
-  USUARIO_ACTUAL
+  eliminarIniciativa
 } from './iniciativas.js';
-import { elemento, estado } from './dom.js';
+import { estado } from './dom.js';
+import { crearTarjeta } from './tarjetas.js';
 
 const lista = document.querySelector('#listaIniciativas');
 const aviso = document.querySelector('#estadoIniciativas');
@@ -24,71 +24,7 @@ function dibujar(iniciativas) {
   );
 
   for (const iniciativa of iniciativas) {
-    const columna = elemento(
-      'div',
-      '',
-      'col-12 col-md-6 col-xl-4'
-    );
-
-    const tarjeta = elemento(
-      'article',
-      '',
-      'card h-100 shadow-sm'
-    );
-
-    const cuerpo = elemento(
-      'div',
-      '',
-      'card-body d-flex flex-column'
-    );
-
-    cuerpo.append(
-      elemento(
-        'span',
-        iniciativa.tipo,
-        'badge text-bg-secondary align-self-start mb-2'
-      ),
-      elemento('h3', iniciativa.titulo, 'h5 card-title'),
-      elemento('p', iniciativa.resumen, 'card-text')
-    );
-
-    const enlace = elemento(
-      'a',
-      'Ver detalle',
-      'btn btn-outline-primary mt-auto'
-    );
-
-    enlace.href =
-      `paginas/detalle.html?id=${encodeURIComponent(iniciativa.id)}`;
-
-    cuerpo.append(enlace);
-
-    // Solo las iniciativas propias muestran acciones de edición y borrado.
-    if (iniciativa.propietario === USUARIO_ACTUAL) {
-      const editar = elemento(
-        'a',
-        'Editar',
-        'btn btn-outline-secondary mt-2'
-      );
-
-      editar.href =
-        `paginas/formulario.html?id=${encodeURIComponent(iniciativa.id)}`;
-
-      const eliminar = elemento(
-        'button',
-        'Eliminar',
-        'btn btn-outline-danger mt-2'
-      );
-
-      eliminar.type = 'button';
-      eliminar.dataset.eliminarId = iniciativa.id;
-
-      cuerpo.append(editar, eliminar);
-    }
-
-    tarjeta.append(cuerpo);
-    columna.append(tarjeta);
-    lista.append(columna);
+    lista.append(crearTarjeta(iniciativa));
   }
 }
 
