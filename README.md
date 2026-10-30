@@ -62,6 +62,12 @@ Estas páginas son marcadores navegables. UI01 no afirma que autenticación, API
 
 Los componentes disponibles son `AppLayout`, `Navbar`, `PageHeader`, `StatusPanel` y `ConfirmDialog`. El menú y el diálogo son controlados por React; el diálogo usa el elemento nativo `dialog` para modalidad y restauración del foco. Durante `npm run dev`, `/componentes` permite probar estados y confirmación; esa ruta se excluye del build de producción.
 
+#### Cliente HTTP y mock local
+
+`cliente/src/api/` centraliza URL base, query, JSON, token Bearer, timeout, cancelación y errores uniformes. Los servicios de dominio reflejan los 26 endpoints de [`docs/api-contract.md`](docs/api-contract.md). `useApiQuery` separa carga, éxito, vacío y error, cancela consultas desmontadas e impide que una respuesta anterior reemplace una búsqueda más reciente.
+
+El modo normal consulta `http://localhost:3000/api`. Para desarrollar lecturas antes de disponer del servidor, crear `cliente/.env.local` con `VITE_API_MODE=mock`; los datos se importan desde `pruebas/fixtures/`. Las mutaciones del mock fallan explícitamente con `501` hasta sus tareas funcionales y un build con modo mock se rechaza. La configuración, tokens sintéticos y recorrido de `/api-demo` están documentados en [`cliente/README.md`](cliente/README.md).
+
 Sass 1.107.0 informa cuatro deprecaciones por los `@import` de `app.scss`. Bootstrap 5.3 todavía distribuye su entrada Sass con el sistema heredado: `quietDeps` evita repetir cientos de avisos internos, pero conserva los avisos del código propio. Migrar mecánicamente a `@use` sin compatibilidad completa de Bootstrap no forma parte de este avance.
 
 ### Modelo y fixtures compartidos

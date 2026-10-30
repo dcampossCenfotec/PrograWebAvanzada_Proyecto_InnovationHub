@@ -24,6 +24,14 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-10-29 | CO01 | Node 24.21.0; validador sin dependencias | `node pruebas/fixtures/validate-fixtures.mjs` | 5 usuarios, 8 categorías, 10 competencias, 8 iniciativas, 5 solicitudes, 12 membresías, 13 eventos y 1 proyecto; referencias/estados/invariantes aprobados | Sin commit |
 | 2026-10-29 | CO01 | Python 3; parser JSON | `python3 -m json.tool` sobre cada `pruebas/fixtures/*.json` | Todos los archivos JSON válidos | Sin commit |
 | 2026-10-29 | CO01 | Revisión manual de Daniel | Recorrido de actores, visibilidades, borrado/archivo, reintentos, estimación superada, conversión, mapeo heredado y modelo | Daniel confirmó todos los escenarios; revisión cruzada de Francisco pendiente | Sin commit |
+| 2026-10-30 | UI03 | npm 12.2.0 | Instalar Vitest, jsdom y Testing Library como dependencias de desarrollo | 64 paquetes instalados; 0 vulnerabilidades. npm bloqueó scripts opcionales de `fsevents`/`@parcel/watcher` sin impedir instalación ni pruebas | Sin commit |
+| 2026-10-30 | UI03 | Vitest 5.0.5 y ESLint | Primera ejecución de `cd cliente && npm test` | 29 pruebas aprobadas; ESLint rechazó un `setState` síncrono dentro de `useEffect` | Sin commit |
+| 2026-10-30 | UI03 | Vitest 5.0.5 | Segunda ejecución después de programar los cambios de estado del hook | 27 aprobadas y 2 fallidas: las pruebas todavía asumían carga e invocación síncronas | Sin commit |
+| 2026-10-30 | UI03 | Node 24.21.0; Vitest/ESLint/Vite | `cd cliente && npm test` después de ajustar el estado inicial y capturar errores síncronos | 29 pruebas aprobadas; ESLint aprobado; build aprobado con 119 módulos | Sin commit |
+| 2026-10-30 | UI03 | Bundle de producción | Reconstruir tras limitar mocks a `import.meta.env.DEV`; listar assets y buscar `mock-owner-token` | 112 módulos; no se generó chunk mock y el token sintético no aparece en `dist/` | Sin commit |
+| 2026-10-30 | UI03 | Vite 8.3.5 | `VITE_API_MODE=mock npm run build` | Falló de forma deliberada con “VITE_API_MODE=mock no está permitido en builds de producción” | Sin commit |
+| 2026-10-30 | UI03 | Vite local en modo mock | Solicitar `/api-demo`, router, vista, cliente y módulo mock mediante HTTP | Ruta y módulos respondieron correctamente; quedan recorrido visual e interacción manual de Daniel | Sin commit |
+| 2026-10-30 | UI03 | Node 24.21.0; Vitest/ESLint/Vite | `cd cliente && npm test` después de alinear iniciativas, solicitudes y proyectos mock con los DTO públicos | 31 pruebas aprobadas; ESLint aprobado; build aprobado con 112 módulos | Sin commit |
 
 ## Plantilla de entrada
 
@@ -86,3 +94,16 @@ Resultado de UI01: **verificación automática aprobada; recorrido manual de Dan
 - [ ] Comparar colores, tipografía y bordes con Avance 1 sin exigir una copia pixel a pixel.
 
 Resultado de UI02: **lint/build aprobados; revisión visual, responsive y teclado de Daniel y revisión cruzada de Francisco pendientes**.
+
+## Revisión manual UI03
+
+- [ ] En modo mock, abrir `/api-demo` y confirmar que aparecen 10 competencias después de la carga.
+- [ ] Buscar `desarrollo` y confirmar que queda “Desarrollo web”.
+- [ ] Buscar `zzzz` y confirmar el estado “Sin coincidencias”.
+- [ ] Buscar una sola letra y confirmar `INVALID_QUERY` con estado HTTP 400; pulsar Reintentar.
+- [ ] Escribir rápidamente `desarrollo`, borrar y escribir `zzzz`; confirmar que una respuesta anterior no sobrescribe el último estado. La carrera A lenta/B rápida también está cubierta por Vitest.
+- [ ] Definir `mock-owner-token` en `sessionStorage`, recargar y consultar desde consola un endpoint protegido si se desea revisar la identidad sintética.
+- [ ] Cambiar a modo real sin servidor, reiniciar Vite y confirmar el estado `NETWORK_ERROR`; después levantar Express y comprobar que la misma vista consulta la URL configurada.
+- [ ] Comprobar teclado, foco visible y zoom al 200 % en el buscador y el botón de reintento.
+
+Resultado de UI03: **31 pruebas, lint, build, aislamiento de mocks y ruta local aprobados; recorrido manual de Daniel y revisión cruzada de Francisco pendientes**.
