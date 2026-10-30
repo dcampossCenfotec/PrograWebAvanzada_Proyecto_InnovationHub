@@ -6,9 +6,9 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 
 - **Entrega usada por el equipo:** 8 de noviembre de 2026, fecha corregida por Daniel respecto al documento recibido.
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
-- **Daniel Campos Sánchez:** base React; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; contrato; modelo y fixtures; colección Postman; integración/README; guía de defensa y entrega.
-- **Francisco José Torres Sandoval:** base Express/MongoDB; iniciativas/catálogos; solicitudes recibidas; equipos y consistencia API.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 18 tareas a Daniel y 16 a Francisco; después de CO00, UI01 y UI02 quedan 15 y 16, respectivamente.
+- **Daniel Campos Sánchez:** base React; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; CO00–CO01; modelo y fixtures; colección Postman y QA del cliente.
+- **Francisco José Torres Sandoval:** base Express/MongoDB; iniciativas/catálogos; solicitudes recibidas; equipos; consistencia API; CO02–CO04; integración/README; guía de defensa y entrega.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01, UI01 y UI02 quedan 11 y 19, respectivamente. Daniel debe entregar comandos, evidencia y defectos conocidos de sus módulos antes de CO02.
 
 Documentos vigentes:
 
@@ -30,6 +30,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | `17dba85` | 2026-10-29 | Daniel | CO00 | Contrato HTTP y alcance | 26 endpoints; 31 pruebas heredadas; revisión de Francisco pendiente |
 | `01c5658` | 2026-10-29 | Daniel | UI01 | Base React y rutas del sistema | `npm ci`, ESLint, build y 20 URLs aprobados; revisión de Francisco pendiente |
 | `7d71af3` | 2026-10-29 | Daniel | UI02 | Tema Sass y componentes compartidos | ESLint/build aprobados; revisión responsive y teclado pendiente |
+| `18dfd7c` | 2026-10-29 | Daniel | CO01 | Modelo, fixtures y matriz de pruebas | Validador estructural y recorrido manual aprobados; revisión de Francisco pendiente |
 
 ### Cliente React
 
