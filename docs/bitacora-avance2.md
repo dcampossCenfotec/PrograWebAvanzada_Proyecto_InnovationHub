@@ -37,6 +37,14 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-10-30 | API01 | Proceso Express local | Consultar health, ruta inexistente, preflight permitido, origen rechazado y JSON roto mediante `fetch` de Node | Estados 200/404/204/403/400; cuerpos uniformes y `X-Request-Id` presentes | Sin commit |
 | 2026-10-30 | API01 | Sandbox restringido | Primera reproducción `npm ci && npm run check` | `npm ci` bloqueado por `EPERM` al reemplazar `node_modules/.package-lock.json`; fallo del permiso, no del lockfile | Sin commit |
 | 2026-10-30 | API01 | Node 24.21.0; permiso de escritura del repositorio | Repetir `npm ci && npm run check` | 164 paquetes reproducidos, 0 vulnerabilidades, ESLint y 12 pruebas aprobados | Sin commit |
+| 2026-10-30 | API01 | Git `main` | Commit y push de la base Express verificada | Publicado `25e0206` en `origin/main` | `25e0206` |
+| 2026-10-30 | API02 | npm 12.2.0 | Instalar Mongoose 9.11.4 con lockfile | 17 paquetes agregados; 182 auditados; 0 vulnerabilidades | Sin commit |
+| 2026-10-30 | API02 | Node 24.21.0; ESLint; fixtures | `cd servidor && npm run check` | 21 pruebas aprobadas, 1 integración omitida sin variables; ESLint y fixtures CO01 aprobados | Sin commit |
+| 2026-10-30 | API02 | MongoDB Community 8.0.34; replica set temporal real | `npm run test:integration` con base `innovation_hub_test` | Seed dos veces 8/10, índices únicos, persistencia tras reconexión y rollback total aprobados | Sin commit |
+| 2026-10-30 | API02 | MongoDB Community 8.0.34 | Ejecutar `npm run seed` dos veces | Ambas ejecuciones conservaron 8 categorías y 10 competencias | Sin commit |
+| 2026-10-30 | API02 | MongoDB Community 8.0.34 | Reset protegido de `innovation_hub_test` y nuevo seed | Base de prueba eliminada y recuperada; ninguna base de desarrollo fue afectada | Sin commit |
+| 2026-10-30 | API02 | Express y MongoDB reales | Iniciar API en 127.0.0.1:3100, consultar health y detener | HTTP 200, `X-Request-Id` UUID y conexión DB previa a la escucha | Sin commit |
+| 2026-10-30 | API02 | macOS sin Docker | `docker version` | Comando ausente; Compose queda pendiente de reproducción manual. La validación DB se realizó con binario oficial nativo | Sin commit |
 
 ## Plantilla de entrada
 
@@ -125,3 +133,17 @@ Resultado de UI03: **31 pruebas, lint, build, aislamiento de mocks y ruta local 
 - [ ] Detener con `Ctrl+C` y confirmar que el puerto queda libre.
 
 Resultado de API01: **instalación reproducible, lint, 12 pruebas y proceso HTTP real aprobados; recorrido manual de Daniel y revisión cruzada de Francisco pendientes**.
+
+## Revisión manual API02
+
+- [ ] Instalar o abrir Docker y confirmar que `docker compose version` responde.
+- [ ] Desde la raíz, ejecutar `docker compose up -d`; `mongo` queda saludable y `mongo-init` termina con código 0.
+- [ ] Copiar `servidor/.env.example` a `.env` y `.env.test.example` a `.env.test`.
+- [ ] Ejecutar `npm ci --cache /private/tmp/innovation-hub-npm-cache` y `npm run check`.
+- [ ] Ejecutar `npm run seed` dos veces; ambas muestran 8 categorías y 10 competencias.
+- [ ] Ejecutar `npm run test:integration`; seed, unicidad, persistencia y rollback aprueban sin omisiones.
+- [ ] Ejecutar `npm start` y consultar `/api/health`; la API no debe escuchar si MongoDB está detenido.
+- [ ] Ejecutar `npm run db:reset:test`; solo `innovation_hub_test` se elimina y puede recuperarse con seed.
+- [ ] Detener con `Ctrl+C` y confirmar cierre de HTTP y de la conexión MongoDB; `docker compose down` conserva el volumen.
+
+Resultado de API02: **unidad, fixtures, seed, índices, persistencia, rollback, reset y arranque real aprobados con MongoDB nativo 8.0.34; reproducción de Docker Compose y revisión cruzada de Francisco pendientes**.

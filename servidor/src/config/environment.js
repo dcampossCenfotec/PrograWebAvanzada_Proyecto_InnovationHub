@@ -1,5 +1,6 @@
 const allowedEnvironments = new Set(['development', 'test', 'production'])
 const bodyLimitPattern = /^[1-9]\d*(?:kb|mb)$/i
+const databaseNamePattern = /^[A-Za-z0-9_-]{1,64}$/
 
 export class ConfigurationError extends Error {
   constructor(message) {
@@ -14,12 +15,12 @@ function readRequired(environment, name) {
   return value
 }
 
-function parsePort(value) {
-  const port = Number(value)
-  if (!Number.isInteger(port) || port < 1 || port > 65535) {
-    throw new ConfigurationError('PORT debe ser un entero entre 1 y 65535.')
+function parseInteger(value, name, { minimum, maximum }) {
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed < minimum || parsed > maximum) {
+    throw new ConfigurationError(`${name} debe ser un entero entre ${minimum} y ${maximum}.`)
   }
-  return port
+  return parsed
 }
 
 function parseOrigin(value) {
@@ -43,6 +44,27 @@ function parseOrigin(value) {
   return url.origin
 }
 
+function parseMongoUri(value) {
+  if (!/^mongodb(?:\+srv)?:\/\//.test(value)) {
+    throw new ConfigurationError('MONGODB_URI debe usar el protocolo mongodb o mongodb+srv.')
+  }
+  try {
+    new URL(value)
+  } catch {
+    throw new ConfigurationError('MONGODB_URI no tiene un formato válido.')
+  }
+  return value
+}
+
+function parseDatabaseName(value) {
+  if (!databaseNamePattern.test(value) || ['admin', 'config', 'local'].includes(value.toLowerCase())) {
+    throw new ConfigurationError(
+      'MONGODB_DATABASE debe tener 1 a 64 letras, números, guiones o guiones bajos y no puede ser una base reservada.',
+    )
+  }
+  return value
+}
+
 export function loadEnvironment(environment = process.env) {
   const nodeEnvironment = (environment.NODE_ENV || 'development').trim()
   if (!allowedEnvironments.has(nodeEnvironment)) {
@@ -62,8 +84,15 @@ export function loadEnvironment(environment = process.env) {
   return Object.freeze({
     nodeEnvironment,
     host,
-    port: parsePort(readRequired(environment, 'PORT')),
+    port: parseInteger(readRequired(environment, 'PORT'), 'PORT', { minimum: 1, maximum: 65535 }),
     clientOrigin: parseOrigin(readRequired(environment, 'CLIENT_ORIGIN')),
     bodyLimit: bodyLimit.toLowerCase(),
+    mongoUri: parseMongoUri(readRequired(environment, 'MONGODB_URI')),
+    mongoDatabase: parseDatabaseName(readRequired(environment, 'MONGODB_DATABASE')),
+    mongoConnectTimeoutMs: parseInteger(
+      environment.MONGODB_CONNECT_TIMEOUT_MS || '5000',
+      'MONGODB_CONNECT_TIMEOUT_MS',
+      { minimum: 100, maximum: 60000 },
+    ),
   })
 }

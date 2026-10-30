@@ -1,6 +1,6 @@
 # Modelo de datos — Innovation Hub
 
-Estado: diseño compartido de CO01 para implementar en API02 y en los módulos de dominio posteriores. El contrato público continúa en [`api-contract.md`](api-contract.md); este documento describe persistencia, relaciones e integridad. Si ambos documentos difieren, se corrige la diferencia antes de implementar, no se crea un tercer contrato en Mongoose.
+Estado: diseño compartido de CO01. API02 ya implementa la conexión, las transacciones base y los catálogos; los módulos de dominio posteriores completan sus esquemas e índices. El contrato público continúa en [`api-contract.md`](api-contract.md); este documento describe persistencia, relaciones e integridad. Si ambos documentos difieren, se corrige la diferencia antes de implementar, no se crea un tercer contrato en Mongoose.
 
 ## Principios
 
@@ -149,11 +149,11 @@ Los DTO públicos no cambian al migrar: repositorios traducen documentos o filas
 
 Los archivos JSON son datos compartidos de mocks/seed, no volcados de MongoDB. El validador `node pruebas/fixtures/validate-fixtures.mjs` comprueba UUID, referencias, estados, cuatro visibilidades, propietario activo, una sola solicitud pendiente por pareja y un solo proyecto por iniciativa.
 
-## Decisiones que Francisco debe revisar antes de API02
+## Revisión cruzada requerida después de API02
 
 - Confirmar que los índices parciales se expresan igual en Mongoose y en la inicialización de la base.
 - Confirmar que el seed puede ejecutarse varias veces por `id` sin duplicar y que solo limpia la base de prueba indicada.
 - Confirmar que las sesiones y hashes quedan fuera de los fixtures de dominio.
-- Probar las transacciones con replica set real antes de implementar aceptación, retiro o conversión.
+- Revisar la prueba real de rollback de API02 antes de implementar aceptación, retiro o conversión.
 - Mantener `id` UUID en repositorios/DTO y evitar que `_id` se filtre al cliente.
 

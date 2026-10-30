@@ -8,7 +8,7 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
 - **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; CO00–CO01; modelo y fixtures.
 - **Francisco José Torres Sandoval:** iniciativas/catálogos; solicitudes recibidas; equipos; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01 y UI01–UI03 quedan 10 y 19, respectivamente. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de sus módulos antes de CO02.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01, UI01–UI03 y API01–API02 quedan 8 y 19, respectivamente. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de sus módulos antes de CO02.
 
 Documentos vigentes:
 
@@ -32,6 +32,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | `7d71af3` | 2026-10-29 | Daniel | UI02 | Tema Sass y componentes compartidos | ESLint/build aprobados; revisión responsive y teclado pendiente |
 | `18dfd7c` | 2026-10-29 | Daniel | CO01 | Modelo, fixtures y matriz de pruebas | Validador estructural y recorrido manual aprobados; revisión de Francisco pendiente |
 | `c1c6eba` | 2026-10-30 | Daniel | UI03 | Cliente HTTP, servicios, mocks y estados de consulta | 31 pruebas, ESLint, build y aislamiento productivo de mocks aprobados |
+| `25e0206` | 2026-10-30 | Daniel | API01 | Base Express por capas y errores uniformes | 12 pruebas, ESLint, HTTP/CORS real y cierre limpio aprobados |
 
 ### Cliente React
 
@@ -73,17 +74,19 @@ Sass 1.107.0 informa cuatro deprecaciones por los `@import` de `app.scss`. Boots
 
 ### Servidor Express
 
-La base HTTP vive en `servidor/` y mantiene separadas la composición de Express (`src/app.js`) y la escucha (`src/server.js`). API01 incorpora configuración validada, CORS para un origen explícito, límite de JSON, `X-Request-Id`, errores uniformes, ruta 404, healthcheck y cierre limpio. MongoDB, autenticación y rutas de dominio todavía no forman parte de esta tarea.
+La API vive en `servidor/`. API01 estableció Express por capas y API02 agregó Mongoose, conexión previa a la escucha, apagado conjunto, catálogos persistentes, seed idempotente y pruebas sobre replica set. Las rutas de autenticación y dominio comienzan en tareas posteriores.
 
 ```bash
+docker compose up -d
 cd servidor
 cp .env.example .env
 npm ci --cache /private/tmp/innovation-hub-npm-cache
+npm run seed
 npm run check
 npm run dev
 ```
 
-Abrir `http://127.0.0.1:3000/api/health`. El endpoint indica que Express está vivo; no certifica MongoDB antes de API02. Variables, estructura y pruebas están en [`servidor/README.md`](servidor/README.md).
+Abrir `http://127.0.0.1:3000/api/health`. El proceso solo escucha después de conectar MongoDB; el healthcheck conserva su contrato de vida de Express. Variables, Docker, seed, reset protegido y pruebas de integración están en [`servidor/README.md`](servidor/README.md).
 
 ### Modelo y fixtures compartidos
 
@@ -95,7 +98,7 @@ CO01 define en [`docs/modelo-datos.md`](docs/modelo-datos.md) las colecciones, r
 node pruebas/fixtures/validate-fixtures.mjs
 ```
 
-El seed y MongoDB se implementarán en API02/API03. Estos comandos son previstos y **todavía no están disponibles**: `cd servidor && npm run db:up` y `npm run seed -- --set baseline`. No deben documentarse como ejecutables hasta que existan y pasen en ambos equipos.
+API02 carga las ocho categorías y diez competencias con `npm run seed`; repetirlo conserva los mismos conteos. Los usuarios y datos funcionales completos se incorporan desde API03 y los módulos de dominio, cuando existan credenciales y esquemas responsables. La carga de demostración completa se cierra en API13.
 
 ## Avance 1 — prototipo frontend
 

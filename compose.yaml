@@ -1,0 +1,46 @@
+services:
+  mongo:
+    image: mongo:8.0.34-noble
+    command: ["mongod", "--replSet", "innovationHubRs", "--bind_ip_all", "--port", "27017"]
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - innovation_hub_mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--host", "127.0.0.1:27017", "--eval", "quit(db.adminCommand({ ping: 1 }).ok ? 0 : 1)"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  mongo-init:
+    image: mongo:8.0.34-noble
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["mongosh", "--quiet", "--host", "mongo:27017", "--eval"]
+    command:
+      - >-
+        try {
+          const status = rs.status();
+          if (status.ok !== 1) { throw new Error('Estado de replica set inválido.'); }
+        } catch (error) {
+          if (error.codeName !== 'NotYetInitialized') { throw error; }
+          rs.initiate({
+            _id: 'innovationHubRs',
+            members: [{ _id: 0, host: 'mongo:27017' }]
+          });
+        }
+        for (let attempt = 0; attempt < 60; attempt += 1) {
+          if (db.hello().isWritablePrimary) {
+            print('Replica set inicializado y primario listo.');
+            quit(0);
+          }
+          sleep(500);
+        }
+        throw new Error('El replica set no eligió primario a tiempo.');
+
+volumes:
+  innovation_hub_mongo:

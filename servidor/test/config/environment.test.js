@@ -8,9 +8,12 @@ const validEnvironment = {
   PORT: '3000',
   CLIENT_ORIGIN: 'http://localhost:5173',
   BODY_LIMIT: '100kb',
+  MONGODB_URI: 'mongodb://127.0.0.1:27017/?replicaSet=innovationHubRs&directConnection=true',
+  MONGODB_DATABASE: 'innovation_hub_test',
+  MONGODB_CONNECT_TIMEOUT_MS: '5000',
 }
 
-test('carga y normaliza la configuración HTTP', () => {
+test('carga y normaliza la configuración HTTP y MongoDB', () => {
   const config = loadEnvironment(validEnvironment)
 
   assert.deepEqual(config, {
@@ -19,17 +22,20 @@ test('carga y normaliza la configuración HTTP', () => {
     port: 3000,
     clientOrigin: 'http://localhost:5173',
     bodyLimit: '100kb',
+    mongoUri: validEnvironment.MONGODB_URI,
+    mongoDatabase: 'innovation_hub_test',
+    mongoConnectTimeoutMs: 5000,
   })
   assert.equal(Object.isFrozen(config), true)
 })
 
 test('falla pronto cuando falta una variable requerida', () => {
-  assert.throws(
-    () => loadEnvironment({ ...validEnvironment, CLIENT_ORIGIN: '' }),
-    (error) =>
-      error instanceof ConfigurationError &&
-      error.message === 'Falta la variable requerida CLIENT_ORIGIN.',
-  )
+  for (const name of ['CLIENT_ORIGIN', 'MONGODB_URI', 'MONGODB_DATABASE']) {
+    assert.throws(
+      () => loadEnvironment({ ...validEnvironment, [name]: '' }),
+      (error) => error instanceof ConfigurationError && error.message === `Falta la variable requerida ${name}.`,
+    )
+  }
 })
 
 test('rechaza puerto, entorno, límite y origen inseguros', () => {
@@ -56,5 +62,24 @@ test('rechaza puerto, entorno, límite y origen inseguros', () => {
   assert.throws(
     () => loadEnvironment({ ...validEnvironment, CLIENT_ORIGIN: 'http://localhost:5173/path' }),
     /CLIENT_ORIGIN debe ser un origen HTTP\(S\) explícito/,
+  )
+})
+
+test('rechaza URI, timeout y nombre de base MongoDB inválidos', () => {
+  assert.throws(
+    () => loadEnvironment({ ...validEnvironment, MONGODB_URI: 'https://localhost:27017' }),
+    /MONGODB_URI debe usar el protocolo mongodb/,
+  )
+  assert.throws(
+    () => loadEnvironment({ ...validEnvironment, MONGODB_DATABASE: 'admin' }),
+    /MONGODB_DATABASE debe tener/,
+  )
+  assert.throws(
+    () => loadEnvironment({ ...validEnvironment, MONGODB_DATABASE: 'base con espacios' }),
+    /MONGODB_DATABASE debe tener/,
+  )
+  assert.throws(
+    () => loadEnvironment({ ...validEnvironment, MONGODB_CONNECT_TIMEOUT_MS: '20' }),
+    /MONGODB_CONNECT_TIMEOUT_MS debe ser un entero entre 100 y 60000/,
   )
 })
