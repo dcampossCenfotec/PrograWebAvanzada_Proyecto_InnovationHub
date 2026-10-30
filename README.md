@@ -1,4 +1,33 @@
-# Innovation Hub — Avance 1
+# Innovation Hub
+
+Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos y convertir iniciativas en proyectos. El repositorio conserva el prototipo del Avance 1 y evoluciona hacia React, Express y MongoDB en el Avance 2.
+
+## Avance 2 — alcance y coordinación
+
+- **Entrega usada por el equipo:** 8 de noviembre de 2026, fecha corregida por Daniel respecto al documento recibido.
+- **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
+- **Daniel Campos Sánchez:** base React; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; contrato e integración final.
+- **Francisco José Torres Sandoval:** base Express/MongoDB; iniciativas/catálogos; solicitudes recibidas; equipos; modelo de datos y consistencia API.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas.
+
+Documentos vigentes:
+
+- [Alcance del Avance 2](docs/alcance-avance2.md)
+- [Contrato HTTP](docs/api-contract.md)
+- [Matriz de reglas y equivalencias](docs/matriz-reglas.md)
+- [Bitácora de verificación](docs/bitacora-avance2.md)
+
+Estructura objetivo: `cliente/`, `servidor/`, `docs/` y `pruebas/`, además del directorio histórico `avance1/`. Los directorios de implementación se agregan en sus tareas; documentarlos aquí no significa que ya funcionen.
+
+La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El plan contempla 34 cambios progresivos, pero comenzar tarde no recupera esa distribución. No se alterarán fechas ni autores. La tabla se llena únicamente después de crear y verificar cada commit.
+
+### Historial del Avance 2
+
+| Commit | Fecha | Autor | Tarea | Cambio verificable | Evidencia |
+| --- | --- | --- | --- | --- | --- |
+| Pendiente | — | Daniel | CO00 | Contrato HTTP y alcance | Revisión manual y cruzada pendientes antes del commit |
+
+## Avance 1 — prototipo frontend
 
 Prototipo frontend para publicar ideas, necesidades y retos, descubrir iniciativas y simular solicitudes de participación dentro de la comunidad universitaria. Esta entrega utiliza HTML, Bootstrap, Sass y JavaScript modular; los datos se cargan desde JSON y los cambios se conservan en el navegador.
 
@@ -161,7 +190,7 @@ Las restricciones de visibilidad son presentación del prototipo, no protección
 
 ## Historial de commits
 
-Tabla extraída del historial real hasta `6802fb6`. Los autores se conservan tal como aparecen en Git. `Daniel` y `dcampossCenfotec` corresponden a CAMPOS SANCHEZ DANIEL.
+Tabla extraída del historial real hasta `033361c`. Los autores se conservan tal como aparecen en Git. `Daniel` y `dcampossCenfotec` corresponden a CAMPOS SANCHEZ DANIEL.
 
 | Commit | Fecha de autor | Autor en Git | Descripción |
 | --- | --- | --- | --- |
@@ -185,10 +214,9 @@ Tabla extraída del historial real hasta `6802fb6`. Los autores se conservan tal
 | 731e2dd | 2026-09-27 | Daniel | Agregar filtros por categoría y competencia |
 | 624bab3 | 2026-09-27 | Daniel | Completar filtros combinados y mensajes de resultados |
 | 6802fb6 | 2026-09-27 | Daniel | Integrar actualización del catálogo y verificar flujos completos |
+| 033361c | 2026-09-27 | Daniel | Documentar ejecución, arquitectura y entrega del Avance 1 |
 
-El décimo commit de Persona 1 será documental, con el mensaje propuesto `Documentar ejecución, arquitectura y entrega del Avance 1`. No figura como realizado en la tabla porque su identificador aún no existe al preparar este archivo.
-
-El historial previo a ese commit contiene 20 commits distribuidos en **tres fechas**: 24, 25 y 27 de septiembre de 2026. Por tanto, no alcanza el requisito de seis días distintos indicado en las instrucciones de trabajo. No se han alterado fechas para aparentar esa distribución.
+El historial del Avance 1 contiene 21 commits distribuidos en **tres fechas**: 24, 25 y 27 de septiembre de 2026. Por tanto, no alcanza el requisito de seis días distintos indicado en las instrucciones de trabajo. No se han alterado fechas para aparentar esa distribución.
 
 Para contrastar el historial:
 
