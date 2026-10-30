@@ -1,6 +1,6 @@
 # Modelo de datos — Innovation Hub
 
-Estado: diseño compartido de CO01. API02 ya implementa la conexión, las transacciones base y los catálogos; los módulos de dominio posteriores completan sus esquemas e índices. El contrato público continúa en [`api-contract.md`](api-contract.md); este documento describe persistencia, relaciones e integridad. Si ambos documentos difieren, se corrige la diferencia antes de implementar, no se crea un tercer contrato en Mongoose.
+Estado: diseño compartido de CO01. API02 implementó la conexión, las transacciones base y los catálogos; API03 implementa usuarios, credenciales y sesiones. Los módulos de dominio posteriores completan sus esquemas e índices. El contrato público continúa en [`api-contract.md`](api-contract.md); este documento describe persistencia, relaciones e integridad. Si ambos documentos difieren, se corrige la diferencia antes de implementar, no se crea un tercer contrato en Mongoose.
 
 ## Principios
 

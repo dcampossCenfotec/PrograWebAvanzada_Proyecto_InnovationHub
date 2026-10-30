@@ -1,6 +1,6 @@
 # Servidor Express y MongoDB de Innovation Hub
 
-API01 estableció Express por capas y API02 agrega Mongoose 9.11.4, conexión validada, apagado conjunto, catálogos persistentes, seed idempotente y pruebas sobre un replica set real. Las rutas funcionales de usuarios, iniciativas, solicitudes, equipos y proyectos se implementan en sus tareas posteriores.
+API01 estableció Express por capas, API02 agregó MongoDB y API03 implementa autenticación persistente. Están disponibles registro, login, sesión actual y logout con revocación. Las contraseñas usan `scrypt` con sal aleatoria; los tokens Bearer son opacos y solo su hash SHA-256 llega a MongoDB.
 
 ## Requisitos
 
@@ -35,7 +35,7 @@ npm run seed
 npm run dev
 ```
 
-El seed valida primero todos los fixtures de CO01 y carga únicamente las ocho categorías y diez competencias. Ejecutarlo otra vez actualiza por `id` y conserva los mismos conteos. Usuarios, iniciativas y relaciones se cargan cuando existan credenciales y modelos funcionales; insertarlos incompletos en API02 dejaría datos imposibles de usar.
+El seed valida primero todos los fixtures de CO01 y carga ocho categorías, diez competencias y cinco usuarios demo. La contraseña de esos usuarios es `DEMO_USER_PASSWORD`; el valor de `.env.example` sirve solo para desarrollo local. Cada usuario recibe una sal distinta. Repetir el seed actualiza perfiles por `id` y conserva el hash existente para no rotar credenciales ni sesiones accidentalmente.
 
 La API queda en `http://127.0.0.1:3000`. `GET /api/health` comprueba la vida de Express. El proceso abre el puerto solo después de conectar MongoDB, pero el DTO de health no reemplaza una comprobación detallada de dependencias.
 
@@ -51,6 +51,8 @@ La API queda en `http://127.0.0.1:3000`. `GET /api/health` comprueba la vida de 
 | `MONGODB_URI` | Sí | URI `mongodb://` o `mongodb+srv://`; nunca se imprime al fallar. |
 | `MONGODB_DATABASE` | Sí | Base de la aplicación; se rechazan `admin`, `config` y `local`. |
 | `MONGODB_CONNECT_TIMEOUT_MS` | No | Espera entre 100 y 60000 ms; por defecto 5000. |
+| `AUTH_SESSION_TTL_MINUTES` | No | Vigencia de una sesión entre 5 y 10080 minutos; por defecto 480. |
+| `DEMO_USER_PASSWORD` | Seed local | Contraseña sintética para los cinco usuarios de fixtures; el seed se bloquea en producción. |
 | `MONGODB_TEST_URI` | Integración | Replica set real usado solo por la suite de integración. |
 | `MONGODB_TEST_DATABASE` | Integración | Base aislada cuyo nombre empieza o termina en `test`. |
 
@@ -63,7 +65,7 @@ La API queda en `http://127.0.0.1:3000`. `GET /api/health` comprueba la vida de 
 | `npm run dev` | Inicia API en modo watch usando `.env`. |
 | `npm start` | Inicia API usando `.env`. |
 | `npm run fixtures:validate` | Comprueba referencias e invariantes de todos los fixtures CO01. |
-| `npm run seed` | Crea índices y carga catálogos dentro de una transacción. |
+| `npm run seed` | Crea índices y carga catálogos y usuarios demo de forma idempotente. |
 | `npm run lint` | Ejecuta ESLint. |
 | `npm test` | Ejecuta unidades/HTTP; omite integración cuando no hay variables reales. |
 | `npm run test:integration` | Exige `.env.test` y prueba MongoDB real; no permite una aprobación simulada. |
@@ -77,7 +79,7 @@ cp .env.test.example .env.test
 npm run test:integration
 ```
 
-La prueba crea índices únicos, ejecuta el seed dos veces, reconecta para verificar persistencia y fuerza una colisión dentro de una transacción. El conteo final de la operación fallida debe ser cero. Limpia únicamente `categories`, `skills` y `transaction_probes` dentro de la base indicada.
+Las pruebas crean índices únicos, ejecutan seeds repetidos, reconectan para verificar persistencia y fuerzan una colisión dentro de una transacción. Autenticación cubre registro concurrente con el mismo correo, hashes distintos, credenciales indistinguibles, tokens ausentes o dañados, expiración y revocación. La suite limpia únicamente sus colecciones conocidas dentro de la base indicada.
 
 El reset está deliberadamente restringido:
 
@@ -102,11 +104,27 @@ src/
 ├── dto/                    # Proyecciones públicas
 ├── errors/                 # Errores HTTP conocidos
 ├── middleware/             # CORS, request ID, 404 y errores
+├── modules/                # Inicialización de modelos, índices y dependencias
 ├── routes/                 # Registro de endpoints
+├── security/               # scrypt, tokens opacos y hashes de token
 └── services/               # Reglas de aplicación
 ```
 
 Los modelos reciben una conexión explícita y las rutas nunca acceden directamente a Mongoose. `autoIndex` está desactivado en la conexión; cada módulo crea de forma explícita sus índices durante su inicialización o seed. Los DTO futuros deben conservar UUID públicos y ocultar `_id` y `__v`.
+
+## Autenticación local
+
+Después de `npm run seed`, cualquiera de los correos de `pruebas/fixtures/users.json` puede iniciar sesión con `DEMO_USER_PASSWORD`; `diego.inactive@example.test` se conserva inactivo para verificar el rechazo. Ejemplo:
+
+```bash
+curl -s http://127.0.0.1:3000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ana.owner@example.test","password":"DemoSegura2026"}'
+```
+
+Usar `accessToken` como `Authorization: Bearer <token>` en `/api/auth/me` y `/api/auth/logout`. Logout devuelve `204` y el mismo token debe recibir `401` en el siguiente uso. Los errores de correo desconocido, contraseña incorrecta y usuario inactivo son deliberadamente iguales.
+
+El formato persistido de contraseña registra `scrypt`, `N=16384`, `r=8`, `p=1`, una sal aleatoria de 16 bytes y una clave derivada de 64 bytes. Cinco mediciones locales con Node 24.21.0 dieron 49, 41, 39, 40 y 41 ms, promedio 42 ms; es evidencia del equipo usado, no un tiempo garantizado en otra computadora.
 
 ## Recuperación y diagnóstico
 

@@ -25,6 +25,7 @@ test('carga y normaliza la configuración HTTP y MongoDB', () => {
     mongoUri: validEnvironment.MONGODB_URI,
     mongoDatabase: 'innovation_hub_test',
     mongoConnectTimeoutMs: 5000,
+    authSessionTtlMinutes: 480,
   })
   assert.equal(Object.isFrozen(config), true)
 })
@@ -81,5 +82,13 @@ test('rechaza URI, timeout y nombre de base MongoDB inválidos', () => {
   assert.throws(
     () => loadEnvironment({ ...validEnvironment, MONGODB_CONNECT_TIMEOUT_MS: '20' }),
     /MONGODB_CONNECT_TIMEOUT_MS debe ser un entero entre 100 y 60000/,
+  )
+})
+
+test('valida la duración de la sesión', () => {
+  assert.equal(loadEnvironment({ ...validEnvironment, AUTH_SESSION_TTL_MINUTES: '60' }).authSessionTtlMinutes, 60)
+  assert.throws(
+    () => loadEnvironment({ ...validEnvironment, AUTH_SESSION_TTL_MINUTES: '0' }),
+    /AUTH_SESSION_TTL_MINUTES debe ser un entero entre 5 y 10080/,
   )
 })

@@ -236,7 +236,7 @@ Los miembros se consultan desde la iniciativa de origen; no se copia un segundo 
 
 ### POST `/auth/register` — público
 
-Campos obligatorios: `firstName` 2–60, `lastName` 2–80, `memberType`, `email` válido máximo 254, `password` 10–128 y `passwordConfirmation`. La contraseña debe incluir al menos una letra y un número. Campos opcionales del perfil no se aceptan aquí.
+Campos obligatorios: `firstName` 2–60, `lastName` 2–80, `memberType`, `email` válido máximo 254, `password` 10–128, `passwordConfirmation` y `termsAccepted=true`. La contraseña debe incluir al menos una letra y un número. La aceptación se valida para completar el registro, pero no se guarda como sustituto de una futura versión de términos o evidencia legal. Campos opcionales del perfil no se aceptan aquí.
 
 ```json
 {
@@ -245,7 +245,8 @@ Campos obligatorios: `firstName` 2–60, `lastName` 2–80, `memberType`, `email
   "memberType": "student",
   "email": "daniel@example.com",
   "password": "ClaveSegura2026",
-  "passwordConfirmation": "ClaveSegura2026"
+  "passwordConfirmation": "ClaveSegura2026",
+  "termsAccepted": true
 }
 ```
 
@@ -257,9 +258,11 @@ Respuesta `201`, `Location: /api/users/{id}`:
 
 Errores: `400` por campos/confirmación, `409 EMAIL_ALREADY_EXISTS`. Un campo como `id` o `createdAt` produce `400`.
 
+El correo se normaliza para su índice único. El hash usa `scrypt` con sal aleatoria y parámetros persistidos; nunca se guarda ni devuelve la contraseña. El token Bearer es opaco, se entrega una sola vez y MongoDB conserva únicamente su hash SHA-256. Una sesión expirada o revocada se rechaza aunque el documento todavía exista antes de la limpieza TTL.
+
 ### POST `/auth/login` — público
 
-Body: `email`, `password`. Respuesta `200` con la misma forma `user`, `accessToken`, `expiresAt`. Credenciales incorrectas y correo desconocido producen el mismo `401 INVALID_CREDENTIALS`, sin revelar si el usuario existe.
+Body: `email`, `password`. Respuesta `200` con la misma forma `user`, `accessToken`, `expiresAt`. Credenciales incorrectas, correo desconocido y usuario inactivo producen el mismo `401 INVALID_CREDENTIALS`, sin revelar si el usuario existe.
 
 ### POST `/auth/logout` — autenticado
 

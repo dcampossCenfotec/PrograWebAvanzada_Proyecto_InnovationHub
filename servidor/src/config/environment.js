@@ -94,5 +94,10 @@ export function loadEnvironment(environment = process.env) {
       'MONGODB_CONNECT_TIMEOUT_MS',
       { minimum: 100, maximum: 60000 },
     ),
+    authSessionTtlMinutes: parseInteger(
+      environment.AUTH_SESSION_TTL_MINUTES || '480',
+      'AUTH_SESSION_TTL_MINUTES',
+      { minimum: 5, maximum: 10080 },
+    ),
   })
 }

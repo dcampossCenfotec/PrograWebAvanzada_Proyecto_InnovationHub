@@ -45,6 +45,12 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-10-30 | API02 | MongoDB Community 8.0.34 | Reset protegido de `innovation_hub_test` y nuevo seed | Base de prueba eliminada y recuperada; ninguna base de desarrollo fue afectada | Sin commit |
 | 2026-10-30 | API02 | Express y MongoDB reales | Iniciar API en 127.0.0.1:3100, consultar health y detener | HTTP 200, `X-Request-Id` UUID y conexión DB previa a la escucha | Sin commit |
 | 2026-10-30 | API02 | macOS sin Docker | `docker version` | Comando ausente; Compose queda pendiente de reproducción manual. La validación DB se realizó con binario oficial nativo | Sin commit |
+| 2026-10-30 | API03 | Node 24.21.0; ESLint; fixtures | `cd servidor && npm run check` | ESLint y fixtures aprobados; 27 pruebas aprobadas y 2 integraciones omitidas sin cargar `.env.test` | Sin commit |
+| 2026-10-30 | API03 | Replica set temporal detenido | Primer `npm run test:integration` | 2 pruebas fallaron antes de aserciones con conexión MongoDB; se comprobó que `mongod` no estaba activo | Sin commit |
+| 2026-10-30 | API03 | MongoDB Community 8.0.34; replica set temporal real | `npm run test:integration` | 2 integraciones aprobadas: registro concurrente, hashes, seed repetido, expiración, revocación, índices, persistencia y rollback | Sin commit |
+| 2026-10-30 | API03 | MongoDB Community 8.0.34 | Ejecutar `npm run seed` dos veces | Ambas ejecuciones conservaron 8 categorías, 10 competencias y 5 usuarios demo; los hashes existentes no rotaron | Sin commit |
+| 2026-10-30 | API03 | Express y MongoDB reales | Login de Ana, `/auth/me`, logout y reutilización del token por HTTP | Estados 200, 200, 204 y 401; token opaco de 43 caracteres y código final `AUTHENTICATION_REQUIRED` | Sin commit |
+| 2026-10-30 | API03 | Node 24.21.0; scrypt N=16384/r=8/p=1 | Medir cinco hashes consecutivos con sal aleatoria de 16 bytes | 49, 41, 39, 40 y 41 ms; promedio local 42 ms | Sin commit |
 
 ## Plantilla de entrada
 
@@ -147,3 +153,18 @@ Resultado de API01: **instalación reproducible, lint, 12 pruebas y proceso HTTP
 - [ ] Detener con `Ctrl+C` y confirmar cierre de HTTP y de la conexión MongoDB; `docker compose down` conserva el volumen.
 
 Resultado de API02: **unidad, fixtures, seed, índices, persistencia, rollback, reset y arranque real aprobados con MongoDB nativo 8.0.34; reproducción de Docker Compose y revisión cruzada de Francisco pendientes**.
+
+## Revisión manual API03
+
+- [ ] Ejecutar `npm ci --cache /private/tmp/innovation-hub-npm-cache`, `npm run seed` y `npm start` con MongoDB activo.
+- [ ] Registrar un usuario con `termsAccepted: true`; confirmar `201`, `Location`, token y ausencia de contraseña/hash en el JSON.
+- [ ] Repetir el correo con mayúsculas y espacios; confirmar `409 EMAIL_ALREADY_EXISTS`.
+- [ ] Enviar confirmación distinta, términos falsos, contraseña débil y un campo ajeno; confirmar `400 VALIDATION_ERROR` con campos concretos.
+- [ ] Iniciar sesión como `ana.owner@example.test` con la contraseña demo; confirmar `200` y token Bearer.
+- [ ] Consultar `/auth/me` con el token; confirmar correo propio, perfil y ausencia de `_id`, `passwordHash` y `tokenHash`.
+- [ ] Probar correo desconocido, contraseña incorrecta y `diego.inactive@example.test`; los tres deben responder el mismo `401 INVALID_CREDENTIALS`.
+- [ ] Cerrar sesión; confirmar `204` sin cuerpo y `401` al reutilizar el token en `/auth/me` o `/auth/logout`.
+- [ ] Probar `/auth/me` sin token y con `Bearer token-corrupto`; confirmar `401` uniforme.
+- [ ] Francisco usa `requireSession` en una ruta propia y verifica sesión válida, ausente, expirada y revocada.
+
+Resultado de API03: **automatización, MongoDB real, seed repetido y recorrido HTTP aprobados; Daniel confirmó la prueba manual antes del commit y queda pendiente la revisión cruzada de Francisco**.

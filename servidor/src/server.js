@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { createApp } from './app.js'
 import { loadEnvironment } from './config/environment.js'
 import { createMongoDatabase } from './database/connection.js'
+import { createAuthModule } from './modules/auth.module.js'
 
 function closeHttpServer(server) {
   return new Promise((resolveClose, rejectClose) => {
@@ -34,7 +35,12 @@ function openHttpServer(app, config, logger) {
   })
 }
 
-export async function startServer({ config = loadEnvironment(), logger = console, database } = {}) {
+export async function startServer({
+  config = loadEnvironment(),
+  logger = console,
+  database,
+  authModuleFactory = createAuthModule,
+} = {}) {
   const activeDatabase = database ?? createMongoDatabase({
     uri: config.mongoUri,
     databaseName: config.mongoDatabase,
@@ -42,10 +48,16 @@ export async function startServer({ config = loadEnvironment(), logger = console
     logger,
   })
 
-  await activeDatabase.connect()
-  const app = createApp({ config, logger })
+  const connection = await activeDatabase.connect()
   let server
+  let app
+  let authModule
   try {
+    authModule = await authModuleFactory({
+      connection,
+      sessionTtlMinutes: config.authSessionTtlMinutes,
+    })
+    app = createApp({ config, authModule, logger })
     server = await openHttpServer(app, config, logger)
   } catch (error) {
     await activeDatabase.disconnect()
@@ -85,7 +97,7 @@ export async function startServer({ config = loadEnvironment(), logger = console
     signalHandlers.forEach((handler, signal) => process.removeListener(signal, handler))
   })
 
-  return { app, server, shutdown, database: activeDatabase }
+  return { app, server, shutdown, database: activeDatabase, authModule }
 }
 
 const isMainModule = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)

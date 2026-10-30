@@ -10,7 +10,19 @@ const config = Object.freeze({
   port: 0,
   clientOrigin: 'http://localhost:5173',
   bodyLimit: '100kb',
+  authSessionTtlMinutes: 480,
 })
+
+const fakeAuthModule = Object.freeze({
+  controller: {
+    register(_request, response) { response.status(501).end() },
+    login(_request, response) { response.status(501).end() },
+    logout(_request, response) { response.status(501).end() },
+    me(_request, response) { response.status(501).end() },
+  },
+  requireSession(_request, _response, next) { next() },
+})
+const authModuleFactory = async () => fakeAuthModule
 
 test('conecta MongoDB antes de escuchar y cierra HTTP antes de desconectar', async () => {
   const messages = []
@@ -20,11 +32,11 @@ test('conecta MongoDB antes de escuchar y cierra HTTP antes de desconectar', asy
     error(message) { messages.push(message) },
   }
   const database = {
-    async connect() { events.push('database:connect') },
+    async connect() { events.push('database:connect'); return {} },
     async disconnect() { events.push('database:disconnect') },
   }
 
-  const instance = await startServer({ config, logger, database })
+  const instance = await startServer({ config, logger, database, authModuleFactory })
   if (!instance.server.listening) await once(instance.server, 'listening')
 
   const address = instance.server.address()
@@ -54,7 +66,7 @@ test('cierra MongoDB si el puerto HTTP ya está ocupado', async () => {
 
   const events = []
   const database = {
-    async connect() { events.push('database:connect') },
+    async connect() { events.push('database:connect'); return {} },
     async disconnect() { events.push('database:disconnect') },
   }
 
@@ -63,6 +75,7 @@ test('cierra MongoDB si el puerto HTTP ya está ocupado', async () => {
       startServer({
         config: { ...config, port: occupyingServer.address().port },
         database,
+        authModuleFactory,
       }),
       (error) => error.code === 'EADDRINUSE',
     )

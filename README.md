@@ -8,7 +8,7 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
 - **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; CO00–CO01; modelo y fixtures.
 - **Francisco José Torres Sandoval:** iniciativas/catálogos; solicitudes recibidas; equipos; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01, UI01–UI03 y API01–API02 quedan 8 y 19, respectivamente. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de sus módulos antes de CO02.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01, UI01–UI03 y API01–API03 quedan 7 y 19, respectivamente. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de sus módulos antes de CO02.
 
 Documentos vigentes:
 
@@ -33,6 +33,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | `18dfd7c` | 2026-10-29 | Daniel | CO01 | Modelo, fixtures y matriz de pruebas | Validador estructural y recorrido manual aprobados; revisión de Francisco pendiente |
 | `c1c6eba` | 2026-10-30 | Daniel | UI03 | Cliente HTTP, servicios, mocks y estados de consulta | 31 pruebas, ESLint, build y aislamiento productivo de mocks aprobados |
 | `25e0206` | 2026-10-30 | Daniel | API01 | Base Express por capas y errores uniformes | 12 pruebas, ESLint, HTTP/CORS real y cierre limpio aprobados |
+| `f996cb7` | 2026-10-30 | Daniel | API02 | MongoDB, catálogos y seed transaccional | 21 pruebas, 2 integraciones reales, seed repetido y rollback aprobados |
 
 ### Cliente React
 
@@ -74,7 +75,7 @@ Sass 1.107.0 informa cuatro deprecaciones por los `@import` de `app.scss`. Boots
 
 ### Servidor Express
 
-La API vive en `servidor/`. API01 estableció Express por capas y API02 agregó Mongoose, conexión previa a la escucha, apagado conjunto, catálogos persistentes, seed idempotente y pruebas sobre replica set. Las rutas de autenticación y dominio comienzan en tareas posteriores.
+La API vive en `servidor/`. API01 estableció Express por capas, API02 agregó MongoDB y API03 implementa registro, login, sesión Bearer opaca, `/auth/me` y logout revocable. Las contraseñas usan `scrypt` con sal aleatoria y MongoDB conserva solo el hash de cada token.
 
 ```bash
 docker compose up -d
@@ -98,7 +99,7 @@ CO01 define en [`docs/modelo-datos.md`](docs/modelo-datos.md) las colecciones, r
 node pruebas/fixtures/validate-fixtures.mjs
 ```
 
-API02 carga las ocho categorías y diez competencias con `npm run seed`; repetirlo conserva los mismos conteos. Los usuarios y datos funcionales completos se incorporan desde API03 y los módulos de dominio, cuando existan credenciales y esquemas responsables. La carga de demostración completa se cierra en API13.
+Desde API03, `npm run seed` carga ocho categorías, diez competencias y cinco usuarios demo. Todos usan el valor local de `DEMO_USER_PASSWORD`, pero cada contraseña produce un hash distinto; repetir el seed conserva los hashes existentes y los mismos conteos. Iniciativas y relaciones se incorporan con sus módulos de dominio y la carga completa se cierra en API13.
 
 ## Avance 1 — prototipo frontend
 
