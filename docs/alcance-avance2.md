@@ -32,10 +32,10 @@ El directorio `avance1/` se conserva como evidencia histórica. Las correcciones
 
 | Titular | Implementación completa | Revisión |
 | --- | --- | --- |
-| Daniel Campos Sánchez | Base React compartida; autenticación; perfiles, competencias y directorio; solicitudes del solicitante; proyectos y GitHub; CO00–CO01; modelo y fixtures; colección final y QA del cliente. | Francisco revisa cada tarea. |
-| Francisco José Torres Sandoval | Base Express/MongoDB; iniciativas y catálogos; resolución de solicitudes; equipos; consistencia API; CO02–CO04; integración/README/defensa/entrega. | Daniel revisa cada tarea. |
+| Daniel Campos Sánchez | Bases React/HTTP y Express/MongoDB; autenticación; perfiles, competencias y directorio; solicitudes del solicitante; proyectos y GitHub; CO00–CO01; modelo y fixtures. | Francisco revisa cada tarea. |
+| Francisco José Torres Sandoval | Iniciativas y catálogos; resolución de solicitudes; equipos; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README/defensa/entrega. | Daniel revisa cada tarea. |
 
-El plan completo asigna 15 tareas a Daniel y 19 a Francisco. Como CO00, CO01, UI01 y UI02 ya están publicados, quedan 11 tareas pendientes de Daniel y 19 de Francisco. Daniel entrega comandos, evidencia, fragmentos Postman y defectos conocidos de sus módulos antes de CO02; cambiar el titular no transfiere la obligación de probar y explicar su trabajo.
+El plan completo asigna 15 tareas a Daniel y 19 a Francisco. Como CO00, CO01 y UI01–UI03 ya están publicados, quedan 10 tareas pendientes de Daniel y 19 de Francisco. Daniel entrega comandos, evidencia, fragmentos Postman y defectos conocidos de sus módulos antes de CO02; cambiar el titular no transfiere la obligación de probar y explicar su trabajo.
 
 Cada tarea tiene un responsable único. El revisor no comparte autoría del cambio: comprueba contrato, casos límite y reproducibilidad.
 

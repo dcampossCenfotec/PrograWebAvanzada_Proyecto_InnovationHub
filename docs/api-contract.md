@@ -103,6 +103,23 @@ Ejemplos sin datos internos:
 
 El flujo de este avance crea iniciativas directamente como `published`; `draft` se conserva para compatibilidad de dominio y pruebas negativas.
 
+### 1.5 Estado operativo
+
+`GET /health` es una comprobación pública de vida del proceso, relativa a la URL base `/api`. No consulta MongoDB ni declara que sus dependencias estén disponibles; API02 agregará una verificación de preparación separada si resulta necesaria.
+
+Respuesta `200`:
+
+```json
+{
+  "data": {
+    "status": "ok",
+    "service": "innovation-hub-api"
+  }
+}
+```
+
+La respuesta incluye `X-Request-Id`. CORS aplica igual que al resto de la API. Este endpoint operativo no se cuenta entre los 26 endpoints funcionales del dominio.
+
 ## 2. DTO compartidos
 
 ### 2.1 UserSummary y User

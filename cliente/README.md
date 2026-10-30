@@ -10,7 +10,7 @@ Base navegable del Avance 2 construida con React, Vite y React Router. Incluye u
 ## Ejecución
 
 ```bash
-npm ci
+npm ci --cache /private/tmp/innovation-hub-npm-cache
 npm run dev
 ```
 

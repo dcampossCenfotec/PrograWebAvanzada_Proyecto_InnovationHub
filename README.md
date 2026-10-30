@@ -6,9 +6,9 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 
 - **Entrega usada por el equipo:** 8 de noviembre de 2026, fecha corregida por Daniel respecto al documento recibido.
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
-- **Daniel Campos Sánchez:** base React; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; CO00–CO01; modelo y fixtures; colección Postman y QA del cliente.
-- **Francisco José Torres Sandoval:** base Express/MongoDB; iniciativas/catálogos; solicitudes recibidas; equipos; consistencia API; CO02–CO04; integración/README; guía de defensa y entrega.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01, UI01 y UI02 quedan 11 y 19, respectivamente. Daniel debe entregar comandos, evidencia y defectos conocidos de sus módulos antes de CO02.
+- **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; CO00–CO01; modelo y fixtures.
+- **Francisco José Torres Sandoval:** iniciativas/catálogos; solicitudes recibidas; equipos; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01 y UI01–UI03 quedan 10 y 19, respectivamente. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de sus módulos antes de CO02.
 
 Documentos vigentes:
 
@@ -31,6 +31,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | `01c5658` | 2026-10-29 | Daniel | UI01 | Base React y rutas del sistema | `npm ci`, ESLint, build y 20 URLs aprobados; revisión de Francisco pendiente |
 | `7d71af3` | 2026-10-29 | Daniel | UI02 | Tema Sass y componentes compartidos | ESLint/build aprobados; revisión responsive y teclado pendiente |
 | `18dfd7c` | 2026-10-29 | Daniel | CO01 | Modelo, fixtures y matriz de pruebas | Validador estructural y recorrido manual aprobados; revisión de Francisco pendiente |
+| `c1c6eba` | 2026-10-30 | Daniel | UI03 | Cliente HTTP, servicios, mocks y estados de consulta | 31 pruebas, ESLint, build y aislamiento productivo de mocks aprobados |
 
 ### Cliente React
 
@@ -38,11 +39,11 @@ El cliente del Avance 2 vive en `cliente/`. Requiere Node.js `22.12.0` o posteri
 
 ```bash
 cd cliente
-npm ci
+npm ci --cache /private/tmp/innovation-hub-npm-cache
 npm run dev
 ```
 
-Abrir `http://localhost:5173`. Los comandos disponibles son `dev`, `build`, `preview`, `lint` y `test`. En UI01, `npm test` ejecuta la puerta estructural de lint y build; las pruebas de comportamiento se agregan cuando existan componentes con lógica real.
+Abrir `http://localhost:5173`. Los comandos disponibles son `dev`, `build`, `preview`, `lint`, `test:unit`, `test:watch` y `test`. Desde UI03, `npm test` ejecuta Vitest, ESLint y el build de producción.
 
 Rutas base:
 
@@ -69,6 +70,20 @@ Los componentes disponibles son `AppLayout`, `Navbar`, `PageHeader`, `StatusPane
 El modo normal consulta `http://localhost:3000/api`. Para desarrollar lecturas antes de disponer del servidor, crear `cliente/.env.local` con `VITE_API_MODE=mock`; los datos se importan desde `pruebas/fixtures/`. Las mutaciones del mock fallan explícitamente con `501` hasta sus tareas funcionales y un build con modo mock se rechaza. La configuración, tokens sintéticos y recorrido de `/api-demo` están documentados en [`cliente/README.md`](cliente/README.md).
 
 Sass 1.107.0 informa cuatro deprecaciones por los `@import` de `app.scss`. Bootstrap 5.3 todavía distribuye su entrada Sass con el sistema heredado: `quietDeps` evita repetir cientos de avisos internos, pero conserva los avisos del código propio. Migrar mecánicamente a `@use` sin compatibilidad completa de Bootstrap no forma parte de este avance.
+
+### Servidor Express
+
+La base HTTP vive en `servidor/` y mantiene separadas la composición de Express (`src/app.js`) y la escucha (`src/server.js`). API01 incorpora configuración validada, CORS para un origen explícito, límite de JSON, `X-Request-Id`, errores uniformes, ruta 404, healthcheck y cierre limpio. MongoDB, autenticación y rutas de dominio todavía no forman parte de esta tarea.
+
+```bash
+cd servidor
+cp .env.example .env
+npm ci --cache /private/tmp/innovation-hub-npm-cache
+npm run check
+npm run dev
+```
+
+Abrir `http://127.0.0.1:3000/api/health`. El endpoint indica que Express está vivo; no certifica MongoDB antes de API02. Variables, estructura y pruebas están en [`servidor/README.md`](servidor/README.md).
 
 ### Modelo y fixtures compartidos
 
@@ -126,12 +141,12 @@ Desde la raíz del repositorio:
 
 ```bash
 cd avance1
-npm ci
+npm ci --cache /private/tmp/innovation-hub-npm-cache
 npm run build:css
 npm test
 ```
 
-`npm ci` instala las versiones fijadas en `package-lock.json`. Bootstrap es 5.3.3 y Sass es 1.105.0. No se debe editar manualmente `css/app.css`.
+`npm ci --cache /private/tmp/innovation-hub-npm-cache` instala las versiones fijadas en `package-lock.json` usando el caché temporal del proyecto. Bootstrap es 5.3.3 y Sass es 1.105.0. No se debe editar manualmente `css/app.css`.
 
 Para servir la aplicación, desde la **raíz del repositorio**:
 

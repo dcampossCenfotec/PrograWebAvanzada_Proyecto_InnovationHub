@@ -32,6 +32,11 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-10-30 | UI03 | Vite 8.3.5 | `VITE_API_MODE=mock npm run build` | Falló de forma deliberada con “VITE_API_MODE=mock no está permitido en builds de producción” | Sin commit |
 | 2026-10-30 | UI03 | Vite local en modo mock | Solicitar `/api-demo`, router, vista, cliente y módulo mock mediante HTTP | Ruta y módulos respondieron correctamente; quedan recorrido visual e interacción manual de Daniel | Sin commit |
 | 2026-10-30 | UI03 | Node 24.21.0; Vitest/ESLint/Vite | `cd cliente && npm test` después de alinear iniciativas, solicitudes y proyectos mock con los DTO públicos | 31 pruebas aprobadas; ESLint aprobado; build aprobado con 112 módulos | Sin commit |
+| 2026-10-30 | API01 | npm 12.2.0 | Instalar Express 5.3, CORS, ESLint y Supertest | 164 paquetes en lockfile; 0 vulnerabilidades | Sin commit |
+| 2026-10-30 | API01 | Node 24.21.0; ESLint y `node:test` | `cd servidor && npm run check` | ESLint aprobado; 12 pruebas HTTP/configuración aprobadas | Sin commit |
+| 2026-10-30 | API01 | Proceso Express local | Consultar health, ruta inexistente, preflight permitido, origen rechazado y JSON roto mediante `fetch` de Node | Estados 200/404/204/403/400; cuerpos uniformes y `X-Request-Id` presentes | Sin commit |
+| 2026-10-30 | API01 | Sandbox restringido | Primera reproducción `npm ci && npm run check` | `npm ci` bloqueado por `EPERM` al reemplazar `node_modules/.package-lock.json`; fallo del permiso, no del lockfile | Sin commit |
+| 2026-10-30 | API01 | Node 24.21.0; permiso de escritura del repositorio | Repetir `npm ci && npm run check` | 164 paquetes reproducidos, 0 vulnerabilidades, ESLint y 12 pruebas aprobados | Sin commit |
 
 ## Plantilla de entrada
 
@@ -107,3 +112,16 @@ Resultado de UI02: **lint/build aprobados; revisión visual, responsive y teclad
 - [ ] Comprobar teclado, foco visible y zoom al 200 % en el buscador y el botón de reintento.
 
 Resultado de UI03: **31 pruebas, lint, build, aislamiento de mocks y ruta local aprobados; recorrido manual de Daniel y revisión cruzada de Francisco pendientes**.
+
+## Revisión manual API01
+
+- [ ] Copiar `servidor/.env.example` a `.env`, ejecutar `npm start` y confirmar el mensaje de escucha sin errores.
+- [ ] Consultar `GET /api/health`: estado 200, DTO documentado y encabezado `X-Request-Id` UUID.
+- [ ] Consultar una ruta inexistente y confirmar `404 NOT_FOUND` con `fields: {}`.
+- [ ] Enviar JSON roto y confirmar `400 INVALID_JSON`, sin stack ni HTML de Express.
+- [ ] Ejecutar preflight desde `http://localhost:5173` y confirmar 204 con el origen permitido.
+- [ ] Enviar `Origin: https://malicioso.example` y confirmar `403 FORBIDDEN` sin `Access-Control-Allow-Origin`.
+- [ ] Ejecutar una petición sin `Origin` y confirmar que funciona; CORS no reemplaza autenticación.
+- [ ] Detener con `Ctrl+C` y confirmar que el puerto queda libre.
+
+Resultado de API01: **instalación reproducible, lint, 12 pruebas y proceso HTTP real aprobados; recorrido manual de Daniel y revisión cruzada de Francisco pendientes**.
