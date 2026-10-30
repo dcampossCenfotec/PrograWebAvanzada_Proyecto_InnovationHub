@@ -1,15 +1,27 @@
 import { Link } from 'react-router'
+import PageHeader from '../components/PageHeader.jsx'
+import StatusPanel from '../components/StatusPanel.jsx'
 
 function NotFoundPage() {
   return (
-    <section className="page-heading" aria-labelledby="not-found-title">
-      <p className="eyebrow">Error 404</p>
-      <h1 id="not-found-title">Página no encontrada</h1>
-      <p>La dirección no corresponde a una ruta disponible.</p>
-      <Link className="button-link" to="/">
-        Volver al inicio
-      </Link>
-    </section>
+    <>
+      <PageHeader
+        description="La dirección no corresponde a una ruta disponible."
+        eyebrow="Error 404"
+        title="Página no encontrada"
+        titleId="not-found-title"
+      />
+      <StatusPanel
+        action={
+          <Link className="btn btn-primary" to="/">
+            Volver al inicio
+          </Link>
+        }
+        variant="empty"
+      >
+        <p className="mb-0">Revisa la dirección o regresa al inicio.</p>
+      </StatusPanel>
+    </>
   )
 }
 

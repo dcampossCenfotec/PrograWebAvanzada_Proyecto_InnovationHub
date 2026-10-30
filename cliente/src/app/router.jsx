@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router'
 import AppLayout from '../components/AppLayout.jsx'
+import ComponentPreviewPage from '../dev/ComponentPreviewPage.jsx'
 import EntityPlaceholderPage from '../pages/EntityPlaceholderPage.jsx'
 import HomePage from '../pages/HomePage.jsx'
 import NotFoundPage from '../pages/NotFoundPage.jsx'
@@ -171,6 +172,10 @@ const entityRoutes = [
   },
 ]
 
+const developmentRoutes = import.meta.env.DEV
+  ? [{ path: 'componentes', element: <ComponentPreviewPage /> }]
+  : []
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -179,6 +184,7 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       ...placeholderRoutes,
       ...entityRoutes,
+      ...developmentRoutes,
       { path: '*', element: <NotFoundPage /> },
     ],
   },

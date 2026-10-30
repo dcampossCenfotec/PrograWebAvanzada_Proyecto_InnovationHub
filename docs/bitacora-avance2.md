@@ -14,6 +14,13 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-10-29 | UI01 | Sandbox restringido | Primera ejecución de `npm test` | ESLint aprobó; build bloqueado por `EPERM` al crear `node_modules/.vite-temp`. Fallo del permiso de ejecución, no del código | Sin commit |
 | 2026-10-29 | UI01 | Node 24.21.0; permiso de escritura del repositorio | `cd cliente && npm test` | ESLint aprobó; Vite 8.3.5 compiló 98 módulos y generó `dist/` | Sin commit |
 | 2026-10-29 | UI01 | Preview local de Vite | Solicitud directa a las 19 rutas acordadas y `/ruta-inexistente` mediante `fetch` de Node | 20/20 respuestas HTTP 200; el fallback entrega la SPA y React resuelve la página 404. Revisión visual/navegación pendiente de Daniel | Sin commit |
+| 2026-10-29 | UI02 | npm 12.2.0 | Instalar `bootstrap@5.3.8` y `sass@1.107.0` | Lockfile actualizado; 0 vulnerabilidades. Scripts opcionales de `fsevents`/`@parcel/watcher` bloqueados por npm sin impedir compilación | Sin commit |
+| 2026-10-29 | UI02 | Sass 1.107.0 | Primera compilación del tema completo | Build aprobado; 314 avisos repetidos de deprecación, principalmente desde Bootstrap | Sin commit |
+| 2026-10-29 | UI02 | Vite 8.3.5; Node 24.21.0 | `cd cliente && npm test` después de configurar `quietDeps` | ESLint aprobado; 103 módulos; CSS 229.34 kB/32.00 kB gzip; JS 323.06 kB/101.62 kB gzip; quedan cuatro avisos `@import` propios | Sin commit |
+| 2026-10-29 | UI02 | Bundle de producción | Buscar textos de `/componentes`, imports de Bootstrap JS y atributos `data-bs-*` | Vista de desarrollo ausente del bundle; no hay controladores Bootstrap JS duplicados | Sin commit |
+| 2026-10-29 | UI02 | Servidor Vite local | Primera aserción MIME de `/componentes`, JSX y Sass | Ruta y JSX respondieron 200; el chequeo falló porque esperaba `text/css` para Sass, pero Vite lo transforma como módulo JavaScript | Sin commit |
+| 2026-10-29 | UI02 | Servidor Vite local | Repetir aserción con MIME real de Vite | `/componentes`, JSX y Sass respondieron 200 con tipos esperados | Sin commit |
+| 2026-10-29 | UI02 | Cálculo WCAG de luminancia | Contraste de texto base y colores principales sobre sus fondos | Body 12.92:1; primary 7.06:1; success 6.33:1; danger 6.19:1; secondary 5.58:1 | Sin commit |
 
 ## Plantilla de entrada
 
@@ -51,3 +58,15 @@ Resultado de CO00: **pendiente de revisión manual de Daniel y revisión cruzada
 - [ ] Recorrer enlaces y salto al contenido con teclado.
 
 Resultado de UI01: **verificación automática aprobada; recorrido manual de Daniel y revisión cruzada de Francisco pendientes**.
+
+## Revisión manual UI02
+
+- [ ] A 360 px, abrir/cerrar menú con clic, Enter y Espacio; Escape lo cierra y devuelve foco al botón.
+- [ ] A 768 y 1440 px, comprobar navegación, hero, tarjetas, acciones y ausencia de scroll horizontal.
+- [ ] En `/componentes`, abrir el diálogo y cerrarlo con Escape y Cancelar; el foco regresa a “Probar confirmación”.
+- [ ] Confirmar la acción y verificar el anuncio actualizado debajo de los paneles.
+- [ ] Recorrer todos los controles con teclado y comprobar foco visible.
+- [ ] Aplicar zoom de navegador al 200 %; menú, diálogo y acciones siguen disponibles.
+- [ ] Comparar colores, tipografía y bordes con Avance 1 sin exigir una copia pixel a pixel.
+
+Resultado de UI02: **lint/build aprobados; revisión visual, responsive y teclado de Daniel y revisión cruzada de Francisco pendientes**.

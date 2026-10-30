@@ -1,17 +1,30 @@
 import { Link } from 'react-router'
+import PageHeader from '../components/PageHeader.jsx'
+import StatusPanel from '../components/StatusPanel.jsx'
 
 function PlaceholderPage({ title, description, action }) {
   return (
-    <section className="page-heading" aria-labelledby="placeholder-title">
-      <p className="eyebrow">Avance 2 · estructura inicial</p>
-      <h1 id="placeholder-title">{title}</h1>
-      <p>{description}</p>
-      {action ? (
-        <Link className="button-link" to={action.to}>
-          {action.label}
-        </Link>
-      ) : null}
-    </section>
+    <>
+      <PageHeader
+        actions={
+          action ? (
+            <Link className="btn btn-primary" to={action.to}>
+              {action.label}
+            </Link>
+          ) : null
+        }
+        description={description}
+        eyebrow="Avance 2 · estructura inicial"
+        title={title}
+        titleId="placeholder-title"
+      />
+      <StatusPanel title="Sección en preparación" variant="info">
+        <p className="mb-0">
+          La navegación está disponible. Los datos y las operaciones se agregarán
+          en la tarea funcional correspondiente.
+        </p>
+      </StatusPanel>
+    </>
   )
 }
 

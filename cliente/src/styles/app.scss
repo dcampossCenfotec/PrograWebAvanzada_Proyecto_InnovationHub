@@ -1,0 +1,7 @@
+// Bootstrap 5.3 conserva una entrada Sass basada en @import. Las advertencias
+// de deprecación se registran durante el build; no se silencian ni se modifica
+// el código de la dependencia para aparentar una migración completa a @use.
+@import "variables";
+@import "bootstrap/scss/bootstrap";
+@import "layout";
+@import "components";

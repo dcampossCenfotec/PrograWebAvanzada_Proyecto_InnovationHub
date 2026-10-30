@@ -26,6 +26,32 @@ Abrir `http://localhost:5173`. La URL puede cambiar si ese puerto está ocupado;
 | `npm run lint` | Ejecuta ESLint sobre JavaScript y JSX. |
 | `npm test` | Puerta estructural actual: lint y build. Las pruebas de comportamiento se agregan con las funciones reales. |
 
+## Tema Sass
+
+`src/styles/app.scss` es la única entrada de estilos y compila Bootstrap 5.3.8 con Sass 1.107.0. La estructura es:
+
+```text
+src/styles/
+├── _variables.scss    # Colores, tipografía y configuración previa a Bootstrap
+├── _layout.scss       # Encabezado, contenido, hero y pie
+├── _components.scss   # Navegación, tarjetas, estados y diálogo
+└── app.scss           # Entrada importada por main.jsx
+```
+
+El build conserva cuatro advertencias de deprecación por `@import`. Bootstrap 5.3 todavía usa esa entrada Sass. `quietDeps` reduce los avisos repetidos de `node_modules`, pero no oculta los cuatro imports propios que deben migrarse cuando Bootstrap sea compatible.
+
+No se importa `bootstrap.bundle.js`. `Navbar` y `ConfirmDialog` controlan apertura, Escape, cierre y foco mediante React y el elemento nativo `dialog`, evitando dos controladores sobre el mismo nodo.
+
+Componentes compartidos:
+
+- `AppLayout`: salto al contenido, encabezado, contenido y pie.
+- `Navbar`: menú responsive y accesos de sesión.
+- `PageHeader`: título, descripción y acciones.
+- `StatusPanel`: información, éxito, advertencia, error y vacío.
+- `ConfirmDialog`: confirmación modal con Cancelar como foco inicial y retorno del foco al disparador.
+
+Con `npm run dev`, abrir `/componentes` para revisar estados y el diálogo. Esa ruta se elimina del build de producción y no representa una función para usuarios finales.
+
 ## Alcance actual
 
 - Todas las rutas acordadas se resuelven mediante React Router.

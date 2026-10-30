@@ -26,7 +26,8 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | Commit | Fecha | Autor | Tarea | Cambio verificable | Evidencia |
 | --- | --- | --- | --- | --- | --- |
 | `17dba85` | 2026-10-29 | Daniel | CO00 | Contrato HTTP y alcance | 26 endpoints; 31 pruebas heredadas; revisión de Francisco pendiente |
-| Pendiente | 2026-10-29 | Daniel | UI01 | Base React y rutas del sistema | `npm ci`, ESLint, build y 20 URLs aprobados; recorrido manual pendiente |
+| `01c5658` | 2026-10-29 | Daniel | UI01 | Base React y rutas del sistema | `npm ci`, ESLint, build y 20 URLs aprobados; revisión de Francisco pendiente |
+| Pendiente | 2026-10-29 | Daniel | UI02 | Tema Sass y componentes compartidos | ESLint/build aprobados; revisión responsive y teclado pendiente |
 
 ### Cliente React
 
@@ -51,6 +52,14 @@ Rutas base:
 | Proyectos | `/proyectos`, `/proyectos/:id` |
 
 Estas páginas son marcadores navegables. UI01 no afirma que autenticación, API, formularios o datos de dominio ya funcionen. La guía específica está en [`cliente/README.md`](cliente/README.md).
+
+#### Tema y componentes compartidos
+
+`cliente/src/styles/app.scss` compila Bootstrap 5.3.8 con la identidad visual del prototipo: azul petróleo, verde, rojo, fondo claro, tipografía del sistema y bordes redondeados. Los parciales `_variables.scss`, `_layout.scss` y `_components.scss` separan configuración, composición y componentes. No se versiona CSS generado ni se importa el JavaScript de Bootstrap.
+
+Los componentes disponibles son `AppLayout`, `Navbar`, `PageHeader`, `StatusPanel` y `ConfirmDialog`. El menú y el diálogo son controlados por React; el diálogo usa el elemento nativo `dialog` para modalidad y restauración del foco. Durante `npm run dev`, `/componentes` permite probar estados y confirmación; esa ruta se excluye del build de producción.
+
+Sass 1.107.0 informa cuatro deprecaciones por los `@import` de `app.scss`. Bootstrap 5.3 todavía distribuye su entrada Sass con el sistema heredado: `quietDeps` evita repetir cientos de avisos internos, pero conserva los avisos del código propio. Migrar mecánicamente a `@use` sin compatibilidad completa de Bootstrap no forma parte de este avance.
 
 ## Avance 1 — prototipo frontend
 

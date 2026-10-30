@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import PageHeader from '../components/PageHeader.jsx'
 
 const destinations = [
   {
@@ -21,32 +22,40 @@ const destinations = [
 function HomePage() {
   return (
     <>
-      <section className="page-heading" aria-labelledby="home-title">
-        <p className="eyebrow">Comunidad universitaria</p>
-        <h1 id="home-title">Conecta ideas con personas</h1>
-        <p>
-          Esta es la base navegable del Avance 2. Los datos reales y las
-          operaciones se incorporarán en las siguientes tareas.
-        </p>
-        <div className="button-row">
-          <Link className="button-link" to="/iniciativas">
-            Explorar iniciativas
-          </Link>
-          <Link className="button-link button-link--secondary" to="/registro">
-            Crear una cuenta
-          </Link>
-        </div>
+      <section className="site-hero">
+        <PageHeader
+          actions={
+            <>
+              <Link className="btn btn-primary" to="/iniciativas">
+                Explorar iniciativas
+              </Link>
+              <Link className="btn btn-outline-primary" to="/registro">
+                Crear una cuenta
+              </Link>
+            </>
+          }
+          description="Descubre ideas, necesidades y retos de la comunidad universitaria y encuentra personas con quienes llevarlos adelante."
+          eyebrow="Comunidad universitaria"
+          title="Conecta ideas con personas"
+          titleId="home-title"
+        />
       </section>
 
-      <section aria-labelledby="destinations-title">
+      <section className="section-block" aria-labelledby="destinations-title">
         <h2 id="destinations-title">Rutas principales</h2>
-        <div className="placeholder-grid">
+        <div className="row g-4">
           {destinations.map(({ to, title, description }) => (
-            <article className="placeholder-card" key={to}>
-              <h3>{title}</h3>
-              <p>{description}</p>
-              <Link to={to}>Abrir sección</Link>
-            </article>
+            <div className="col-12 col-md-6 col-lg-4" key={to}>
+              <article className="card h-100 shadow-sm">
+                <div className="card-body d-flex flex-column">
+                  <h3 className="h5 card-title">{title}</h3>
+                  <p className="card-text flex-grow-1">{description}</p>
+                  <Link className="card-link stretched-link" to={to}>
+                    Abrir sección
+                  </Link>
+                </div>
+              </article>
+            </div>
           ))}
         </div>
       </section>
