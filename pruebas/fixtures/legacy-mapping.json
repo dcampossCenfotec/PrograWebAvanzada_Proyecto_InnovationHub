@@ -1,0 +1,59 @@
+[
+  {
+    "legacyId": "ini-001",
+    "newId": "10000000-0000-4000-8000-000000000001",
+    "category": { "from": "Educación", "to": "sustainability", "reason": "El contenido trata cultivo y educación ambiental; se prioriza el tema central." },
+    "visibility": { "from": "publica", "to": "public" },
+    "state": { "from": "Abierta", "to": "published" }
+  },
+  {
+    "legacyId": "ini-002",
+    "newId": "10000000-0000-4000-8000-000000000002",
+    "category": { "from": "Comunidad", "to": "social-impact", "reason": "La accesibilidad urbana tiene impacto social directo." },
+    "visibility": { "from": "publica", "to": "public" },
+    "state": { "from": "Abierta", "to": "forming_team", "note": "Estado de escenario por membresía aceptada." }
+  },
+  {
+    "legacyId": "ini-003",
+    "newId": "10000000-0000-4000-8000-000000000003",
+    "category": { "from": "Ambiente", "to": "sustainability", "reason": "Reciclaje corresponde a Sostenibilidad." },
+    "visibility": { "from": "restringida", "to": "restricted" },
+    "state": { "from": "En evaluación", "to": "published", "note": "No existe equivalencia contractual directa para En evaluación." }
+  },
+  {
+    "legacyId": "ini-004",
+    "newId": "10000000-0000-4000-8000-000000000004",
+    "category": { "from": "Educación", "to": "education", "reason": "Mentoría académica." },
+    "visibility": { "from": "comunidad", "to": "institutional" },
+    "state": { "from": "Abierta", "to": "published" }
+  },
+  {
+    "legacyId": "ini-005",
+    "newId": "10000000-0000-4000-8000-000000000005",
+    "category": { "from": "Comunidad", "to": "social-impact", "reason": "Atención a familias vulnerables." },
+    "visibility": { "from": "publica", "to": "public" },
+    "state": { "from": "Abierta", "to": "archived", "note": "Estado de escenario para probar historia relacionada." }
+  },
+  {
+    "legacyId": "ini-006",
+    "newId": "10000000-0000-4000-8000-000000000006",
+    "category": { "from": "Tecnología", "to": "technology", "reason": "El entregable central es un tablero de datos; se conserva Tecnología aunque el tema sea ambiental." },
+    "visibility": { "from": "equipo", "to": "private" },
+    "state": { "from": "En evaluación", "to": "published", "note": "No existe equivalencia contractual directa para En evaluación." }
+  },
+  {
+    "legacyId": "ini-007",
+    "newId": "10000000-0000-4000-8000-000000000007",
+    "category": { "from": "Cultura", "to": "culture-creativity", "reason": "Intercambio de libros." },
+    "visibility": { "from": "publica", "to": "public" },
+    "state": { "from": "Abierta", "to": "draft", "note": "Solo para prueba de compatibilidad y acceso; la UI no crea borradores." }
+  },
+  {
+    "legacyId": "ini-008",
+    "newId": "10000000-0000-4000-8000-000000000008",
+    "category": { "from": "Educación", "to": "education", "reason": "Preparación y aprendizaje laboral." },
+    "visibility": { "from": "publica", "to": "public" },
+    "state": { "from": "Abierta", "to": "converted", "note": "Estado de escenario para probar proyecto y equipo posterior." }
+  }
+]
+

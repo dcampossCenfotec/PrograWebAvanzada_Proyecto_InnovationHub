@@ -1,0 +1,18 @@
+[
+  {
+    "id": "50000000-0000-4000-8000-000000000001",
+    "sourceInitiativeId": "10000000-0000-4000-8000-000000000008",
+    "ownerId": "11111111-1111-4111-8111-111111111111",
+    "name": "Programa de orientación laboral",
+    "description": "Implementación de talleres y recursos para preparar postulaciones y entrevistas.",
+    "objective": "Acompañar a participantes durante la preparación de su búsqueda laboral.",
+    "technologies": ["React", "Node.js"],
+    "startDate": "2026-11-01",
+    "estimatedEndDate": "2027-02-28",
+    "state": "planning",
+    "repositoryUrl": null,
+    "createdAt": "2026-10-25T16:00:00.000Z",
+    "updatedAt": "2026-10-25T16:00:00.000Z"
+  }
+]
+

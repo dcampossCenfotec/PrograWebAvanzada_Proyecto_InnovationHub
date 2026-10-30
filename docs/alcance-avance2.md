@@ -32,8 +32,10 @@ El directorio `avance1/` se conserva como evidencia histórica. Las correcciones
 
 | Titular | Implementación completa | Revisión |
 | --- | --- | --- |
-| Daniel Campos Sánchez | Base React compartida; autenticación; perfiles, competencias y directorio; solicitudes del solicitante; proyectos y GitHub; contrato; colección final; integración/README/entrega. | Francisco revisa cada tarea. |
-| Francisco José Torres Sandoval | Base Express/MongoDB; iniciativas y catálogos; resolución de solicitudes; equipos; modelo y fixtures; consistencia API; guía de defensa. | Daniel revisa cada tarea. |
+| Daniel Campos Sánchez | Base React compartida; autenticación; perfiles, competencias y directorio; solicitudes del solicitante; proyectos y GitHub; CO00–CO04; modelo y fixtures; colección final; integración/README/defensa/entrega. | Francisco revisa cada tarea. |
+| Francisco José Torres Sandoval | Base Express/MongoDB; iniciativas y catálogos; resolución de solicitudes; equipos y consistencia API. | Daniel revisa cada tarea. |
+
+El plan completo asigna 18 tareas a Daniel y 16 a Francisco. Como CO00, UI01 y UI02 ya están publicados, quedan 15 tareas pendientes de Daniel y 16 de Francisco.
 
 Cada tarea tiene un responsable único. El revisor no comparte autoría del cambio: comprueba contrato, casos límite y reproducibilidad.
 

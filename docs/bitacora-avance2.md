@@ -21,6 +21,9 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-10-29 | UI02 | Servidor Vite local | Primera aserción MIME de `/componentes`, JSX y Sass | Ruta y JSX respondieron 200; el chequeo falló porque esperaba `text/css` para Sass, pero Vite lo transforma como módulo JavaScript | Sin commit |
 | 2026-10-29 | UI02 | Servidor Vite local | Repetir aserción con MIME real de Vite | `/componentes`, JSX y Sass respondieron 200 con tipos esperados | Sin commit |
 | 2026-10-29 | UI02 | Cálculo WCAG de luminancia | Contraste de texto base y colores principales sobre sus fondos | Body 12.92:1; primary 7.06:1; success 6.33:1; danger 6.19:1; secondary 5.58:1 | Sin commit |
+| 2026-10-29 | CO01 | Node 24.21.0; validador sin dependencias | `node pruebas/fixtures/validate-fixtures.mjs` | 5 usuarios, 8 categorías, 10 competencias, 8 iniciativas, 5 solicitudes, 12 membresías, 13 eventos y 1 proyecto; referencias/estados/invariantes aprobados | Sin commit |
+| 2026-10-29 | CO01 | Python 3; parser JSON | `python3 -m json.tool` sobre cada `pruebas/fixtures/*.json` | Todos los archivos JSON válidos | Sin commit |
+| 2026-10-29 | CO01 | Revisión manual de Daniel | Recorrido de actores, visibilidades, borrado/archivo, reintentos, estimación superada, conversión, mapeo heredado y modelo | Daniel confirmó todos los escenarios; revisión cruzada de Francisco pendiente | Sin commit |
 
 ## Plantilla de entrada
 
@@ -47,6 +50,19 @@ Si una prueba falla, conservar la entrada y agregar otra después de corregirla.
 - [ ] Las equivalencias RN se citan por significado y fuente, no solo por número.
 
 Resultado de CO00: **pendiente de revisión manual de Daniel y revisión cruzada de Francisco**.
+
+## Revisión documental CO01
+
+- [x] Todos los JSON se pueden analizar y los UUID públicos tienen formato válido.
+- [x] Referencias, cuatro visibilidades y estados de iniciativa/solicitud son coherentes.
+- [x] Existe una sola solicitud pendiente y una sola membresía activa por pareja iniciativa/usuario.
+- [x] Fixtures no contienen campos de contraseña ni token.
+- [x] Daniel recorre actores, visibilidad, borrado/archivo, reintentos, estimación superada y conversión.
+- [ ] Francisco confirma que índices parciales y transacciones se pueden implementar en Mongoose sin reinterpretar el contrato.
+- [ ] Francisco confirma que API02 puede cargar catálogos y estructura de seed de forma idempotente y aislada.
+- [ ] Ambos revisan la equivalencia relacional prevista para la futura API .NET.
+
+Resultado de CO01: **validación estructural y recorrido manual de Daniel aprobados; revisión cruzada de Francisco pendiente**.
 
 ## Revisión manual UI01
 

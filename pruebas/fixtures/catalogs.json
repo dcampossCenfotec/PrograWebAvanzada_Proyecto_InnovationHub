@@ -1,0 +1,25 @@
+{
+  "categories": [
+    { "id": "technology", "name": "Tecnología", "nameNormalized": "tecnologia", "active": true },
+    { "id": "education", "name": "Educación", "nameNormalized": "educacion", "active": true },
+    { "id": "sustainability", "name": "Sostenibilidad", "nameNormalized": "sostenibilidad", "active": true },
+    { "id": "social-impact", "name": "Impacto social", "nameNormalized": "impacto social", "active": true },
+    { "id": "business", "name": "Negocios y emprendimiento", "nameNormalized": "negocios y emprendimiento", "active": true },
+    { "id": "health", "name": "Salud y bienestar", "nameNormalized": "salud y bienestar", "active": true },
+    { "id": "culture-creativity", "name": "Cultura y creatividad", "nameNormalized": "cultura y creatividad", "active": true },
+    { "id": "other", "name": "Otro", "nameNormalized": "otro", "active": true }
+  ],
+  "skills": [
+    { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1", "name": "Desarrollo web", "nameNormalized": "desarrollo web", "active": true },
+    { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2", "name": "Diseño", "nameNormalized": "diseno", "active": true },
+    { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3", "name": "Investigación", "nameNormalized": "investigacion", "active": true },
+    { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4", "name": "Comunicación", "nameNormalized": "comunicacion", "active": true },
+    { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa5", "name": "Logística", "nameNormalized": "logistica", "active": true },
+    { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6", "name": "Facilitación", "nameNormalized": "facilitacion", "active": true },
+    { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa7", "name": "Datos", "nameNormalized": "datos", "active": true },
+    { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa8", "name": "Sostenibilidad", "nameNormalized": "sostenibilidad", "active": true },
+    { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa9", "name": "Organización", "nameNormalized": "organizacion", "active": true },
+    { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa10", "name": "Recursos humanos", "nameNormalized": "recursos humanos", "active": true }
+  ]
+}
+

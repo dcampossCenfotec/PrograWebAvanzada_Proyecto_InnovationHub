@@ -1,0 +1,73 @@
+[
+  {
+    "id": "20000000-0000-4000-8000-000000000001",
+    "initiativeId": "10000000-0000-4000-8000-000000000002",
+    "applicantId": "55555555-5555-4555-8555-555555555555",
+    "message": "Puedo coordinar los levantamientos y organizar las visitas semanales.",
+    "offeredSkillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa5",
+    "role": "Coordinación logística",
+    "availability": "high",
+    "state": "accepted",
+    "decisionComment": "Bienvenida al equipo de accesibilidad.",
+    "createdAt": "2026-10-21T10:00:00.000Z",
+    "updatedAt": "2026-10-22T10:00:00.000Z",
+    "decidedAt": "2026-10-22T10:00:00.000Z"
+  },
+  {
+    "id": "20000000-0000-4000-8000-000000000002",
+    "initiativeId": "10000000-0000-4000-8000-000000000005",
+    "applicantId": "22222222-2222-4222-8222-222222222222",
+    "message": "Puedo apoyar la comunicación con organizaciones y posibles donantes.",
+    "offeredSkillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4",
+    "role": "Comunicación con donantes",
+    "availability": "medium",
+    "state": "cancelled",
+    "decisionComment": null,
+    "createdAt": "2026-10-22T10:00:00.000Z",
+    "updatedAt": "2026-10-23T10:00:00.000Z",
+    "decidedAt": null
+  },
+  {
+    "id": "20000000-0000-4000-8000-000000000003",
+    "initiativeId": "10000000-0000-4000-8000-000000000004",
+    "applicantId": "22222222-2222-4222-8222-222222222222",
+    "message": "Quiero preparar materiales para las sesiones de mentoría tecnológica.",
+    "offeredSkillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4",
+    "role": "Preparación de materiales",
+    "availability": "medium",
+    "state": "rejected",
+    "decisionComment": "El primer ciclo ya tenía cubierta esta función.",
+    "createdAt": "2026-10-23T10:00:00.000Z",
+    "updatedAt": "2026-10-24T10:00:00.000Z",
+    "decidedAt": "2026-10-24T10:00:00.000Z"
+  },
+  {
+    "id": "20000000-0000-4000-8000-000000000004",
+    "initiativeId": "10000000-0000-4000-8000-000000000004",
+    "applicantId": "22222222-2222-4222-8222-222222222222",
+    "message": "Ahora puedo apoyar la investigación y seguimiento de cada mentoría.",
+    "offeredSkillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3",
+    "role": "Seguimiento de mentorías",
+    "availability": "medium",
+    "state": "pending",
+    "decisionComment": null,
+    "createdAt": "2026-10-26T10:00:00.000Z",
+    "updatedAt": "2026-10-26T10:00:00.000Z",
+    "decidedAt": null
+  },
+  {
+    "id": "20000000-0000-4000-8000-000000000005",
+    "initiativeId": "10000000-0000-4000-8000-000000000008",
+    "applicantId": "33333333-3333-4333-8333-333333333333",
+    "message": "Puedo revisar materiales y realizar entrevistas de práctica con participantes.",
+    "offeredSkillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3",
+    "role": "Mentoría de entrevistas",
+    "availability": "low",
+    "state": "accepted",
+    "decisionComment": null,
+    "createdAt": "2026-10-25T11:00:00.000Z",
+    "updatedAt": "2026-10-26T11:00:00.000Z",
+    "decidedAt": "2026-10-26T11:00:00.000Z"
+  }
+]
+

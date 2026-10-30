@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "files": {
+    "catalogs": "catalogs.json",
+    "users": "users.json",
+    "initiatives": "initiatives.json",
+    "requests": "requests.json",
+    "memberships": "memberships.json",
+    "membershipEvents": "membership-events.json",
+    "projects": "projects.json",
+    "legacyMapping": "legacy-mapping.json"
+  },
+  "actors": {
+    "ACTOR_A": "11111111-1111-4111-8111-111111111111",
+    "ACTOR_B": "22222222-2222-4222-8222-222222222222",
+    "ACTOR_C": "33333333-3333-4333-8333-333333333333",
+    "ACTOR_D": "44444444-4444-4444-8444-444444444444",
+    "ACTOR_E": "55555555-5555-4555-8555-555555555555",
+    "VISITOR": null
+  },
+  "scenarios": {
+    "INIT_PUBLIC_DELETE": "10000000-0000-4000-8000-000000000001",
+    "INIT_TEAM": "10000000-0000-4000-8000-000000000002",
+    "INIT_RESTRICTED": "10000000-0000-4000-8000-000000000003",
+    "INIT_INSTITUTIONAL": "10000000-0000-4000-8000-000000000004",
+    "INIT_ARCHIVED": "10000000-0000-4000-8000-000000000005",
+    "INIT_PRIVATE": "10000000-0000-4000-8000-000000000006",
+    "INIT_DRAFT": "10000000-0000-4000-8000-000000000007",
+    "INIT_CONVERTED": "10000000-0000-4000-8000-000000000008",
+    "INIT_OVER_ESTIMATE": "10000000-0000-4000-8000-000000000008",
+    "REQUEST_PENDING": "20000000-0000-4000-8000-000000000004",
+    "REQUEST_REJECTED": "20000000-0000-4000-8000-000000000003",
+    "PROJECT_A": "50000000-0000-4000-8000-000000000001"
+  },
+  "testSets": {
+    "baseline": "Carga completa de estos archivos.",
+    "destructive-delete": "Clonar INIT_PUBLIC_DELETE y su relación automática del propietario.",
+    "concurrent-request": "Clonar INIT_INSTITUTIONAL sin solicitudes del ACTOR_C.",
+    "concurrent-decision": "Clonar REQUEST_PENDING en una iniciativa no archivada.",
+    "conversion": "Clonar INIT_TEAM sin proyecto."
+  }
+}
+

@@ -6,14 +6,16 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 
 - **Entrega usada por el equipo:** 8 de noviembre de 2026, fecha corregida por Daniel respecto al documento recibido.
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
-- **Daniel Campos Sánchez:** base React; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; contrato e integración final.
-- **Francisco José Torres Sandoval:** base Express/MongoDB; iniciativas/catálogos; solicitudes recibidas; equipos; modelo de datos y consistencia API.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas.
+- **Daniel Campos Sánchez:** base React; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; contrato; modelo y fixtures; colección Postman; integración/README; guía de defensa y entrega.
+- **Francisco José Torres Sandoval:** base Express/MongoDB; iniciativas/catálogos; solicitudes recibidas; equipos y consistencia API.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 18 tareas a Daniel y 16 a Francisco; después de CO00, UI01 y UI02 quedan 15 y 16, respectivamente.
 
 Documentos vigentes:
 
 - [Alcance del Avance 2](docs/alcance-avance2.md)
 - [Contrato HTTP](docs/api-contract.md)
+- [Modelo de datos](docs/modelo-datos.md)
+- [Matriz de pruebas](docs/matriz-pruebas.md)
 - [Matriz de reglas y equivalencias](docs/matriz-reglas.md)
 - [Bitácora de verificación](docs/bitacora-avance2.md)
 
@@ -27,7 +29,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | --- | --- | --- | --- | --- | --- |
 | `17dba85` | 2026-10-29 | Daniel | CO00 | Contrato HTTP y alcance | 26 endpoints; 31 pruebas heredadas; revisión de Francisco pendiente |
 | `01c5658` | 2026-10-29 | Daniel | UI01 | Base React y rutas del sistema | `npm ci`, ESLint, build y 20 URLs aprobados; revisión de Francisco pendiente |
-| Pendiente | 2026-10-29 | Daniel | UI02 | Tema Sass y componentes compartidos | ESLint/build aprobados; revisión responsive y teclado pendiente |
+| `7d71af3` | 2026-10-29 | Daniel | UI02 | Tema Sass y componentes compartidos | ESLint/build aprobados; revisión responsive y teclado pendiente |
 
 ### Cliente React
 
@@ -60,6 +62,18 @@ Estas páginas son marcadores navegables. UI01 no afirma que autenticación, API
 Los componentes disponibles son `AppLayout`, `Navbar`, `PageHeader`, `StatusPanel` y `ConfirmDialog`. El menú y el diálogo son controlados por React; el diálogo usa el elemento nativo `dialog` para modalidad y restauración del foco. Durante `npm run dev`, `/componentes` permite probar estados y confirmación; esa ruta se excluye del build de producción.
 
 Sass 1.107.0 informa cuatro deprecaciones por los `@import` de `app.scss`. Bootstrap 5.3 todavía distribuye su entrada Sass con el sistema heredado: `quietDeps` evita repetir cientos de avisos internos, pero conserva los avisos del código propio. Migrar mecánicamente a `@use` sin compatibilidad completa de Bootstrap no forma parte de este avance.
+
+### Modelo y fixtures compartidos
+
+CO01 define en [`docs/modelo-datos.md`](docs/modelo-datos.md) las colecciones, referencias, índices parciales, transacciones y equivalencia relacional. Conteos de miembros, espacios disponibles y capacidades se calculan; no se duplican en los documentos persistidos. La cobertura requisito → endpoint/pantalla → fixture → evidencia está en [`docs/matriz-pruebas.md`](docs/matriz-pruebas.md).
+
+`pruebas/fixtures/` contiene datos sintéticos: cinco actores, ocho iniciativas migradas, cuatro visibilidades, todos los estados de iniciativa/solicitud, membresías con historia y un proyecto. No contiene contraseñas, hashes ni tokens. Para validar JSON, UUID, referencias e invariantes:
+
+```bash
+node pruebas/fixtures/validate-fixtures.mjs
+```
+
+El seed y MongoDB se implementarán en API02/API03. Estos comandos son previstos y **todavía no están disponibles**: `cd servidor && npm run db:up` y `npm run seed -- --set baseline`. No deben documentarse como ejecutables hasta que existan y pasen en ambos equipos.
 
 ## Avance 1 — prototipo frontend
 

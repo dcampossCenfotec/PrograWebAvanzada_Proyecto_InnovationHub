@@ -1,0 +1,99 @@
+[
+  {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "firstName": "Ana",
+    "lastName": "Rojas",
+    "memberType": "student",
+    "email": "ana.owner@example.test",
+    "emailNormalized": "ana.owner@example.test",
+    "career": "Ingeniería del Software",
+    "bio": "Propietaria de iniciativas para pruebas compartidas.",
+    "interests": ["educación", "sostenibilidad"],
+    "availability": "high",
+    "portfolioUrl": null,
+    "skills": [
+      { "skillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2", "level": "advanced" },
+      { "skillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6", "level": "intermediate" }
+    ],
+    "active": true,
+    "createdAt": "2026-10-10T14:00:00.000Z",
+    "updatedAt": "2026-10-10T14:00:00.000Z"
+  },
+  {
+    "id": "22222222-2222-4222-8222-222222222222",
+    "firstName": "Luis",
+    "lastName": "Mora",
+    "memberType": "student",
+    "email": "luis.applicant@example.test",
+    "emailNormalized": "luis.applicant@example.test",
+    "career": "Diseño de Experiencias Digitales",
+    "bio": "Solicitante usado en escenarios de participación.",
+    "interests": ["accesibilidad", "comunidad"],
+    "availability": "medium",
+    "portfolioUrl": "https://example.test/luis",
+    "skills": [
+      { "skillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3", "level": "intermediate" },
+      { "skillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4", "level": "advanced" }
+    ],
+    "active": true,
+    "createdAt": "2026-10-11T14:00:00.000Z",
+    "updatedAt": "2026-10-11T14:00:00.000Z"
+  },
+  {
+    "id": "33333333-3333-4333-8333-333333333333",
+    "firstName": "Carla",
+    "lastName": "Vega",
+    "memberType": "professor",
+    "email": "carla.outsider@example.test",
+    "emailNormalized": "carla.outsider@example.test",
+    "career": null,
+    "bio": null,
+    "interests": ["investigación"],
+    "availability": "low",
+    "portfolioUrl": null,
+    "skills": [
+      { "skillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3", "level": "advanced" }
+    ],
+    "active": true,
+    "createdAt": "2026-10-12T14:00:00.000Z",
+    "updatedAt": "2026-10-12T14:00:00.000Z"
+  },
+  {
+    "id": "44444444-4444-4444-8444-444444444444",
+    "firstName": "Diego",
+    "lastName": "Núñez",
+    "memberType": "graduate",
+    "email": "diego.inactive@example.test",
+    "emailNormalized": "diego.inactive@example.test",
+    "career": "Administración",
+    "bio": null,
+    "interests": [],
+    "availability": "low",
+    "portfolioUrl": null,
+    "skills": [],
+    "active": false,
+    "createdAt": "2026-10-13T14:00:00.000Z",
+    "updatedAt": "2026-10-20T14:00:00.000Z"
+  },
+  {
+    "id": "55555555-5555-4555-8555-555555555555",
+    "firstName": "Elena",
+    "lastName": "Solís",
+    "memberType": "administrative",
+    "email": "elena.member@example.test",
+    "emailNormalized": "elena.member@example.test",
+    "career": null,
+    "bio": "Miembro aceptado para escenarios de equipo.",
+    "interests": ["logística", "impacto social"],
+    "availability": "high",
+    "portfolioUrl": null,
+    "skills": [
+      { "skillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa5", "level": "advanced" },
+      { "skillId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa9", "level": "advanced" }
+    ],
+    "active": true,
+    "createdAt": "2026-10-14T14:00:00.000Z",
+    "updatedAt": "2026-10-14T14:00:00.000Z"
+  }
+]
+
