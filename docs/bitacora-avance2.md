@@ -10,6 +10,10 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-10-29 | CO00 | macOS; ripgrep | Inventario de encabezados HTTP, bloques Markdown, espacios finales y endpoints de proyecto fuera de alcance | 26/26 endpoints; 48 cercas de código balanceadas; sin espacios finales; sin PUT/DELETE de proyectos | Sin commit |
 | 2026-10-29 | CO00 | macOS; Git | `git diff --check` | Sin errores de whitespace | Sin commit |
 | 2026-10-29 | CO00 | Node.js; runner `node:test` | `cd avance1 && npm test` | 31 aprobadas, 0 fallidas; el cambio documental no altera el prototipo | Sin commit |
+| 2026-10-29 | UI01 | Node 24.21.0; npm 12.2.0 | `cd cliente && npm ci` con caché temporal aislada | 147 paquetes instalados desde lockfile; 0 vulnerabilidades. npm bloqueó el script opcional de `fsevents`, sin impedir la instalación | Sin commit |
+| 2026-10-29 | UI01 | Sandbox restringido | Primera ejecución de `npm test` | ESLint aprobó; build bloqueado por `EPERM` al crear `node_modules/.vite-temp`. Fallo del permiso de ejecución, no del código | Sin commit |
+| 2026-10-29 | UI01 | Node 24.21.0; permiso de escritura del repositorio | `cd cliente && npm test` | ESLint aprobó; Vite 8.3.5 compiló 98 módulos y generó `dist/` | Sin commit |
+| 2026-10-29 | UI01 | Preview local de Vite | Solicitud directa a las 19 rutas acordadas y `/ruta-inexistente` mediante `fetch` de Node | 20/20 respuestas HTTP 200; el fallback entrega la SPA y React resuelve la página 404. Revisión visual/navegación pendiente de Daniel | Sin commit |
 
 ## Plantilla de entrada
 
@@ -36,3 +40,14 @@ Si una prueba falla, conservar la entrada y agregar otra después de corregirla.
 - [ ] Las equivalencias RN se citan por significado y fuente, no solo por número.
 
 Resultado de CO00: **pendiente de revisión manual de Daniel y revisión cruzada de Francisco**.
+
+## Revisión manual UI01
+
+- [ ] Navegar mediante enlaces sin recarga completa del documento.
+- [ ] Abrir directamente una ruta de detalle y confirmar que muestra el `id` de la URL.
+- [ ] Cambiar el `id` en la barra y confirmar que cambia el valor presentado.
+- [ ] Probar Atrás y Adelante entre tres rutas.
+- [ ] Abrir una ruta desconocida y comprobar el título “Página no encontrada”.
+- [ ] Recorrer enlaces y salto al contenido con teclado.
+
+Resultado de UI01: **verificación automática aprobada; recorrido manual de Daniel y revisión cruzada de Francisco pendientes**.

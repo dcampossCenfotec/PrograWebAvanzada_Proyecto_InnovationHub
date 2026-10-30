@@ -25,7 +25,32 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 
 | Commit | Fecha | Autor | Tarea | Cambio verificable | Evidencia |
 | --- | --- | --- | --- | --- | --- |
-| Pendiente | — | Daniel | CO00 | Contrato HTTP y alcance | Revisión manual y cruzada pendientes antes del commit |
+| `17dba85` | 2026-10-29 | Daniel | CO00 | Contrato HTTP y alcance | 26 endpoints; 31 pruebas heredadas; revisión de Francisco pendiente |
+| Pendiente | 2026-10-29 | Daniel | UI01 | Base React y rutas del sistema | `npm ci`, ESLint, build y 20 URLs aprobados; recorrido manual pendiente |
+
+### Cliente React
+
+El cliente del Avance 2 vive en `cliente/`. Requiere Node.js `22.12.0` o posterior compatible; `.nvmrc` fija la versión compartida recomendada y `package-lock.json` conserva las dependencias exactas. La configuración inicial se verificará con Node `24.21.0`, disponible en el equipo de desarrollo.
+
+```bash
+cd cliente
+npm ci
+npm run dev
+```
+
+Abrir `http://localhost:5173`. Los comandos disponibles son `dev`, `build`, `preview`, `lint` y `test`. En UI01, `npm test` ejecuta la puerta estructural de lint y build; las pruebas de comportamiento se agregan cuando existan componentes con lógica real.
+
+Rutas base:
+
+| Área | Rutas |
+| --- | --- |
+| Inicio y acceso | `/`, `/ingresar`, `/registro`, ruta comodín 404 |
+| Iniciativas | `/iniciativas`, `/mis-iniciativas`, `/iniciativas/nueva`, `/iniciativas/:id`, `/iniciativas/:id/editar`, `/iniciativas/:id/participar`, `/iniciativas/:id/convertir` |
+| Personas | `/perfil`, `/usuarios`, `/usuarios/:id` |
+| Solicitudes | `/mis-solicitudes`, `/solicitudes/:id`, `/solicitudes/:id/editar`, `/solicitudes-recibidas` |
+| Proyectos | `/proyectos`, `/proyectos/:id` |
+
+Estas páginas son marcadores navegables. UI01 no afirma que autenticación, API, formularios o datos de dominio ya funcionen. La guía específica está en [`cliente/README.md`](cliente/README.md).
 
 ## Avance 1 — prototipo frontend
 
