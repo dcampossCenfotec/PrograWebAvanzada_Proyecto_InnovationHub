@@ -20,9 +20,12 @@ export function clearAccessToken() {
   getStorage()?.removeItem(accessTokenKey)
 }
 
-export function notifyUnauthorized() {
+export function notifyUnauthorized(details = {}) {
+  const hadToken = Boolean(getAccessToken())
   clearAccessToken()
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(unauthorizedEventName))
+    window.dispatchEvent(new CustomEvent(unauthorizedEventName, {
+      detail: { ...details, hadToken },
+    }))
   }
 }

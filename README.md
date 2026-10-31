@@ -8,7 +8,7 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
 - **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; CO00–CO01; modelo y fixtures.
 - **Francisco José Torres Sandoval:** iniciativas/catálogos; solicitudes recibidas; equipos; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01, UI01–UI03 y API01–API03 quedan 7 y 19, respectivamente. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de sus módulos antes de CO02.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01, UI01–UI04 y API01–API03 quedan 6 y 19, respectivamente. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de sus módulos antes de CO02.
 
 Documentos vigentes:
 
@@ -34,6 +34,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | `c1c6eba` | 2026-10-30 | Daniel | UI03 | Cliente HTTP, servicios, mocks y estados de consulta | 31 pruebas, ESLint, build y aislamiento productivo de mocks aprobados |
 | `25e0206` | 2026-10-30 | Daniel | API01 | Base Express por capas y errores uniformes | 12 pruebas, ESLint, HTTP/CORS real y cierre limpio aprobados |
 | `f996cb7` | 2026-10-30 | Daniel | API02 | MongoDB, catálogos y seed transaccional | 21 pruebas, 2 integraciones reales, seed repetido y rollback aprobados |
+| `8e2ac1c` | 2026-10-30 | Daniel | API03 | Registro, login y sesiones revocables | 27 pruebas locales, 2 integraciones MongoDB y recorrido HTTP real aprobados |
 
 ### Cliente React
 
@@ -69,7 +70,9 @@ Los componentes disponibles son `AppLayout`, `Navbar`, `PageHeader`, `StatusPane
 
 `cliente/src/api/` centraliza URL base, query, JSON, token Bearer, timeout, cancelación y errores uniformes. Los servicios de dominio reflejan los 26 endpoints de [`docs/api-contract.md`](docs/api-contract.md). `useApiQuery` separa carga, éxito, vacío y error, cancela consultas desmontadas e impide que una respuesta anterior reemplace una búsqueda más reciente.
 
-El modo normal consulta `http://localhost:3000/api`. Para desarrollar lecturas antes de disponer del servidor, crear `cliente/.env.local` con `VITE_API_MODE=mock`; los datos se importan desde `pruebas/fixtures/`. Las mutaciones del mock fallan explícitamente con `501` hasta sus tareas funcionales y un build con modo mock se rechaza. La configuración, tokens sintéticos y recorrido de `/api-demo` están documentados en [`cliente/README.md`](cliente/README.md).
+El modo normal consulta `http://localhost:3000/api`. Para desarrollar sin servidor, crear `cliente/.env.local` con `VITE_API_MODE=mock`; los datos se importan desde `pruebas/fixtures/`. El mock implementa autenticación desde UI04; las demás mutaciones fallan explícitamente con `501` hasta su tarea funcional y un build con modo mock se rechaza. La configuración, tokens sintéticos y recorrido de `/api-demo` están documentados en [`cliente/README.md`](cliente/README.md).
+
+UI04 agrega registro, login, restauración mediante `/auth/me`, identidad visible, rutas protegidas y logout contra API03. El token opaco se conserva en `sessionStorage`; un `401` lo elimina, mientras que un fallo de red al cerrar mantiene la sesión y permite reintentar la revocación.
 
 Sass 1.107.0 informa cuatro deprecaciones por los `@import` de `app.scss`. Bootstrap 5.3 todavía distribuye su entrada Sass con el sistema heredado: `quietDeps` evita repetir cientos de avisos internos, pero conserva los avisos del código propio. Migrar mecánicamente a `@use` sin compatibilidad completa de Bootstrap no forma parte de este avance.
 

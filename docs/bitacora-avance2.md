@@ -51,6 +51,12 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-10-30 | API03 | MongoDB Community 8.0.34 | Ejecutar `npm run seed` dos veces | Ambas ejecuciones conservaron 8 categorías, 10 competencias y 5 usuarios demo; los hashes existentes no rotaron | Sin commit |
 | 2026-10-30 | API03 | Express y MongoDB reales | Login de Ana, `/auth/me`, logout y reutilización del token por HTTP | Estados 200, 200, 204 y 401; token opaco de 43 caracteres y código final `AUTHENTICATION_REQUIRED` | Sin commit |
 | 2026-10-30 | API03 | Node 24.21.0; scrypt N=16384/r=8/p=1 | Medir cinco hashes consecutivos con sal aleatoria de 16 bytes | 49, 41, 39, 40 y 41 ms; promedio local 42 ms | Sin commit |
+| 2026-10-30 | UI04 | Copia de trabajo con `node_modules` enlazado | Primer build de UI04 | Falló con `EPERM` al escribir `.vite-temp` dentro del enlace de solo lectura; se reemplazó por una copia local para continuar | Sin commit |
+| 2026-10-30 | UI04 | `.env.local` configurado en mock | Build de producción sin sobrescribir modo | Falló deliberadamente: el build impide publicar `VITE_API_MODE=mock`; se repitió con `VITE_API_MODE=real` | Sin commit |
+| 2026-10-30 | UI04 | Node 24.21.0; Vitest/ESLint/Vite | `VITE_API_MODE=real npm test` y prueba final de sesión incomprobable | 47 pruebas en 8 archivos, ESLint y build con 121 módulos aprobados; solo 4 avisos Sass ya documentados | Sin commit |
+| 2026-10-30 | UI04 | Express en 3001; Vite en 5175; MongoDB real | Solicitar `/ingresar` y login demo con origen real del cliente | Página `200`, login `200`, CORS exacto, token opaco de 43 caracteres e identidad de Ana | Sin commit |
+| 2026-10-30 | UI04 | Navegador integrado | Intentar recorrido visual automatizado | El host del navegador no estuvo disponible; no se cuenta como aprobación visual y queda en revisión manual | Sin commit |
+| 2026-10-31 | UI04 | Revisión manual de Daniel | Recorrido entregado y solicitud explícita de commit/push | Daniel confirmó UI04 para cierre; revisión cruzada de Francisco continúa pendiente | Sin commit |
 
 ## Plantilla de entrada
 
@@ -168,3 +174,20 @@ Resultado de API02: **unidad, fixtures, seed, índices, persistencia, rollback, 
 - [ ] Francisco usa `requireSession` en una ruta propia y verifica sesión válida, ausente, expirada y revocada.
 
 Resultado de API03: **automatización, MongoDB real, seed repetido y recorrido HTTP aprobados; Daniel confirmó la prueba manual antes del commit y queda pendiente la revisión cruzada de Francisco**.
+
+## Revisión manual UI04
+
+- [ ] Configurar `cliente/.env.local` con `VITE_API_MODE=real`, levantar API y Vite y abrir `/ingresar`.
+- [ ] Como visitante, abrir `/iniciativas` y `/proyectos`; ambas rutas públicas permanecen accesibles.
+- [ ] Abrir `/perfil`, `/usuarios` o `/iniciativas/nueva`; debe redirigir a ingreso y volver a la ruta solicitada después de autenticar.
+- [ ] En registro vacío, confirmar errores por campo; probar correo inválido, contraseña débil, confirmación distinta y términos sin aceptar.
+- [ ] Registrar una cuenta válida; confirmar identidad en la barra, ruta de perfil y que el formulario no solicita ni descarta carrera.
+- [ ] Repetir el correo con mayúsculas y espacios; confirmar `EMAIL_ALREADY_EXISTS` junto al campo y que los valores permanecen.
+- [ ] Ingresar como `ana.owner@example.test` con `DemoSegura2026`; recargar y confirmar que `/auth/me` restaura la identidad.
+- [ ] Intentar `diego.inactive@example.test`; confirmar el mismo mensaje que una contraseña incorrecta o correo desconocido.
+- [ ] Cerrar sesión desde una ruta protegida; confirmar aviso, redirección a ingreso y que Atrás no recupera la página privada.
+- [ ] Detener la API antes de cerrar sesión; confirmar que se informa el fallo, el nombre sigue visible y el botón permite reintentar después de reiniciar la API.
+- [ ] En modo mock, guardar `mock-expired-token`, recargar una ruta protegida y confirmar aviso de sesión terminada.
+- [ ] Revisar a 360, 768 y 1440 px, teclado completo, foco visible y zoom de 200 % en ambos formularios y menú autenticado.
+
+Resultado de UI04: **47 pruebas, lint, build, integración HTTP real y confirmación manual de Daniel aprobados; revisión cruzada de Francisco pendiente**.

@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import PageHeader from '../components/PageHeader.jsx'
+import { useAuth } from '../auth/useAuth.js'
 
 const destinations = [
   {
@@ -20,6 +21,7 @@ const destinations = [
 ]
 
 function HomePage() {
+  const auth = useAuth()
   return (
     <>
       <section className="site-hero">
@@ -29,9 +31,11 @@ function HomePage() {
               <Link className="btn btn-primary" to="/iniciativas">
                 Explorar iniciativas
               </Link>
-              <Link className="btn btn-outline-primary" to="/registro">
-                Crear una cuenta
-              </Link>
+              {auth.status === 'authenticated' ? (
+                <Link className="btn btn-outline-primary" to="/perfil">Abrir mi perfil</Link>
+              ) : (
+                <Link className="btn btn-outline-primary" to="/registro">Crear una cuenta</Link>
+              )}
             </>
           }
           description="Descubre ideas, necesidades y retos de la comunidad universitaria y encuentra personas con quienes llevarlos adelante."

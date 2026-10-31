@@ -5,7 +5,7 @@ import projectsFixture from '@fixtures/projects.json'
 import requestsFixture from '@fixtures/requests.json'
 import usersFixture from '@fixtures/users.json'
 
-const tokenActors = new Map([
+const defaultTokenActors = new Map([
   ['mock-owner-token', '11111111-1111-4111-8111-111111111111'],
   ['mock-applicant-token', '22222222-2222-4222-8222-222222222222'],
 ])
@@ -18,11 +18,16 @@ const defaultFixtures = {
   requests: requestsFixture,
   users: usersFixture,
 }
+const registrationFields = new Set([
+  'firstName', 'lastName', 'memberType', 'email', 'password', 'passwordConfirmation', 'termsAccepted',
+])
+const memberTypes = new Set(['student', 'professor', 'administrative', 'graduate', 'external'])
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-function jsonResponse(payload, status = 200) {
+function jsonResponse(payload, status = 200, headers = {}) {
   return new Response(JSON.stringify(payload), {
     status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', ...headers },
   })
 }
 
@@ -48,12 +53,13 @@ function abortableDelay(milliseconds, signal) {
   })
 }
 
-function getActorId(headers) {
+function getActorId(headers, tokenActors) {
   const authorization = headers.get('Authorization')
-  if (!authorization) return { actorId: null, invalid: false }
+  if (!authorization) return { actorId: null, expired: false, invalid: false }
   const match = authorization.match(/^Bearer (.+)$/)
-  if (!match || !tokenActors.has(match[1])) return { actorId: null, invalid: true }
-  return { actorId: tokenActors.get(match[1]), invalid: false }
+  if (match?.[1] === 'mock-expired-token') return { actorId: null, expired: true, invalid: false }
+  if (!match || !tokenActors.has(match[1])) return { actorId: null, expired: false, invalid: true }
+  return { actorId: tokenActors.get(match[1]), expired: false, invalid: false }
 }
 
 function getRoutePath(url) {
@@ -241,6 +247,37 @@ function initiativeAccessError(initiative, actorId) {
 
 export function createMockFetch({ fixtures = defaultFixtures, delayMs = 120 } = {}) {
   const data = structuredClone(fixtures)
+  const tokenActors = new Map(defaultTokenActors)
+  const credentials = new Map(
+    data.users.map((user) => [user.emailNormalized, {
+      userId: user.id,
+      password: 'DemoSegura2026',
+    }]),
+  )
+  let sessionSequence = 0
+
+  function authUser(user) {
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      memberType: user.memberType,
+      email: user.email,
+    }
+  }
+
+  function createSessionResponse(user, status = 200) {
+    sessionSequence += 1
+    const accessToken = `mock-session-${sessionSequence}-${user.id}`
+    tokenActors.set(accessToken, user.id)
+    return jsonResponse({
+      data: {
+        user: authUser(user),
+        accessToken,
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+      },
+    }, status, status === 201 ? { Location: `/api/users/${user.id}` } : {})
+  }
 
   return async function mockFetch(input, init = {}) {
     await abortableDelay(delayMs, init.signal)
@@ -248,12 +285,82 @@ export function createMockFetch({ fixtures = defaultFixtures, delayMs = 120 } = 
     const method = (init.method || 'GET').toUpperCase()
     const headers = new Headers(init.headers)
     const routePath = getRoutePath(url)
-    const { actorId, invalid } = getActorId(headers)
+    const { actorId, expired, invalid } = getActorId(headers, tokenActors)
     const projectors = createProjectors(data, actorId)
 
     if (invalid) {
       return errorResponse(401, 'INVALID_CREDENTIALS', 'La sesión no es válida.')
     }
+    if (expired) {
+      return errorResponse(401, 'SESSION_EXPIRED', 'La sesión expiró. Inicia sesión nuevamente.')
+    }
+
+    if (method === 'POST' && routePath === '/auth/register') {
+      const body = JSON.parse(init.body || '{}')
+      const email = typeof body.email === 'string' ? body.email.trim() : ''
+      const emailNormalized = email.toLocaleLowerCase('en-US')
+      const fields = {}
+      for (const key of Object.keys(body)) {
+        if (!registrationFields.has(key)) fields[key] = 'Este campo no está permitido.'
+      }
+      if (typeof body.firstName !== 'string' || body.firstName.trim().length < 2 || body.firstName.trim().length > 60) fields.firstName = 'Debe tener entre 2 y 60 caracteres.'
+      if (typeof body.lastName !== 'string' || body.lastName.trim().length < 2 || body.lastName.trim().length > 80) fields.lastName = 'Debe tener entre 2 y 80 caracteres.'
+      if (!memberTypes.has(body.memberType)) fields.memberType = 'Selecciona un tipo de miembro válido.'
+      if (!emailPattern.test(email) || email.length > 254) fields.email = 'Debe ser un correo electrónico válido.'
+      if (typeof body.password !== 'string' || body.password.length < 10 || body.password.length > 128 || !/\p{L}/u.test(body.password) || !/\p{N}/u.test(body.password)) fields.password = 'Debe tener entre 10 y 128 caracteres, una letra y un número.'
+      if (body.passwordConfirmation !== body.password) fields.passwordConfirmation = 'Las contraseñas no coinciden.'
+      if (body.termsAccepted !== true) fields.termsAccepted = 'Debes aceptar los términos.'
+      if (Object.keys(fields).length > 0) {
+        return errorResponse(400, 'VALIDATION_ERROR', 'Revisa los campos indicados.', fields)
+      }
+      if (credentials.has(emailNormalized)) {
+        return errorResponse(409, 'EMAIL_ALREADY_EXISTS', 'Ya existe una cuenta con ese correo electrónico.', {
+          email: 'Ya está registrado.',
+        })
+      }
+      const now = new Date().toISOString()
+      const user = {
+        id: crypto.randomUUID(),
+        firstName: body.firstName.trim(),
+        lastName: body.lastName.trim(),
+        memberType: body.memberType,
+        email,
+        emailNormalized,
+        career: null,
+        bio: null,
+        interests: [],
+        availability: 'medium',
+        portfolioUrl: null,
+        skills: [],
+        active: true,
+        createdAt: now,
+        updatedAt: now,
+      }
+      data.users.push(user)
+      credentials.set(emailNormalized, { userId: user.id, password: body.password })
+      return createSessionResponse(user, 201)
+    }
+
+    if (method === 'POST' && routePath === '/auth/login') {
+      const body = JSON.parse(init.body || '{}')
+      const emailNormalized = typeof body.email === 'string'
+        ? body.email.trim().toLocaleLowerCase('en-US')
+        : ''
+      const credential = credentials.get(emailNormalized)
+      const user = credential ? data.users.find((item) => item.id === credential.userId) : null
+      if (!user || !user.active || credential.password !== body.password) {
+        return errorResponse(401, 'INVALID_CREDENTIALS', 'El correo o la contraseña no son válidos.')
+      }
+      return createSessionResponse(user)
+    }
+
+    if (method === 'POST' && routePath === '/auth/logout') {
+      if (!actorId) return errorResponse(401, 'AUTHENTICATION_REQUIRED', 'Debe iniciar sesión.')
+      const token = headers.get('Authorization').slice('Bearer '.length)
+      tokenActors.delete(token)
+      return new Response(null, { status: 204 })
+    }
+
     if (method !== 'GET') {
       return errorResponse(
         501,

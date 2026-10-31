@@ -1,6 +1,6 @@
 # Cliente React de Innovation Hub
 
-Base navegable del Avance 2 construida con React, Vite y React Router. Incluye una capa HTTP común, servicios por dominio, estados de consulta y un mock de lectura basado en los fixtures compartidos. Las pantallas funcionales siguen siendo marcadores hasta sus tareas correspondientes.
+Cliente React del Avance 2 con navegación, autenticación real, capa HTTP común, servicios por dominio, estados de consulta y un mock basado en los fixtures compartidos. Las pantallas de dominio que todavía no alcanzaron su tarea permanecen como marcadores explícitos.
 
 ## Requisitos
 
@@ -72,16 +72,27 @@ Variables admitidas:
 | `VITE_API_BASE_URL` | `http://localhost:3000/api` | URL base, sin endpoint final. |
 | `VITE_API_TIMEOUT_MS` | `15000` | Tiempo máximo entre 100 y 60000 milisegundos. |
 
-Para trabajar sin el servidor, usar `VITE_API_MODE=mock` en `.env.local` y reiniciar Vite. El mock importa directamente `pruebas/fixtures/`; no mantiene una segunda copia. Implementa las consultas GET necesarias para catálogos, iniciativas, usuarios, solicitudes, equipos y proyectos. Las mutaciones devuelven `501 MOCK_NOT_IMPLEMENTED` hasta que cada función implemente su conducta, para que una simulación no oculte trabajo faltante.
+Para trabajar sin el servidor, usar `VITE_API_MODE=mock` en `.env.local` y reiniciar Vite. El mock importa directamente `pruebas/fixtures/`; no mantiene una segunda copia. Implementa consultas GET y, desde UI04, registro, login, sesión actual y logout con revocación. Las demás mutaciones devuelven `501 MOCK_NOT_IMPLEMENTED` hasta su tarea funcional, para que una simulación no oculte trabajo faltante.
 
 Los endpoints protegidos se pueden revisar desde la consola del navegador con identidades sintéticas:
 
 ```js
 sessionStorage.setItem('innovationHub.accessToken', 'mock-owner-token')
 sessionStorage.setItem('innovationHub.accessToken', 'mock-applicant-token')
+sessionStorage.setItem('innovationHub.accessToken', 'mock-expired-token')
 ```
 
-Recargar después del cambio. El primer token representa al propietario de los fixtures; el segundo, a un solicitante. El modo mock no puede compilarse como build de producción: `VITE_API_MODE=mock npm run build` falla de forma deliberada.
+Recargar después del cambio. El primer token representa al propietario de los fixtures; el segundo, a un solicitante; el tercero permite comprobar expiración y debe cerrar la sesión al consultar `/auth/me`. El modo mock no puede compilarse como build de producción: `VITE_API_MODE=mock npm run build` falla de forma deliberada.
+
+## Autenticación y rutas protegidas
+
+`AuthProvider` conserva únicamente el token opaco en `sessionStorage`; la identidad visible siempre proviene de la respuesta de login/registro o de `GET /auth/me`. Al recargar, una sesión válida se restaura. Una respuesta `401` elimina el token y dirige a ingreso con un aviso. Si `/auth/me` falla por red, el token se conserva y la página ofrece reintentar porque no se demostró que la sesión haya terminado. `sessionStorage` limita el token a la pestaña y lo elimina al cerrarla, pero sigue siendo accesible para JavaScript del mismo origen: evitar HTML no confiable y dependencias sin revisar continúa siendo obligatorio.
+
+Registro solicita nombres, tipo de miembro, correo, contraseña, confirmación y términos. Carrera, biografía y competencias pertenecen al perfil de API04/UI05; enviarlos durante registro contradice el contrato y produce `400`. Ingreso restaura solo una ruta interna guardada por React Router. Perfil, directorio, solicitudes y acciones de iniciativas requieren sesión; catálogo, detalle público y proyectos accesibles siguen disponibles para visitantes.
+
+Logout llama primero a la API. Solo después de `204`, o si la API confirma que el token ya no es válido, limpia el cliente. Un fallo de red mantiene la sesión local, informa que no se comprobó la revocación y permite reintentar.
+
+En modo real, ejecutar el seed del servidor. Los usuarios de `pruebas/fixtures/users.json` usan `DEMO_USER_PASSWORD`; `diego.inactive@example.test` debe ser rechazado. En modo mock, esos mismos correos usan `DemoSegura2026` y las cuentas registradas duran hasta recargar la página.
 
 Durante `npm run dev`, `/api-demo` consulta competencias y permite observar carga, éxito, vacío y error. Buscar una sola letra genera el `400` contractual; una cadena inexistente genera el estado vacío. En modo `real`, la ruta comprueba la conexión con el servidor configurado.
 
@@ -91,7 +102,8 @@ Durante `npm run dev`, `/api-demo` consulta competencias y permite observar carg
 - Las rutas de detalle leen `:id` desde la URL.
 - La ruta comodín presenta un error 404 con regreso al inicio.
 - La navegación interna utiliza `Link`/`NavLink` y no recarga todo el documento.
-- La infraestructura HTTP y sus estados de consulta están disponibles para las tareas funcionales.
-- La autenticación, las mutaciones y los formularios de negocio todavía no están implementados.
+- Registro, login, restauración de sesión, rutas protegidas y logout revocable están implementados.
+- La infraestructura HTTP y sus estados de consulta están disponibles para las demás tareas funcionales.
+- Los formularios y mutaciones de dominio todavía dependen de sus tareas correspondientes.
 
 El contrato HTTP común está en [`../docs/api-contract.md`](../docs/api-contract.md). La guía general de ejecución se mantiene en el [`README.md` raíz](../README.md).

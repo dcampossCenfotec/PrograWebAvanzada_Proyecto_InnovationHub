@@ -127,6 +127,35 @@
   min-height: 1.35em;
 }
 
+.auth-page {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+.auth-card {
+  border-color: rgba(37, 95, 117, .2);
+}
+
+.session-identity {
+  display: flex;
+  flex-direction: column;
+  padding: .35rem .65rem;
+  border-radius: .5rem;
+  color: #193039;
+  line-height: 1.15;
+  text-decoration: none;
+}
+
+.session-identity:hover,
+.session-identity.active {
+  background: #e5f0f3;
+}
+
+.session-identity__label {
+  color: #52676f;
+  font-size: .72rem;
+}
+
 .initiative-description {
   white-space: pre-line;
 }

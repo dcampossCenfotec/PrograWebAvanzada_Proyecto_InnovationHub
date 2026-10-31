@@ -113,6 +113,18 @@ describe('createMockFetch', () => {
     })
   })
 
+  it('distingue una sesión sintética expirada', async () => {
+    const response = await createMockFetch({ delayMs: 0 })(
+      'http://localhost:3000/api/auth/me',
+      { headers: authorization('mock-expired-token') },
+    )
+
+    expect(response.status).toBe(401)
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: 'SESSION_EXPIRED' },
+    })
+  })
+
   it('proyecta solicitudes y proyectos con los DTO públicos del contrato', async () => {
     const mockFetch = createMockFetch({ delayMs: 0 })
     const requestsResponse = await mockFetch(
@@ -146,6 +158,60 @@ describe('createMockFetch', () => {
     expect(response.status).toBe(501)
     await expect(response.json()).resolves.toMatchObject({
       error: { code: 'MOCK_NOT_IMPLEMENTED' },
+    })
+  })
+
+  it('inicia, consulta y revoca una sesión de desarrollo', async () => {
+    const mockFetch = createMockFetch({ delayMs: 0 })
+    const login = await mockFetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'ana.owner@example.test',
+        password: 'DemoSegura2026',
+      }),
+    })
+    const loginPayload = await login.json()
+    const token = loginPayload.data.accessToken
+    const me = await mockFetch('http://localhost:3000/api/auth/me', {
+      headers: authorization(token),
+    })
+    const logout = await mockFetch('http://localhost:3000/api/auth/logout', {
+      method: 'POST',
+      headers: authorization(token),
+    })
+    const reused = await mockFetch('http://localhost:3000/api/auth/me', {
+      headers: authorization(token),
+    })
+
+    expect(login.status).toBe(200)
+    expect(me.status).toBe(200)
+    expect(logout.status).toBe(204)
+    expect(reused.status).toBe(401)
+  })
+
+  it('registra una cuenta y protege el correo normalizado contra duplicados', async () => {
+    const mockFetch = createMockFetch({ delayMs: 0 })
+    const body = {
+      firstName: 'Daniel',
+      lastName: 'Campos',
+      memberType: 'student',
+      email: 'Daniel@Example.test',
+      password: 'ClaveSegura2026',
+      passwordConfirmation: 'ClaveSegura2026',
+      termsAccepted: true,
+    }
+    const created = await mockFetch('http://localhost:3000/api/auth/register', {
+      method: 'POST', body: JSON.stringify(body),
+    })
+    const duplicate = await mockFetch('http://localhost:3000/api/auth/register', {
+      method: 'POST', body: JSON.stringify({ ...body, email: ' DANIEL@example.TEST ' }),
+    })
+
+    expect(created.status).toBe(201)
+    expect(created.headers.get('Location')).toMatch(/^\/api\/users\/[0-9a-f-]{36}$/)
+    expect(duplicate.status).toBe(409)
+    await expect(duplicate.json()).resolves.toMatchObject({
+      error: { code: 'EMAIL_ALREADY_EXISTS', fields: { email: expect.any(String) } },
     })
   })
 

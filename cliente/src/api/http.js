@@ -115,7 +115,9 @@ export function createHttpClient({
       )
       const payload = await readPayload(response)
       if (!response.ok) {
-        if (response.status === 401) onUnauthorized()
+        if (response.status === 401) {
+          onUnauthorized({ code: payload?.error?.code || 'AUTHENTICATION_REQUIRED' })
+        }
         throw createResponseError(response, payload)
       }
       return payload

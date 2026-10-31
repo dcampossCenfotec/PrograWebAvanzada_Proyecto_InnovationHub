@@ -6,6 +6,13 @@ import EntityPlaceholderPage from '../pages/EntityPlaceholderPage.jsx'
 import HomePage from '../pages/HomePage.jsx'
 import NotFoundPage from '../pages/NotFoundPage.jsx'
 import PlaceholderPage from '../pages/PlaceholderPage.jsx'
+import LoginPage from '../pages/LoginPage.jsx'
+import RegisterPage from '../pages/RegisterPage.jsx'
+import { ProtectedRoute } from '../auth/ProtectedRoute.jsx'
+
+function protectedPage(element) {
+  return <ProtectedRoute>{element}</ProtectedRoute>
+}
 
 const placeholderRoutes = [
   {
@@ -20,56 +27,56 @@ const placeholderRoutes = [
   },
   {
     path: 'mis-iniciativas',
-    element: (
+    element: protectedPage(
       <PlaceholderPage
         description="Aquí se consultarán iniciativas propias, privadas y archivadas."
         title="Mis iniciativas"
-      />
+      />,
     ),
   },
   {
     path: 'iniciativas/nueva',
-    element: (
+    element: protectedPage(
       <PlaceholderPage
         description="El formulario publicará directamente una iniciativa válida."
         title="Publicar iniciativa"
-      />
+      />,
     ),
   },
   {
     path: 'perfil',
-    element: (
+    element: protectedPage(
       <PlaceholderPage
         description="El perfil propio se cargará desde la sesión y la API."
         title="Mi perfil"
-      />
+      />,
     ),
   },
   {
     path: 'usuarios',
-    element: (
+    element: protectedPage(
       <PlaceholderPage
         description="El directorio permitirá buscar colaboradores mediante filtros del servidor."
         title="Personas"
-      />
+      />,
     ),
   },
   {
     path: 'mis-solicitudes',
-    element: (
+    element: protectedPage(
       <PlaceholderPage
         description="Listado personal de solicitudes y sus estados."
         title="Mis solicitudes"
-      />
+      />,
     ),
   },
   {
     path: 'solicitudes-recibidas',
-    element: (
+    element: protectedPage(
       <PlaceholderPage
         description="Los propietarios revisarán solicitudes recibidas en sus iniciativas."
         title="Solicitudes recibidas"
-      />
+      />,
     ),
   },
   {
@@ -83,23 +90,11 @@ const placeholderRoutes = [
   },
   {
     path: 'ingresar',
-    element: (
-      <PlaceholderPage
-        action={{ to: '/registro', label: 'Crear una cuenta' }}
-        description="El formulario y la sesión revocable se implementarán en UI04."
-        title="Ingresar"
-      />
-    ),
+    element: <LoginPage />,
   },
   {
     path: 'registro',
-    element: (
-      <PlaceholderPage
-        action={{ to: '/ingresar', label: 'Ya tengo una cuenta' }}
-        description="El registro real se conectará con la API de autenticación."
-        title="Crear cuenta"
-      />
-    ),
+    element: <RegisterPage />,
   },
 ]
 
@@ -115,54 +110,54 @@ const entityRoutes = [
   },
   {
     path: 'iniciativas/:id/editar',
-    element: (
+    element: protectedPage(
       <EntityPlaceholderPage
         entityName="Iniciativa"
         mode="edición"
         title="Editar iniciativa"
-      />
+      />,
     ),
   },
   {
     path: 'iniciativas/:id/participar',
-    element: (
+    element: protectedPage(
       <EntityPlaceholderPage
         entityName="Iniciativa"
         mode="solicitud"
         title="Solicitar participación"
-      />
+      />,
     ),
   },
   {
     path: 'iniciativas/:id/convertir',
-    element: (
+    element: protectedPage(
       <EntityPlaceholderPage
         entityName="Iniciativa"
         mode="conversión"
         title="Convertir en proyecto"
-      />
+      />,
     ),
   },
   {
     path: 'usuarios/:id',
-    element: (
-      <EntityPlaceholderPage entityName="Usuario" title="Perfil de usuario" />
+    element: protectedPage(
+      <EntityPlaceholderPage entityName="Usuario" title="Perfil de usuario" />,
     ),
   },
   {
     path: 'solicitudes/:id',
-    element: (
-      <EntityPlaceholderPage entityName="Solicitud" title="Detalle de solicitud" />
+    element: protectedPage(
+      <EntityPlaceholderPage entityName="Solicitud" title="Detalle de solicitud" />,
     ),
   },
   {
     path: 'solicitudes/:id/editar',
-    element: (
+    element: protectedPage(
       <EntityPlaceholderPage
         entityName="Solicitud"
         mode="edición"
         title="Editar solicitud"
-      />
+      />,
     ),
   },
   {
@@ -180,7 +175,7 @@ const developmentRoutes = import.meta.env.DEV
     ]
   : []
 
-export const router = createBrowserRouter([
+export const appRoutes = [
   {
     path: '/',
     element: <AppLayout />,
@@ -192,4 +187,6 @@ export const router = createBrowserRouter([
       { path: '*', element: <NotFoundPage /> },
     ],
   },
-])
+]
+
+export const router = createBrowserRouter(appRoutes)
