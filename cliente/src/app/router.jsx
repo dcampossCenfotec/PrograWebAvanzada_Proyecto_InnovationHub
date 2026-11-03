@@ -11,6 +11,7 @@ import RegisterPage from '../pages/RegisterPage.jsx'
 import { ProtectedRoute } from '../auth/ProtectedRoute.jsx'
 import { OwnProfilePage, PublicProfilePage } from '../features/users/ProfilePages.jsx'
 import { UserDirectoryPage } from '../features/users/UserDirectoryPage.jsx'
+import { CatalogPage } from '../features/initiatives/CatalogPage.jsx'
 
 function protectedPage(element) {
   return <ProtectedRoute>{element}</ProtectedRoute>
@@ -19,22 +20,11 @@ function protectedPage(element) {
 const placeholderRoutes = [
   {
     path: 'iniciativas',
-    element: (
-      <PlaceholderPage
-        action={{ to: '/iniciativas/nueva', label: 'Publicar iniciativa' }}
-        description="Catálogo, búsqueda y filtros se incorporarán sobre la API real."
-        title="Iniciativas"
-      />
-    ),
+    element: <CatalogPage />,
   },
   {
     path: 'mis-iniciativas',
-    element: protectedPage(
-      <PlaceholderPage
-        description="Aquí se consultarán iniciativas propias, privadas y archivadas."
-        title="Mis iniciativas"
-      />,
-    ),
+    element: protectedPage(<CatalogPage mine />),
   },
   {
     path: 'iniciativas/nueva',

@@ -1,6 +1,6 @@
 # Cliente React de Innovation Hub
 
-Cliente React del Avance 2 con navegación, autenticación real, perfiles, directorio, capa HTTP común, servicios por dominio, estados de consulta y un mock basado en los fixtures compartidos. Las pantallas de dominio que todavía no alcanzaron su tarea permanecen como marcadores explícitos.
+Cliente React del Avance 2 con navegación, autenticación real, perfiles, directorio, catálogo de iniciativas, capa HTTP común, servicios por dominio, estados de consulta y un mock basado en los fixtures compartidos. Las pantallas de dominio que todavía no alcanzaron su tarea permanecen como marcadores explícitos.
 
 ## Requisitos
 
@@ -104,6 +104,34 @@ En modo real, ejecutar el seed del servidor. Los usuarios de `pruebas/fixtures/u
 
 Durante `npm run dev`, `/api-demo` consulta competencias y permite observar carga, éxito, vacío y error. Buscar una sola letra genera el `400` contractual; una cadena inexistente genera el estado vacío. En modo `real`, la ruta comprueba la conexión con el servidor configurado.
 
+## Catálogo de iniciativas (UI06)
+
+`/iniciativas` admite visitantes y consulta `GET /initiatives`. Búsqueda, tipo, categoría, competencia, estado, espacios estimados, propietario, tamaño y orden se aplican en el servidor. La URL conserva los criterios y la página para recarga y Atrás/Adelante. El tamaño inicial del cliente es 6 (la API usa 12 si no se envía tamaño). Aplicar o limpiar filtros vuelve a la página 1. Carga, fallo con reintento, colección vacía, búsqueda sin coincidencias y página fuera de rango tienen mensajes separados.
+
+El filtro de propietario puede activarse desde una tarjeta. Con sesión también permite buscar personas y recorrer sus páginas, sin mostrar correos. El directorio exige autenticación; el catálogo visitante no lo consulta. Las competencias se cargan en páginas hasta completar sus opciones.
+
+`/mis-iniciativas` exige sesión y consulta `GET /initiatives/mine`: representa propiedad, no pertenencia al equipo. Incluye privadas, archivadas y borradores del propietario, con orden y paginación; no admite los filtros del catálogo general. Cambiar de identidad desmonta los resultados anteriores para no conservar tarjetas privadas al cerrar sesión.
+
+Las tarjetas ofrecen detalle solamente cuando `access.canViewDetails === true`. Una restringida ajena muestra únicamente resumen permitido y un aviso de acceso, sin enlace al detalle ni propietario. Los espacios se muestran como estimación y nunca negativos. El estado tiene una banda propia con etiqueta explícita: publicada verde, formando equipo azul, convertida violeta, borrador ámbar y archivada gris. La visibilidad se presenta aparte con una etiqueta de borde; privada usa rojo oscuro. Los textos permanecen legibles sin depender del color. El mock reproduce filtros, proyecciones y paginación; las pruebas contra Express verifican el modo real por separado.
+
+Los enlaces a detalle y publicación resuelven rutas que siguen en preparación hasta UI07/UI08.
+
+Prueba opcional React → Express → MongoDB, con API exclusiva de pruebas en 3002 y base de test recién restaurada. No se ejecuta con la suite general cuando falta la variable de activación. En una terminal, desde `servidor/`, con `.env.test` y replica set nativo activos:
+
+```bash
+npm run db:reset:test
+node --env-file-if-exists=.env.test scripts/seed.js
+PORT=3002 node --env-file-if-exists=.env.test src/server.js
+```
+
+`db:reset:test` elimina exclusivamente la base de pruebas configurada y pierde sus datos; el script valida el nombre de la base. Desde `cliente/`, en otra terminal:
+
+```bash
+VITE_API_MODE=real VITE_API_BASE_URL=http://127.0.0.1:3002/api VITE_RUN_API_INTEGRATION=true npm run test:unit -- src/features/initiatives/CatalogPage.integration.test.jsx
+```
+
+Comprueba visitante con 3 públicas y búsqueda por servidor, Carla con 5 y resumen restringido sin enlaces, y Ana con 8 propias incluyendo borrador/archivada. Supone fixtures limpios y contraseña sintética `DemoSegura2026`; utiliza sesiones reales. Detener la API temporal con `Ctrl+C` al terminar.
+
 ## Alcance actual
 
 - Todas las rutas acordadas se resuelven mediante React Router.
@@ -113,6 +141,7 @@ Durante `npm run dev`, `/api-demo` consulta competencias y permite observar carg
 - Registro, login, restauración de sesión, rutas protegidas y logout revocable están implementados.
 - Perfil propio, perfiles públicos y directorio filtrado/paginado están implementados.
 - La infraestructura HTTP y sus estados de consulta están disponibles para las demás tareas funcionales.
-- Las iniciativas, solicitudes y proyectos todavía dependen de sus tareas funcionales.
+- Catálogo y listado propio de iniciativas implementados; detalle y mutaciones pendientes de UI07–UI10.
+- Solicitudes y proyectos todavía dependen de sus tareas funcionales.
 
 El contrato HTTP común está en [`../docs/api-contract.md`](../docs/api-contract.md). La guía general de ejecución se mantiene en el [`README.md` raíz](../README.md).

@@ -1,3 +1,5 @@
+@use 'sass:list';
+
 .skip-link:focus {
   position: fixed;
   z-index: 1100;
@@ -249,6 +251,132 @@
 
 .directory-filters {
   max-width: 64rem;
+}
+
+.initiative-card__title,
+.initiative-card__summary {
+  overflow-wrap: anywhere;
+}
+
+.initiative-card__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: .75rem;
+}
+
+.initiative-card__type {
+  justify-self: start;
+  max-width: 100%;
+  padding: .45rem .7rem;
+  border-radius: .5rem;
+  background: #e5f0f3;
+  color: #255f75;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.initiative-card__visibility {
+  justify-self: end;
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+  display: inline-flex;
+  align-items: center;
+  padding: .35rem .65rem;
+  border: 1px solid currentColor;
+  border-radius: 100vw;
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.initiative-card__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .25rem .75rem;
+  padding: .7rem .85rem;
+  margin-bottom: 1rem;
+  border-left: .3rem solid currentColor;
+  border-radius: .4rem;
+  font-size: .95rem;
+  font-weight: 700;
+}
+
+.initiative-card__status-label {
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+// Texto explícito y banda propia: el estado se distingue también sin color.
+@each $state, $colors in (
+  published: (#166534, #dcfce7),
+  forming_team: (#1e40af, #dbeafe),
+  converted: (#6b21a8, #f3e8ff),
+  draft: (#854d0e, #fef3c7),
+  archived: (#374151, #e5e7eb),
+  unknown: (#374151, #e5e7eb)
+) {
+  .initiative-card__status--#{$state} {
+    color: list.nth($colors, 1);
+    background: list.nth($colors, 2);
+  }
+}
+
+@each $visibility, $colors in (
+  public: (#166534, #f0fdf4),
+  institutional: (#3730a3, #eef2ff),
+  restricted: (#854d0e, #fffbeb),
+  private: (#9f1239, #fff1f2),
+  unknown: (#374151, #f3f4f6)
+) {
+  .initiative-card__visibility--#{$visibility} {
+    color: list.nth($colors, 1);
+    background: list.nth($colors, 2);
+  }
+}
+
+.initiative-card__counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .6rem;
+  padding-block: 1rem;
+  border-top: 1px solid #d7e1e5;
+}
+
+.initiative-card__counts dt {
+  color: #52676f;
+  font-size: .8rem;
+  font-weight: 500;
+}
+
+.initiative-card__counts dd {
+  margin-block: .25rem 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.initiative-card__restriction {
+  padding: .8rem;
+  border-left: .25rem solid #976a1b;
+  border-radius: .35rem;
+  background: #fff5dd;
+  color: #62440e;
+}
+
+.catalog-owner-picker {
+  max-width: 40rem;
+}
+
+.catalog-owner-picker__search {
+  flex: 1 1 12rem;
+  width: auto;
 }
 
 .user-card .tag-list {

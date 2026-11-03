@@ -1,6 +1,6 @@
 # Iniciativas: API05–API07
 
-API05 se publicó en `a5df168` y API06 en `f86fea6`. API07 implementa eliminación/archivo; las pantallas siguen pendientes de UI06–UI10. Las reglas de `docs/api-contract.md` son la fuente del HTTP. Este documento describe el consumo del módulo y la evidencia disponible.
+API05 se publicó en `a5df168`, API06 en `f86fea6` y API07 en `f26bd1c`. UI06 implementa catálogo/listado propio; detalle y acciones siguen pendientes de UI07–UI10. Las reglas de `docs/api-contract.md` son la fuente del HTTP. Este documento describe el consumo del módulo y la evidencia disponible.
 
 ## Consultas y expectativas
 
@@ -55,7 +55,7 @@ API06 se verificó con 54 pruebas locales y cinco integraciones seriales con Mon
 - [x] Estimados superados, conteos activos y capacidades ante solicitudes pendientes.
 - [x] Seed repetido sin duplicados y normalización de documentos de API05.
 
-Las rutas React `/iniciativas`, `/mis-iniciativas`, `/iniciativas/:id`, creación y edición siguen mostrando “Sección en preparación”. API06 entrega el servidor; la revisión de esas pantallas corresponde a sus tareas UI.
+UI06 consume las lecturas de catálogo y propiedad en `/iniciativas` y `/mis-iniciativas`. Los criterios y la página se reconstruyen desde la URL; los resúmenes restringidos no muestran propietario ni enlace a detalle. La ruta `/iniciativas/:id`, creación y edición continúan mostrando “Sección en preparación” hasta UI07/UI08.
 
 El fragmento importable de 27 peticiones se entrega en `pruebas/fragmentos/iniciativas.postman_collection.json`, con instrucciones y variables sin secretos en su README. Su ejecución en Postman se verifica al consolidar UI14; las integraciones HTTP anteriores sí se ejecutaron contra MongoDB real.
 

@@ -95,6 +95,52 @@ function paginate(entries, pagination) {
   }
 }
 
+function initiativeList(entries, url, project, { mine = false } = {}) {
+  const pagination = parsePagination(url)
+  const allowed = mine ? ['page', 'size', 'sort', 'order']
+    : ['q', 'type', 'category', 'skill', 'state', 'hasSpaces', 'ownerId', 'page', 'size', 'sort', 'order']
+  const invalidQuery = () => errorResponse(400, 'INVALID_QUERY', 'La consulta no es válida.')
+  if (!pagination) return invalidQuery()
+  for (const key of url.searchParams.keys()) {
+    if (!allowed.includes(key) || url.searchParams.getAll(key).length > 1) return invalidQuery()
+  }
+  const value = (key) => url.searchParams.get(key)
+  const q = value('q')?.trim()
+  const sort = value('sort') ?? 'createdAt'
+  const order = value('order') ?? 'desc'
+  const sorts = mine ? ['createdAt', 'updatedAt', 'title', 'state'] : ['createdAt', 'updatedAt', 'title', 'memberCount']
+  if (!sorts.includes(sort) || !['asc', 'desc'].includes(order)) return invalidQuery()
+  if (q !== undefined && (q.length < 2 || q.length > 100)) return invalidQuery()
+  if (value('type') && !['idea', 'need', 'challenge'].includes(value('type'))) return invalidQuery()
+  if (value('state') && !['published', 'forming_team', 'converted'].includes(value('state'))) return invalidQuery()
+  if (value('hasSpaces') && !['true', 'false'].includes(value('hasSpaces'))) return invalidQuery()
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  for (const key of ['skill', 'ownerId']) if (value(key) && !uuid.test(value(key))) return invalidQuery()
+  let rows = entries.map((initiative) => ({ initiative, summary: project(initiative, { detail: false }) }))
+  rows = rows.filter(({ initiative, summary }) => (
+    (!value('type') || initiative.type === value('type')) &&
+    (!value('category') || initiative.categoryId === value('category')) &&
+    (!value('skill') || initiative.skillIds.includes(value('skill'))) &&
+    (!value('state') || initiative.state === value('state')) &&
+    (!value('ownerId') || summary.owner?.id === value('ownerId')) &&
+    (!value('hasSpaces') || (value('hasSpaces') === 'true' ? summary.availableSpaces > 0 : summary.availableSpaces === 0)) &&
+    (!q || normalizeSearch([summary.title, summary.summary, ...(summary.access.canViewDetails ? summary.tags ?? [] : [])].join(' ')).includes(normalizeSearch(q)))
+  ))
+  const direction = order === 'asc' ? 1 : -1
+  function sortValue(row) {
+    if (sort === 'memberCount') return row.summary.memberCount
+    if (sort === 'title') return normalizeSearch(row.initiative.title)
+    return row.initiative[sort]
+  }
+  rows.sort((left, right) => {
+    const a = sortValue(left)
+    const b = sortValue(right)
+    const result = a < b ? -1 : a > b ? 1 : left.initiative.id.localeCompare(right.initiative.id)
+    return result * direction
+  })
+  return jsonResponse(paginate(rows.map(({ summary }) => summary), pagination))
+}
+
 function createProjectors(fixtures, actorId) {
   const userById = new Map(fixtures.users.map((user) => [user.id, user]))
   const categoryById = new Map(fixtures.catalogs.categories.map((item) => [item.id, item]))
@@ -122,7 +168,7 @@ function createProjectors(fixtures, actorId) {
     return safeUser
   }
 
-  function initiative(initiativeValue) {
+  function initiative(initiativeValue, { detail = true } = {}) {
     const activeMemberships = fixtures.memberships.filter(
       (membership) =>
         membership.initiativeId === initiativeValue.id && membership.state === 'active',
@@ -130,48 +176,48 @@ function createProjectors(fixtures, actorId) {
     const memberCount = activeMemberships.length
     const isOwner = actorId === initiativeValue.ownerId
     const isMember = activeMemberships.some((membership) => membership.userId === actorId)
-    const canViewDetails =
+    const visibleState = !['draft', 'archived'].includes(initiativeValue.state)
+    const canViewDetails = isOwner || (visibleState && (
       initiativeValue.visibility === 'public' ||
-      initiativeValue.visibility === 'institutional' ||
-      isOwner ||
-      isMember
+      (Boolean(actorId) && initiativeValue.visibility === 'institutional') || isMember
+    ))
+    const hasPending = fixtures.requests.some((item) => item.initiativeId === initiativeValue.id && item.applicantId === actorId && item.state === 'pending')
 
     const projected = {
       id: initiativeValue.id,
       title: initiativeValue.title,
       type: initiativeValue.type,
       summary: initiativeValue.summary,
-      category: categoryById.get(initiativeValue.categoryId),
-      skills: initiativeValue.skillIds.map((id) => skillById.get(id)),
+      category: { id: initiativeValue.categoryId, name: categoryById.get(initiativeValue.categoryId)?.name },
+      skills: initiativeValue.skillIds.map((id) => ({ id, name: skillById.get(id)?.name })),
       estimatedMembers: initiativeValue.estimatedMembers,
       memberCount,
       availableSpaces: Math.max(0, initiativeValue.estimatedMembers - memberCount),
       visibility: initiativeValue.visibility,
       state: initiativeValue.state,
-      createdAt: initiativeValue.createdAt,
-      updatedAt: initiativeValue.updatedAt,
       access: {
         canViewDetails,
-        canEdit: isOwner,
+        canEdit: isOwner && initiativeValue.state !== 'archived',
         canDelete: isOwner,
         canRequest:
           Boolean(actorId) &&
+          canViewDetails && !hasPending &&
           !isOwner &&
           !isMember &&
           ['published', 'forming_team', 'converted'].includes(initiativeValue.state),
         canManageRequests: isOwner,
         canViewTeam: canViewDetails,
-        canConvert: isOwner && initiativeValue.state !== 'archived',
+        canConvert: isOwner && ['published', 'forming_team'].includes(initiativeValue.state) && memberCount > 1,
       },
     }
 
     if (canViewDetails) {
       Object.assign(projected, {
-        description: initiativeValue.description,
-        problem: initiativeValue.problem,
-        beneficiaries: initiativeValue.beneficiaries,
+        ...(detail ? { description: initiativeValue.description, problem: initiativeValue.problem, beneficiaries: initiativeValue.beneficiaries } : {}),
         owner: userSummary(initiativeValue.ownerId),
         tags: initiativeValue.tags,
+        createdAt: initiativeValue.createdAt,
+        updatedAt: initiativeValue.updatedAt,
       })
     }
 
@@ -236,14 +282,16 @@ function createProjectors(fixtures, actorId) {
   return { initiative, membership, project, publicUser, request, userSummary }
 }
 
-function initiativeAccessError(initiative, actorId) {
+function initiativeAccessError(initiative, actorId, memberships) {
+  if (initiative.ownerId === actorId) return null
+  if (['draft', 'archived'].includes(initiative.state)) return errorResponse(404, 'NOT_FOUND', 'No se encontró el recurso solicitado.')
+  if (memberships.some((item) => item.initiativeId === initiative.id && item.userId === actorId && item.state === 'active')) return null
   if (initiative.visibility === 'public') return null
   if (!actorId) {
     return initiative.visibility === 'private'
       ? errorResponse(404, 'NOT_FOUND', 'No se encontró el recurso solicitado.')
       : errorResponse(401, 'AUTHENTICATION_REQUIRED', 'Debe iniciar sesión.')
   }
-  if (initiative.ownerId === actorId) return null
   return initiative.visibility === 'private'
     ? errorResponse(404, 'NOT_FOUND', 'No se encontró el recurso solicitado.')
     : initiative.visibility === 'restricted'
@@ -459,17 +507,10 @@ export function createMockFetch({ fixtures = defaultFixtures, delayMs = 120 } = 
 
     if (routePath === '/initiatives/mine') {
       if (!actorId) return errorResponse(401, 'AUTHENTICATION_REQUIRED', 'Debe iniciar sesión.')
-      const pagination = parsePagination(url)
-      if (!pagination) return errorResponse(400, 'INVALID_QUERY', 'La consulta no es válida.')
-      const entries = data.initiatives
-        .filter((initiative) => initiative.ownerId === actorId)
-        .map(projectors.initiative)
-      return jsonResponse(paginate(entries, pagination))
+      return initiativeList(data.initiatives.filter((initiative) => initiative.ownerId === actorId), url, projectors.initiative, { mine: true })
     }
 
     if (routePath === '/initiatives') {
-      const pagination = parsePagination(url)
-      if (!pagination) return errorResponse(400, 'INVALID_QUERY', 'La consulta no es válida.')
       const visibleStates = new Set(['published', 'forming_team', 'converted'])
       const entries = data.initiatives
         .filter((initiative) => visibleStates.has(initiative.state))
@@ -477,16 +518,16 @@ export function createMockFetch({ fixtures = defaultFixtures, delayMs = 120 } = 
           if (initiative.visibility === 'public') return true
           if (!actorId) return false
           return initiative.visibility !== 'private' || initiative.ownerId === actorId
+            || data.memberships.some((item) => item.initiativeId === initiative.id && item.userId === actorId && item.state === 'active')
         })
-        .map(projectors.initiative)
-      return jsonResponse(paginate(entries, pagination))
+      return initiativeList(entries, url, projectors.initiative)
     }
 
     const membersMatch = routePath.match(/^\/initiatives\/([^/]+)\/members$/)
     if (membersMatch) {
       const initiativeValue = data.initiatives.find((item) => item.id === membersMatch[1])
       if (!initiativeValue) return errorResponse(404, 'NOT_FOUND', 'No se encontró el recurso solicitado.')
-      const accessError = initiativeAccessError(initiativeValue, actorId)
+      const accessError = initiativeAccessError(initiativeValue, actorId, data.memberships)
       if (accessError) return accessError
       const pagination = parsePagination(url)
       if (!pagination) return errorResponse(400, 'INVALID_QUERY', 'La consulta no es válida.')
@@ -500,7 +541,7 @@ export function createMockFetch({ fixtures = defaultFixtures, delayMs = 120 } = 
     if (initiativeMatch) {
       const initiativeValue = data.initiatives.find((item) => item.id === initiativeMatch[1])
       if (!initiativeValue) return errorResponse(404, 'NOT_FOUND', 'No se encontró el recurso solicitado.')
-      const accessError = initiativeAccessError(initiativeValue, actorId)
+      const accessError = initiativeAccessError(initiativeValue, actorId, data.memberships)
       if (accessError) return accessError
       return jsonResponse({ data: projectors.initiative(initiativeValue) })
     }

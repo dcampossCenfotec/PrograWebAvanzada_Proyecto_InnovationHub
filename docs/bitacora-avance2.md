@@ -311,3 +311,22 @@ Resultado de API06: **54 pruebas locales, lint, fixtures y 5 integraciones con M
 - [x] Dos DELETE simultáneos respetan idempotencia y unicidad del resultado físico.
 
 Resultado de API07: **62 pruebas locales, lint, fixtures y 6 integraciones principales con MongoDB real aprobados, incluidos nueve subcasos de API07; revisión cruzada de Francisco pendiente**. Las escrituras futuras de API08–API10 se simulan por transacciones según el protocolo de revisión; sus rutas HTTP se integran cuando existan.
+
+## Verificación UI06
+
+Catálogo y listado propio integrados con los servicios reales, filtros en URL, paginación del servidor, selector de propietario y tarjetas con permisos. Detalle, publicación y edición siguen en preparación hasta sus tareas. El mock de iniciativas se alineó con filtros y proyecciones del contrato.
+
+- [x] 85 pruebas del cliente aprobadas: filtros combinados, permisos/privacidad, paginación, historial del navegador, selección de propietario, validaciones, estados de error/vacío, cancelación de consultas anteriores y retiro de tarjetas privadas al cerrar sesión.
+- [x] ESLint y build de producción aprobados (138 módulos); continúan los cuatro avisos conocidos de Sass `@import`.
+- [x] Tres pruebas adicionales de React con servicios HTTP reales contra Express en puerto temporal 3002 y MongoDB de pruebas: visitante 3 públicas/búsqueda Huertos, Carla 5/resumen restringido y Ana 8 propias con borrador/archivada.
+- [x] API temporal de pruebas detenida al terminar; procesos de desarrollo y MongoDB nativo conservados.
+- [x] Daniel aprobó los ajustes visuales y autorizó publicar UI06; no se registra confirmación individual de cada caso del recorrido.
+- [ ] Revisión cruzada de Francisco.
+
+El primer intento de Vitest necesitó permisos por el `node_modules` compartido de la copia de trabajo. La integración real detectó dos fallos de pruebas: opción “Sostenibilidad” ambigua entre categoría/competencia y aserciones sobre resultados anteriores mientras cambiaba la página. Se corrigieron el alcance del selector y la espera al conjunto final de ocho tarjetas; los tres escenarios aprobaron. El acceso al navegador no estuvo disponible, por lo que no se afirma aprobación visual ni manual. Las tres pruebas reales requieren activación explícita y aparecen omitidas en la suite general.
+
+Resultado de UI06: **pruebas automáticas, ESLint, build e integración React/Express/MongoDB aprobados; aprobación visual de Daniel recibida y publicación autorizada**. API07 ya se publicó como `f26bd1c`.
+
+Ajuste visual de UI06 solicitado por Daniel: estado en banda independiente con texto y colores por estado; visibilidad en etiqueta separada de borde. Contraste calculado de texto/fondo entre 6.15:1 y 8.88:1 para las nueve combinaciones conocidas. ESLint y build aprobados; se conservan los cuatro avisos Sass anteriores. Daniel aprobó el ajuste visual.
+
+Segundo ajuste visual de UI06: tipo de iniciativa aumentado a 1.1rem y visibilidad alineada al extremo superior derecho del contenido de la tarjeta mediante una cabecera de dos columnas. Los textos pueden ajustarse en pantallas estrechas y con zoom; Daniel aprobó el ajuste visual.
