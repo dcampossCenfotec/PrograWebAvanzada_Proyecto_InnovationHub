@@ -53,7 +53,8 @@ function mount({ edit = false, auth = owner, entry } = {}) {
 async function fillCreate() {
   await screen.findByRole('form', { name: 'Publicar iniciativa' })
   for (const [label, value] of [['Título', initiative.title], ['Resumen', initiative.summary], ['Descripción', initiative.description], ['Problema que atiende', initiative.problem], ['Personas beneficiarias', initiative.beneficiaries], ['Categoría', 'sustainability'], ['Estimación de integrantes', '5']]) fireEvent.change(screen.getByLabelText(label), { target: { value } })
-  fireEvent.click(screen.getByLabelText('Diseño'))
+  fireEvent.change(screen.getByLabelText('Competencia por agregar'), { target: { value: skillId } })
+  fireEvent.click(screen.getByRole('button', { name: 'Agregar competencia' }))
 }
 function defer() { let resolve; const promise = new Promise((done) => { resolve = done }); return { resolve, promise } }
 
@@ -68,8 +69,8 @@ describe('carga y permisos del formulario', () => {
     mount({ edit: true })
     await screen.findByRole('form', { name: 'Editar iniciativa' })
     expect(screen.getByLabelText('Título').value).toBe(initiative.title)
-    expect(screen.getByLabelText('Diseño').checked).toBe(true)
-    expect(screen.getByLabelText('Etiqueta 1').value).toBe('escuelas')
+    expect(within(screen.getByRole('list', { name: 'Competencias agregadas' })).getByText('Diseño')).toBeDefined()
+    expect(within(screen.getByRole('list', { name: 'Etiquetas agregadas' })).getByText('escuelas')).toBeDefined()
     expect(screen.queryByLabelText('Propietario')).toBeNull()
     expect(screen.queryByLabelText('Estado')).toBeNull()
   })
@@ -134,8 +135,8 @@ describe('publicación y edición controladas', () => {
     await fillCreate()
     fireEvent.change(screen.getByLabelText('Tipo de iniciativa'), { target: { value: 'need' } })
     fireEvent.change(screen.getByLabelText('Visibilidad'), { target: { value: 'private' } })
+    fireEvent.change(screen.getByLabelText('Etiqueta por agregar'), { target: { value: ' Educación ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Agregar etiqueta' }))
-    fireEvent.change(screen.getByLabelText('Etiqueta 1'), { target: { value: ' Educación ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Publicar iniciativa' }))
     await screen.findByText('Destino /iniciativas · created ·')
     expect(initiativesService.create).toHaveBeenCalledTimes(1)
@@ -243,5 +244,32 @@ describe('descartar cambios', () => {
     expect(within(dialog).getByRole('button', { name: 'Procesando…' }).disabled).toBe(true)
     waiting.resolve({ data: initiative })
     await screen.findByText('Destino /iniciativas · created ·')
+  })
+})
+
+
+describe('etiqueta pendiente y guardado', () => {
+  it('no descarta silenciosamente una etiqueta escrita sin agregar al guardar', async () => {
+    mount()
+    await fillCreate()
+    fireEvent.change(screen.getByLabelText('Etiqueta por agregar'), { target: { value: 'pendiente' } })
+    fireEvent.submit(screen.getByRole('form'))
+    expect(initiativesService.create).not.toHaveBeenCalled()
+    expect(screen.getByText('Agrega la etiqueta pendiente o borra su texto antes de guardar.')).toBeDefined()
+    expect(screen.getByLabelText('Etiqueta por agregar').value).toBe('pendiente')
+    fireEvent.keyDown(screen.getByLabelText('Etiqueta por agregar'), { key: 'Enter' })
+    fireEvent.submit(screen.getByRole('form'))
+    await screen.findByText('Destino /iniciativas · created ·')
+    expect(initiativesService.create.mock.calls[0][0].tags).toEqual(['pendiente'])
+    expect(initiativesService.create.mock.calls[0][0]).not.toHaveProperty('tagDraft')
+  })
+  it('escribir únicamente la etiqueta pendiente también activa la confirmación de descarte', async () => {
+    mount()
+    await screen.findByRole('form')
+    fireEvent.change(screen.getByLabelText('Etiqueta por agregar'), { target: { value: 'sin agregar' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Descartar cambios sin guardar' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Seguir editando' }))
+    expect(screen.getByLabelText('Etiqueta por agregar').value).toBe('sin agregar')
   })
 })

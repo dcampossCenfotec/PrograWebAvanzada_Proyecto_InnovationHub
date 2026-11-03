@@ -175,9 +175,9 @@ El formulario controla los once campos editables:
 | Competencias | Selección por ID desde todas las páginas del catálogo; entre 1 y 10. |
 | Estimación de integrantes | Entero entre 1 y 100; no es un cupo. Conservar un estimado superado es válido, reducirlo por debajo de activos no. |
 | Visibilidad | Pública, Institucional, Restringida o Privada, con explicación visible. |
-| Etiquetas | Opcionales, filas individuales; hasta 10 de 1–40 caracteres, sin duplicados. Las filas vacías se omiten. |
+| Etiquetas | Opcionales, chips individuales; hasta 10 de 1–40 caracteres, sin duplicados. |
 
-Los controles base de competencias son casillas; las etiquetas se editan en filas con claves estables y conservan comas/texto interno. UI09 agrega el selector/chips y confirmación al quitar competencias. UI10 completa la validación tras interacción, contadores y revisión final de destinos; la validación básica contractual ya funciona al enviar.
+UI09 reemplaza las casillas por selección desde catálogo y lista de competencias por ID, con confirmación al quitar. Las etiquetas se agregan como chips con claves estables y conservan comas/texto interno. UI10 completa validación tras interacción, contadores de campos de texto y revisión final de destinos; la validación básica contractual ya funciona al enviar.
 
 POST publica directamente como `published` y vuelve al catálogo con aviso de éxito enfocado. PUT envía el reemplazo completo y vuelve al detalle actualizado con aviso enfocado. No se envían propietario, estado, ID, fechas, conteos ni capacidades; la API los conserva o calcula. MongoDB es la persistencia: el formulario solo mantiene cambios temporales en memoria, sin guardarlos en localStorage/sessionStorage ni crear borradores.
 
@@ -195,6 +195,18 @@ VITE_API_MODE=real VITE_API_BASE_URL=http://127.0.0.1:3002/api VITE_RUN_API_INTE
 
 Comprueba publicación única ante doble envío con campos completos, edición que conserva identidad/equipo/creación y persiste al montar otra vez, descarte sin PUT, bloqueo del ajeno y de la archivada. Sus sesiones se revocan al terminar. Las pruebas no reemplazan la revisión manual de diseño, foco y diálogo nativo.
 
+## Competencias y etiquetas (UI09)
+
+El formulario de creación/edición reutiliza `InitiativeSkillsEditor` e `InitiativeTagsEditor`. La selección de competencias solo admite IDs del catálogo cargado por la página; un fallo de catálogo conserva la pantalla de error/reintento y nunca habilita texto libre. Las competencias anteriores no disponibles mantienen su ID/nombre para que el usuario pueda quitarlas o reemplazarlas.
+
+Agregar competencia valida inmediatamente selección, duplicados y máximo 10, sin modificar el arreglo ante error. Quitar abre un diálogo con el nombre y Cancelar/Quitar competencia: cancelar o Escape conserva la selección y restaura foco; confirmar quita únicamente el ID elegido y enfoca el control siguiente o el selector. Estos cambios se envían a MongoDB solo al guardar el formulario.
+
+Las etiquetas se agregan con Enter o Agregar etiqueta. Cada chip conserva una etiqueta completa; las comas no separan elementos. Se recortan espacios exteriores y se comparan mayúsculas/tildes para rechazar duplicados, con límites de 10 etiquetas y 40 caracteres por etiqueta. Una entrada inválida permanece escrita y produce error inmediato al agregar; no se trunca silenciosamente. Enter durante composición de texto no agrega ni envía el formulario.
+
+Cada chip tiene un botón con nombre accesible para quitar solo esa etiqueta. Al quitar una del medio, las otras conservan claves/textos y el foco pasa al siguiente botón o al campo. Escribir una etiqueta pendiente activa la protección de cambios sin guardar; si se intenta guardar sin agregarla, se bloquea el envío y se pide agregarla o limpiar el texto. `tagDraft` y las claves de chips son exclusivamente estado de interfaz y no forman parte del payload de la API.
+
+La edición reconstruye lista y chips desde los IDs/arreglos del DTO. Durante guardado todos los controles quedan deshabilitados. La misma validación de duplicados existe en la API: manipular el cliente no permite persistir competencias o etiquetas repetidas. La suite real del formulario incluye guardar/volver a editar colecciones, defensas de API y etiqueta pendiente sin publicación accidental.
+
 ## Alcance actual
 
 - Todas las rutas acordadas se resuelven mediante React Router.
@@ -204,7 +216,7 @@ Comprueba publicación única ante doble envío con campos completos, edición q
 - Registro, login, restauración de sesión, rutas protegidas y logout revocable están implementados.
 - Perfil propio, perfiles públicos y directorio filtrado/paginado están implementados.
 - La infraestructura HTTP y sus estados de consulta están disponibles para las demás tareas funcionales.
-- Catálogo, listado propio, detalle y eliminación/archivo de iniciativas implementados; formulario base disponible en UI08; chips y refinamientos pendientes de UI09/UI10.
+- Catálogo, listado propio, detalle y eliminación/archivo de iniciativas implementados; formulario disponible en UI08 y competencias/chips en UI09; refinamientos de validación pendientes de UI10.
 - Solicitudes y proyectos todavía dependen de sus tareas funcionales.
 
 El contrato HTTP común está en [`../docs/api-contract.md`](../docs/api-contract.md). La guía general de ejecución se mantiene en el [`README.md` raíz](../README.md).

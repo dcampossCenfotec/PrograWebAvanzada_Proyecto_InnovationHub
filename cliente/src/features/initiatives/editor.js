@@ -14,6 +14,7 @@ export function initiativeToValues(initiative) {
     categoryId: initiative?.category?.id ?? '',
     skillIds: initiative?.skills?.map(({ id }) => id) ?? [],
     estimatedMembers: initiative ? String(initiative.estimatedMembers) : '',
+    tagDraft: '',
     visibility: initiative?.visibility ?? 'public',
     tags: (initiative?.tags ?? []).map((value) => ({ key: crypto.randomUUID(), value })),
   }
@@ -33,6 +34,10 @@ export function toInitiativePayload(values) {
   }
 }
 
+export function initiativeTagKey(value) {
+  return value.trim().normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('es')
+}
+
 export function validateInitiativeEditor(values, { categories, skills, initiative } = {}) {
   const fields = {}
   for (const [key, rule] of Object.entries(INITIATIVE_TEXT_RULES)) {
@@ -47,8 +52,8 @@ export function validateInitiativeEditor(values, { categories, skills, initiativ
   if (values.skillIds.length < 1 || values.skillIds.length > 10) fields.skillIds = 'Selecciona entre 1 y 10 competencias.'
   else if (new Set(values.skillIds).size !== values.skillIds.length || values.skillIds.some((id) => !skills.some((skill) => skill.id === id))) fields.skillIds = 'Selecciona competencias disponibles y sin duplicados.'
   const tags = values.tags.map(({ value }) => value.trim()).filter(Boolean)
-  const tagKey = (tag) => tag.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('es')
   if (tags.length > 10 || tags.some((tag) => tag.length > 40)) fields.tags = 'Acepta hasta 10 etiquetas de 1 a 40 caracteres.'
-  else if (new Set(tags.map(tagKey)).size !== tags.length) fields.tags = 'No repitas etiquetas.'
+  else if (new Set(tags.map(initiativeTagKey)).size !== tags.length) fields.tags = 'No repitas etiquetas.'
+  if (values.tagDraft?.trim()) fields.tags = 'Agrega la etiqueta pendiente o borra su texto antes de guardar.'
   return fields
 }

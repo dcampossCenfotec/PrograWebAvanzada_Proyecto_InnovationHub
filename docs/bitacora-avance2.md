@@ -384,3 +384,21 @@ Formulario compartido controlado de publicación/edición con campos contractual
 El primer caso de navegación durante guardado esperaba el texto de confirmación cuando el diálogo ya mostraba Procesando; se corrigió la aserción y se cubrió que el éxito use el estado actual del bloqueo. ESLint señaló lectura de una referencia durante render al comparar valores iniciales; la base inmutable se pasó a estado, se retiró un import sin uso y las comprobaciones aprobaron. El host de navegador continúa sin estar disponible; los diálogos de componentes se simulan en jsdom y no constituyen QA visual. Las instrucciones de revisión se entregan solo en la conversación, sin archivo de guía adicional. UI07 ya se publicó en `4e03568`; Daniel autorizó publicar UI08 después de solicitar ancho completo para todos los formularios.
 
 Ajuste final de UI08 solicitado por Daniel: formularios al 100 % del contenedor de página, con autenticación, directorio y filtro de propietario sin límites locales de ancho. Se conservan sus ajustes previos de perfil/iniciativas. Autorización de commit/push recibida; no se afirma ejecución individual de todos los casos visuales o responsive. Daniel continúa con UI09–UI10 y la revisión cruzada de Francisco permanece pendiente.
+
+## Verificación UI09
+
+Selector de competencias controladas por catálogo/ID, aviso inmediato de duplicado y confirmación accesible al quitar. Etiquetas como chips agregables con Enter/botón y removibles individualmente, sin dividir comas y con claves estables. Una etiqueta pendiente no se pierde al guardar ni al intentar navegar.
+
+- [x] 165 pruebas del cliente aprobadas; 19 pruebas específicas nuevas de colecciones y dos casos adicionales de etiqueta pendiente en el formulario. Las 20 integraciones se omiten expresamente en la suite general.
+- [x] ESLint y build aprobados (148 módulos); continúan cuatro avisos conocidos Sass `@import`.
+- [x] 20 integraciones reales: 3 catálogo, 9 detalle y 8 formulario contra Express temporal 3002/MongoDB de test, en ese orden.
+- [x] Agregar competencias sin duplicados, rechazar selección vacía, límite de diez y controles deshabilitados durante guardado.
+- [x] Quitar/cancelar/Escape mantiene o elimina el ID correcto y devuelve foco al control lógico; selección anterior no disponible conserva su nombre/ID.
+- [x] Tags vacías, espacios, mayúsculas/tildes, 40/41 caracteres, diez/once elementos y comas verificadas. Quitar el chip intermedio conserva los restantes y el foco.
+- [x] Enter agrega sin enviar el formulario; composición de texto no agrega ni envía. Texto pendiente conserva su valor, bloquea guardar y activa confirmación de descarte.
+- [x] Guardar/volver a editar conserva IDs y chips. La API rechaza IDs/etiquetas duplicados sin cambiar el registro ni `updatedAt`.
+- [x] API temporal detenida al terminar; no se modificaron datos de desarrollo ni se recreó una guía manual .md.
+- [ ] Revisión manual/visual de Daniel, teclado, foco, móvil y zoom 200 %.
+- [ ] Revisión cruzada de Francisco.
+
+La verificación automatizada de diálogos usa simulación de `showModal/close` en jsdom; no demuestra apariencia ni comportamiento nativo completo. Se conserva el ancho global de formularios aprobado en UI08. UI08 se publicó en `dafc19c`; Daniel autorizó el commit/push de UI09. Esto no afirma ejecución individual de todas las pruebas visuales ni sustituye la revisión cruzada de Francisco. UI10 sigue pendiente para validación tras interacción, contadores generales y avisos de éxito de una sola lectura.

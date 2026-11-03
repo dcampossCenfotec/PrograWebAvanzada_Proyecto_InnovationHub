@@ -38,9 +38,10 @@ function mount(entry, auth) {
 async function fill(title) {
   await screen.findByRole('form', { name: 'Publicar iniciativa' }, { timeout: 10000 })
   for (const [label, value] of [['Título', title], ['Resumen', input.summary], ['Descripción', input.description], ['Problema que atiende', input.problem], ['Personas beneficiarias', input.beneficiaries], ['Categoría', input.categoryId], ['Estimación de integrantes', '3']]) fireEvent.change(screen.getByLabelText(label), { target: { value } })
-  fireEvent.click(screen.getByLabelText('Diseño'))
+  fireEvent.change(screen.getByLabelText('Competencia por agregar'), { target: { value: input.skillIds[0] } })
+  fireEvent.click(screen.getByRole('button', { name: 'Agregar competencia' }))
+  fireEvent.change(screen.getByLabelText('Etiqueta por agregar'), { target: { value: 'prueba-ui08' } })
   fireEvent.click(screen.getByRole('button', { name: 'Agregar etiqueta' }))
-  fireEvent.change(screen.getByLabelText('Etiqueta 1'), { target: { value: 'prueba-ui08' } })
 }
 
 describe.skipIf(!enabled)('UI08 con React, Express y MongoDB reales', () => {
@@ -85,7 +86,9 @@ describe.skipIf(!enabled)('UI08 con React, Express y MongoDB reales', () => {
     await screen.findByRole('form', { name: 'Editar iniciativa' }, { timeout: 10000 })
     fireEvent.change(screen.getByLabelText('Título'), { target: { value: 'Prueba UI08 edición persistida' } })
     fireEvent.change(screen.getByLabelText('Visibilidad'), { target: { value: 'private' } })
-    fireEvent.change(screen.getByLabelText('Etiqueta 1'), { target: { value: 'edición-persistida' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar etiqueta prueba-ui08' }))
+    fireEvent.change(screen.getByLabelText('Etiqueta por agregar'), { target: { value: 'edición-persistida' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar etiqueta' }))
     fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
     const notice = await screen.findByText('Los cambios de la iniciativa se guardaron correctamente.', {}, { timeout: 10000 })
     expect(document.activeElement).toBe(notice)
@@ -115,6 +118,73 @@ describe.skipIf(!enabled)('UI08 con React, Express y MongoDB reales', () => {
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Descartar y salir' }))
     await screen.findByRole('heading', { level: 1, name: before.title }, { timeout: 10000 })
     expect((await initiativesService.getById(before.id)).data.title).toBe(before.title)
+  })
+
+  it('UI09 conserva IDs/chips al quitar, cancelar, guardar y volver a editar', async () => {
+    const auth = await login()
+    const design = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2'
+    const web = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1'
+    const research = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3'
+    const before = (await initiativesService.create({ ...input, title: 'Prueba UI09 colecciones persistidas', skillIds: [design, web], tags: ['conservada', 'quitar', 'última'] })).data
+    const app = mount(`/iniciativas/${before.id}/editar`, auth)
+    await screen.findByRole('form', { name: 'Editar iniciativa' }, { timeout: 10000 })
+    fireEvent.change(screen.getByLabelText('Competencia por agregar'), { target: { value: design } })
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar competencia' }))
+    expect(screen.getByText('Esta competencia ya está agregada.')).toBeDefined()
+    fireEvent.change(screen.getByLabelText('Competencia por agregar'), { target: { value: research } })
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar competencia' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar competencia Diseño' }))
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Quitar competencia' })).getByRole('button', { name: 'Cancelar' }))
+    expect((await initiativesService.getById(before.id)).data.skills.map(({ id }) => id)).toEqual([design, web])
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar competencia Diseño' }))
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Quitar competencia' })).getByRole('button', { name: 'Quitar competencia' }))
+    fireEvent.change(screen.getByLabelText('Etiqueta por agregar'), { target: { value: '  Educación  ' } })
+    fireEvent.keyDown(screen.getByLabelText('Etiqueta por agregar'), { key: 'Enter' })
+    fireEvent.change(screen.getByLabelText('Etiqueta por agregar'), { target: { value: 'educacion' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar etiqueta' }))
+    expect(screen.getByText(/Esta etiqueta ya está agregada/)).toBeDefined()
+    fireEvent.change(screen.getByLabelText('Etiqueta por agregar'), { target: { value: 'Diseño, investigación' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar etiqueta' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar etiqueta quitar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+    await screen.findByText('Los cambios de la iniciativa se guardaron correctamente.', {}, { timeout: 10000 })
+    const saved = (await initiativesService.getById(before.id)).data
+    expect(saved.skills.map(({ id }) => id)).toEqual([web, research])
+    expect(saved.tags).toEqual(['conservada', 'última', 'Educación', 'Diseño, investigación'])
+    app.unmount()
+    mount(`/iniciativas/${before.id}/editar`, auth)
+    await screen.findByRole('form', { name: 'Editar iniciativa' }, { timeout: 10000 })
+    expect(within(screen.getByRole('list', { name: 'Competencias agregadas' })).getAllByRole('listitem')).toHaveLength(2)
+    expect(within(screen.getByRole('list', { name: 'Etiquetas agregadas' })).getAllByRole('listitem')).toHaveLength(4)
+    expect(screen.getByRole('button', { name: 'Quitar etiqueta Diseño, investigación' })).toBeDefined()
+  })
+
+  it('la API también rechaza IDs y etiquetas duplicadas sin modificar el registro', async () => {
+    await login()
+    const before = (await initiativesService.create({ ...input, title: 'Prueba UI09 defensa de servidor' })).data
+    await expect(initiativesService.update(before.id, { ...input, skillIds: [input.skillIds[0], input.skillIds[0]] })).rejects.toMatchObject({ status: 400 })
+    await expect(initiativesService.update(before.id, { ...input, tags: ['Educación', 'educacion'] })).rejects.toMatchObject({ status: 400 })
+    const after = (await initiativesService.getById(before.id)).data
+    expect(after.skills).toEqual(before.skills)
+    expect(after.tags).toEqual(before.tags)
+    expect(after.updatedAt).toBe(before.updatedAt)
+  })
+
+  it('una etiqueta pendiente bloquea publicar hasta agregarla, sin perder el texto', async () => {
+    const auth = await login()
+    const title = 'Prueba UI09 etiqueta pendiente'
+    mount('/iniciativas/nueva', auth)
+    await fill(title)
+    fireEvent.change(screen.getByLabelText('Etiqueta por agregar'), { target: { value: 'pendiente' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar iniciativa' }))
+    expect(screen.getByText('Agrega la etiqueta pendiente o borra su texto antes de guardar.')).toBeDefined()
+    expect((await initiativesService.list({ q: title, size: 50 })).pagination.total).toBe(0)
+    fireEvent.keyDown(screen.getByLabelText('Etiqueta por agregar'), { key: 'Enter' })
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar iniciativa' }))
+    await screen.findByText('La iniciativa se publicó correctamente.', {}, { timeout: 10000 })
+    const result = await initiativesService.list({ q: title, size: 50 })
+    expect(result.pagination.total).toBe(1)
+    expect((await initiativesService.getById(result.data[0].id)).data.tags).toEqual(['prueba-ui08', 'pendiente'])
   })
 
   it('Carla no recibe formulario al pegar edición de una iniciativa pública ajena', async () => {

@@ -1,6 +1,6 @@
 # Iniciativas: API05–API07
 
-API05 se publicó en `a5df168`, API06 en `f86fea6` y API07 en `f26bd1c`. UI06 (`fa471e8`) implementa catálogo/listado propio; UI07 (`4e03568`) agrega detalle y eliminación/archivo independientes. UI08 implementa formularios; chips y refinamientos siguen pendientes de UI09/UI10. Las reglas de `docs/api-contract.md` son la fuente del HTTP. Este documento describe el consumo del módulo y la evidencia disponible.
+API05 se publicó en `a5df168`, API06 en `f86fea6` y API07 en `f26bd1c`. UI06 (`fa471e8`) implementa catálogo/listado propio; UI07 (`4e03568`) agrega detalle y eliminación/archivo independientes. UI08 (`dafc19c`) implementa formularios; UI09 agrega competencias controladas/chips y UI10 completa los refinamientos. Las reglas de `docs/api-contract.md` son la fuente del HTTP. Este documento describe el consumo del módulo y la evidencia disponible.
 
 ## Consultas y expectativas
 
@@ -88,3 +88,11 @@ Creación/edición comparten formulario controlado, catálogo completo de compet
 Los valores iniciales se reconstruyen por ID y arreglos, sin transformar etiquetas en texto con comas ni perder saltos de línea. Respuestas de error conservan valores y no muestran éxito. Publicar vuelve al catálogo; editar vuelve al detalle con lectura nueva y aviso enfocado. La confirmación de descarte protege Cancelar y navegación interna; recarga/cierre usa aviso nativo. El control de doble envío no equivale a idempotencia ante pérdida de respuesta: si el resultado es incierto se informa y no hay reintento automático.
 
 Evidencia acumulada cliente con UI08: 144 pruebas, lint y build (146 módulos); 17 integraciones reales React/Express/MongoDB (3 catálogo, 9 detalle y 5 formulario). Las pruebas modificaron únicamente la base de test. La revisión visual/manual de Daniel y la revisión cruzada siguen pendientes; competencias/chips y validación refinada corresponden a UI09/UI10.
+
+## Colecciones del formulario (UI09)
+
+El cliente mantiene competencias como IDs y etiquetas como chips con claves locales estables. Agregar valida inmediatamente duplicados/límites; quitar competencia requiere confirmar y conserva foco/datos al cancelar. Las etiquetas se agregan por Enter/botón y no se separan por comas. Se conserva íntegramente el arreglo al editar, incluso al quitar una posición intermedia.
+
+La normalización de duplicados de etiquetas coincide con la API (trim, mayúsculas y tildes). El texto pendiente de agregar bloquea el guardado y participa en la protección de descarte; ni `tagDraft` ni claves locales viajan en POST/PUT. La API y su contrato no cambian en UI09: se mantiene la defensa de duplicados en servidor, verificada contra MongoDB real sin modificación del último estado válido.
+
+Evidencia acumulada UI09: 165 pruebas de cliente, lint/build (148 módulos) y 20 integraciones React/Express/MongoDB (3 catálogo, 9 detalle y 8 formulario). Solo se modificó la base de test. La revisión visual/manual de Daniel y la revisión cruzada están pendientes.

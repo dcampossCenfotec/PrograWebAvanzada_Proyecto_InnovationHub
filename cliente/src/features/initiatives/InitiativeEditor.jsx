@@ -6,6 +6,8 @@ import ConfirmDialog from '../../components/ConfirmDialog.jsx'
 import FormField from '../../components/FormField.jsx'
 import StatusPanel from '../../components/StatusPanel.jsx'
 import { TYPE_OPTIONS, VISIBILITY_LABELS } from './catalog.js'
+import { InitiativeSkillsEditor } from './InitiativeSkillsEditor.jsx'
+import { InitiativeTagsEditor } from './InitiativeTagsEditor.jsx'
 import { isInitiativeId } from './detail.js'
 import { INITIATIVE_TEXT_RULES, initiativeEditorSnapshot, initiativeToValues, toInitiativePayload, validateInitiativeEditor } from './editor.js'
 
@@ -55,7 +57,7 @@ export function InitiativeEditor({ initiative, categories, skills }) {
 
   function change(name, value) {
     setValues((current) => ({ ...current, [name]: value }))
-    setFields((current) => ({ ...current, [name]: undefined }))
+    setFields((current) => ({ ...current, [name === 'tagDraft' ? 'tags' : name]: undefined }))
   }
 
   function focusFirstError(errors) {
@@ -95,8 +97,6 @@ export function InitiativeEditor({ initiative, categories, skills }) {
     }
   }
 
-  const unavailableSkills = (initiative?.skills ?? []).filter((skill) => !skills.some(({ id }) => id === skill.id))
-  const skillOptions = [...skills, ...unavailableSkills]
   const errorMessage = permissionLost ? 'Ya no hay permiso para guardar esta iniciativa. No se enviarán nuevos cambios.'
     : requestError?.status === 400 ? 'Revisa los campos señalados. Lo escrito permanece en el formulario.'
       : requestError?.status === 409 ? 'La iniciativa cambió o su estado impide guardar. Lo escrito permanece en el formulario; consulta el detalle antes de volver a guardar.'
@@ -138,24 +138,8 @@ export function InitiativeEditor({ initiative, categories, skills }) {
                   </FormField>
                 </div>
               </div>
-              <fieldset aria-describedby="initiative-skillIds-description" aria-invalid={Boolean(fields.skillIds)} className="initiative-form__group" id={fieldId('skillIds')} tabIndex="-1">
-                <legend className="h5">Competencias requeridas</legend>
-                <p className={`form-text${fields.skillIds ? ' text-danger' : ''}`} id="initiative-skillIds-description">{fields.skillIds || 'Selecciona entre 1 y 10 competencias del catálogo.'}</p>
-                <div className="initiative-form__skills">
-                  {skillOptions.map((skill) => {
-                    const available = skills.some(({ id }) => id === skill.id)
-                    const checked = values.skillIds.includes(skill.id)
-                    return <div className="form-check" key={skill.id}><input checked={checked} className="form-check-input" disabled={!available && !checked} id={`initiative-skill-${skill.id}`} onChange={() => change('skillIds', checked ? values.skillIds.filter((id) => id !== skill.id) : [...values.skillIds, skill.id])} type="checkbox" /><label className="form-check-label" htmlFor={`initiative-skill-${skill.id}`}>{skill.name}{!available ? ' (no disponible)' : ''}</label></div>
-                  })}
-                </div>
-              </fieldset>
-              <fieldset aria-describedby="initiative-tags-description" aria-invalid={Boolean(fields.tags)} className="initiative-form__group" id={fieldId('tags')} tabIndex="-1">
-                <legend className="h5">Etiquetas (opcional)</legend>
-                <p className={`form-text${fields.tags ? ' text-danger' : ''}`} id="initiative-tags-description">{fields.tags || 'Hasta 10 etiquetas, de 1 a 40 caracteres cada una. Cada fila representa una etiqueta.'}</p>
-                {!values.tags.length ? <p className="text-secondary">No has agregado etiquetas.</p> : null}
-                {values.tags.map((tag, index) => <div className="initiative-form__tag-row mb-3" key={tag.key}><div><label className="form-label" htmlFor={`initiative-tag-${tag.key}`}>Etiqueta {index + 1}</label><input className="form-control" id={`initiative-tag-${tag.key}`} maxLength="40" onChange={(event) => change('tags', values.tags.map((row) => row.key === tag.key ? { ...row, value: event.target.value } : row))} value={tag.value} /></div><button aria-label={`Quitar etiqueta ${index + 1}`} className="btn btn-outline-secondary" onClick={() => change('tags', values.tags.filter(({ key }) => key !== tag.key))} type="button">Quitar</button></div>)}
-                <button className="btn btn-outline-primary" disabled={values.tags.length >= 10} onClick={() => change('tags', [...values.tags, { key: crypto.randomUUID(), value: '' }])} type="button">Agregar etiqueta</button>
-              </fieldset>
+              <InitiativeSkillsEditor disabled={submitting} error={fields.skillIds} initialSkills={initiative?.skills} onChange={(ids) => change('skillIds', ids)} skills={skills} value={values.skillIds} />
+              <InitiativeTagsEditor disabled={submitting} draft={values.tagDraft} error={fields.tags} onChange={(tags) => change('tags', tags)} onDraftChange={(draft) => change('tagDraft', draft)} value={values.tags} />
             </fieldset>
             <div className="d-flex flex-wrap justify-content-end gap-2 mt-4">
               <button className="btn btn-outline-secondary" disabled={submitting} onClick={() => navigate(cancelDestination)} type="button">Cancelar</button>
