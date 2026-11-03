@@ -1,6 +1,6 @@
 # Servidor Express y MongoDB de Innovation Hub
 
-API01 estableció Express por capas, API02 agregó MongoDB y API03 implementa autenticación persistente. Están disponibles registro, login, sesión actual y logout con revocación. Las contraseñas usan `scrypt` con sal aleatoria; los tokens Bearer son opacos y solo su hash SHA-256 llega a MongoDB.
+API01 estableció Express por capas, API02 agregó MongoDB, API03 implementó autenticación persistente y API04 agregó perfiles, directorio y catálogos de consulta. Están disponibles registro, login, sesión actual, logout con revocación, perfiles propios y públicos, filtros de usuarios, categorías y competencias. Las contraseñas usan `scrypt` con sal aleatoria; los tokens Bearer son opacos y solo su hash SHA-256 llega a MongoDB.
 
 ## Requisitos
 
@@ -79,7 +79,7 @@ cp .env.test.example .env.test
 npm run test:integration
 ```
 
-Las pruebas crean índices únicos, ejecutan seeds repetidos, reconectan para verificar persistencia y fuerzan una colisión dentro de una transacción. Autenticación cubre registro concurrente con el mismo correo, hashes distintos, credenciales indistinguibles, tokens ausentes o dañados, expiración y revocación. La suite limpia únicamente sus colecciones conocidas dentro de la base indicada.
+Las pruebas crean índices únicos, ejecutan seeds repetidos, reconectan para verificar persistencia y fuerzan una colisión dentro de una transacción. Autenticación cubre registro concurrente con el mismo correo, hashes distintos, credenciales indistinguibles, tokens ausentes o dañados, expiración y revocación. Perfiles cubre privacidad del correo, reemplazo completo, competencias válidas, filtros combinados, paginación y catálogos públicos. Los archivos de integración se ejecutan en serie para que sus limpiezas no compitan por la misma base. La suite limpia únicamente sus colecciones conocidas dentro de la base indicada.
 
 El reset está deliberadamente restringido:
 
@@ -125,6 +125,24 @@ curl -s http://127.0.0.1:3000/api/auth/login \
 Usar `accessToken` como `Authorization: Bearer <token>` en `/api/auth/me` y `/api/auth/logout`. Logout devuelve `204` y el mismo token debe recibir `401` en el siguiente uso. Los errores de correo desconocido, contraseña incorrecta y usuario inactivo son deliberadamente iguales.
 
 El formato persistido de contraseña registra `scrypt`, `N=16384`, `r=8`, `p=1`, una sal aleatoria de 16 bytes y una clave derivada de 64 bytes. Cinco mediciones locales con Node 24.21.0 dieron 49, 41, 39, 40 y 41 ms, promedio 42 ms; es evidencia del equipo usado, no un tiempo garantizado en otra computadora.
+
+## Perfiles y catálogos locales
+
+`GET /api/categories` y `GET /api/skills` son públicos. `GET /api/users`, `GET /api/users/{id}` y `PUT /api/users/me` requieren `Authorization: Bearer <token>`. El directorio nunca devuelve correo; consultar el UUID propio sí lo incluye. Un `PUT` reemplaza todos los campos editables, por lo que no funciona como actualización parcial.
+
+Ejemplos con la API iniciada y un token obtenido mediante login:
+
+```bash
+curl -s 'http://127.0.0.1:3000/api/skills?q=desarrollo&page=1&size=5'
+
+curl -s 'http://127.0.0.1:3000/api/users?availability=high&page=1&size=12' \
+  -H 'Authorization: Bearer <token>'
+
+curl -s 'http://127.0.0.1:3000/api/users/11111111-1111-4111-8111-111111111111' \
+  -H 'Authorization: Bearer <token>'
+```
+
+El perfil acepta `career`, `bio` y `portfolioUrl` como `null`, hasta 15 intereses y 20 competencias. Los niveles válidos son `basic`, `intermediate` y `advanced`. `email`, IDs, fechas y contraseñas son inmutables; una competencia inexistente o repetida rechaza toda la operación.
 
 ## Recuperación y diagnóstico
 

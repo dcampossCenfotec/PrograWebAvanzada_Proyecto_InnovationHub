@@ -23,6 +23,7 @@ const fakeAuthModule = Object.freeze({
   requireSession(_request, _response, next) { next() },
 })
 const authModuleFactory = async () => fakeAuthModule
+const usersModuleFactory = async () => undefined
 
 test('conecta MongoDB antes de escuchar y cierra HTTP antes de desconectar', async () => {
   const messages = []
@@ -36,7 +37,7 @@ test('conecta MongoDB antes de escuchar y cierra HTTP antes de desconectar', asy
     async disconnect() { events.push('database:disconnect') },
   }
 
-  const instance = await startServer({ config, logger, database, authModuleFactory })
+  const instance = await startServer({ config, logger, database, authModuleFactory, usersModuleFactory })
   if (!instance.server.listening) await once(instance.server, 'listening')
 
   const address = instance.server.address()
@@ -76,6 +77,7 @@ test('cierra MongoDB si el puerto HTTP ya está ocupado', async () => {
         config: { ...config, port: occupyingServer.address().port },
         database,
         authModuleFactory,
+        usersModuleFactory,
       }),
       (error) => error.code === 'EADDRINUSE',
     )

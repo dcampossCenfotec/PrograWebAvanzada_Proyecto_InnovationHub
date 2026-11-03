@@ -36,5 +36,28 @@ export function createCatalogRepository({ Category, Skill }) {
       ])
       return { categories, skills }
     },
+
+    listActiveCategories() {
+      return Category.find({ active: true }).sort({ nameNormalized: 1, id: 1 }).lean().exec()
+    },
+
+    listActiveSkills({ filter, skip, limit }) {
+      return Skill.find({ active: true, ...filter })
+        .sort({ nameNormalized: 1, id: 1 })
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec()
+    },
+
+    countActiveSkills(filter) {
+      return Skill.countDocuments({ active: true, ...filter }).exec()
+    },
+
+    async findExistingActiveSkillIds(ids) {
+      if (ids.length === 0) return []
+      const skills = await Skill.find({ id: { $in: ids }, active: true }).select({ id: 1, _id: 0 }).lean().exec()
+      return skills.map(({ id }) => id)
+    },
   })
 }

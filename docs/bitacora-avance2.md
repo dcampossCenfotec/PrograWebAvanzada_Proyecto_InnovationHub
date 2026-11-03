@@ -57,6 +57,11 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-10-30 | UI04 | Express en 3001; Vite en 5175; MongoDB real | Solicitar `/ingresar` y login demo con origen real del cliente | Página `200`, login `200`, CORS exacto, token opaco de 43 caracteres e identidad de Ana | Sin commit |
 | 2026-10-30 | UI04 | Navegador integrado | Intentar recorrido visual automatizado | El host del navegador no estuvo disponible; no se cuenta como aprobación visual y queda en revisión manual | Sin commit |
 | 2026-10-31 | UI04 | Revisión manual de Daniel | Recorrido entregado y solicitud explícita de commit/push | Daniel confirmó UI04 para cierre; revisión cruzada de Francisco continúa pendiente | Sin commit |
+| 2026-11-02 | API04 | Node 24.21.0; npm 12.2.0 | `npm ci --cache /private/tmp/innovation-hub-npm-cache` | 181 paquetes instalados desde lockfile; 5 avisos moderados limitados a ESLint y 0 vulnerabilidades en dependencias de producción | Sin commit |
+| 2026-11-02 | API04 | Node 24.21.0; ESLint; fixtures; `node:test` | `cd servidor && npm run check` fuera del sandbox para permitir puertos de Supertest | ESLint y fixtures aprobados; 34 pruebas aprobadas, 0 fallidas y 3 integraciones omitidas sin cargar `.env.test` | Sin commit |
+| 2026-11-02 | API04 | MongoDB Community 8.0.34; replica set real | `npm run test:integration` con ejecución serial | 3 integraciones aprobadas: autenticación, persistencia/transacciones y perfiles/directorio/catálogos; 0 fallidas | Sin commit |
+| 2026-11-02 | API04 | npm audit | `npm audit --omit=dev` | 0 vulnerabilidades reportadas en las 86 dependencias de producción; los 5 avisos del audit completo pertenecen a la cadena de ESLint | Sin commit |
+| 2026-11-02 | API04 | Revisión manual de Daniel | Recorrido de catálogos, autorización, filtros, privacidad y actualización completa | Daniel confirmó todos los resultados esperados; revisión cruzada de Francisco continúa pendiente | Sin commit |
 
 ## Plantilla de entrada
 
@@ -191,3 +196,19 @@ Resultado de API03: **automatización, MongoDB real, seed repetido y recorrido H
 - [ ] Revisar a 360, 768 y 1440 px, teclado completo, foco visible y zoom de 200 % en ambos formularios y menú autenticado.
 
 Resultado de UI04: **47 pruebas, lint, build, integración HTTP real y confirmación manual de Daniel aprobados; revisión cruzada de Francisco pendiente**.
+
+## Revisión manual API04
+
+- [x] Instalar con `npm ci --cache /private/tmp/innovation-hub-npm-cache`, ejecutar `npm run seed` y levantar la API con MongoDB activo.
+- [x] Consultar `/api/categories` sin token: esperar `200`, exactamente 8 elementos y solo `id`/`name`; agregar `?page=1` y esperar `400 INVALID_QUERY`.
+- [x] Consultar `/api/skills?q=desarrollo&page=1&size=5` sin token: esperar solo “Desarrollo web” y paginación total 1; `q=x` y `size=51` deben producir `400 INVALID_QUERY`.
+- [x] Consultar `/api/users` sin token y esperar `401 AUTHENTICATION_REQUIRED`; iniciar sesión como Ana y repetir con su Bearer.
+- [x] En `/api/users?page=1&size=2&sort=lastName&order=asc`, esperar 2 perfiles, total 4, 2 páginas y ausencia de `email`, hashes, `_id` y sesiones.
+- [x] Probar filtros válidos por búsqueda, carrera, competencia y disponibilidad; una página fuera de rango debe devolver `200`, `data: []` y conservar el total real.
+- [x] Probar un UUID de competencia bien formado sin usuarios y esperar lista vacía; UUID malformado, query repetida o parámetro desconocido deben responder `400 INVALID_QUERY`.
+- [x] Consultar el UUID de Ana y esperar correo; consultar el UUID de Luis con el mismo token y confirmar que el correo se omite; UUID desconocido `404` y malformado `400`.
+- [x] Reemplazar el perfil propio con todos los campos editables mediante `PUT /api/users/me`; esperar `200`, datos recortados, correo original y `updatedAt` nuevo.
+- [x] Enviar correo, ID o fecha en el `PUT`; omitir un campo; repetir una competencia; usar una competencia inexistente, nivel inválido, URL no HTTP(S) o bio de 601 caracteres. Cada caso debe producir `400` y ninguno debe alterar el último perfil válido.
+- [x] Confirmar que `/perfil`, `/usuarios` y `/usuarios/:id` siguen mostrando “Sección en preparación”: API04 habilita los endpoints y UI05 construirá esas pantallas.
+
+Resultado de API04: **34 pruebas locales, lint, fixtures, 3 integraciones con MongoDB real, audit de producción y recorrido manual de Daniel aprobados; revisión cruzada de Francisco pendiente**.

@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 
 export const MEMBER_TYPES = Object.freeze(['student', 'professor', 'administrative', 'graduate', 'external'])
 const AVAILABILITY = ['low', 'medium', 'high']
-const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced']
+const SKILL_LEVELS = ['basic', 'intermediate', 'advanced']
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const skillSchema = new mongoose.Schema({
@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
   emailNormalized: { type: String, required: true, trim: true, maxlength: 254 },
   passwordHash: { type: String, required: true, select: false },
   career: { type: String, default: null, maxlength: 120 },
-  bio: { type: String, default: null, maxlength: 1000 },
+  bio: { type: String, default: null, maxlength: 600 },
   interests: { type: [String], default: [], validate: (values) => values.length <= 15 },
   availability: { type: String, enum: AVAILABILITY, default: 'medium' },
   portfolioUrl: { type: String, default: null, maxlength: 2048 },

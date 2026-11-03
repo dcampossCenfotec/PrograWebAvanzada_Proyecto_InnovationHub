@@ -26,3 +26,9 @@ export function toOwnUserDto(user) {
     updatedAt: user.updatedAt.toISOString(),
   }
 }
+
+export function toPublicUserDto(user) {
+  const publicUser = toOwnUserDto(user)
+  delete publicUser.email
+  return publicUser
+}

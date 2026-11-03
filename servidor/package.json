@@ -11,7 +11,7 @@
     "seed": "npm run fixtures:validate && node --env-file-if-exists=.env scripts/seed.js",
     "db:reset:test": "node --env-file-if-exists=.env.test scripts/reset-test-database.js",
     "test": "node --test",
-    "test:integration": "node --env-file-if-exists=.env.test scripts/require-integration-env.js && node --env-file-if-exists=.env.test --test test/integration/*.test.js",
+    "test:integration": "node --env-file-if-exists=.env.test scripts/require-integration-env.js && node --env-file-if-exists=.env.test --test --test-concurrency=1 test/integration/*.test.js",
     "test:watch": "node --test --watch",
     "check": "npm run lint && npm run fixtures:validate && npm test"
   },
