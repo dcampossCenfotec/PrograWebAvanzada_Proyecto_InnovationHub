@@ -1,6 +1,6 @@
 # Cliente React de Innovation Hub
 
-Cliente React del Avance 2 con navegación, autenticación real, perfiles, directorio, catálogo y detalle de iniciativas, capa HTTP común, servicios por dominio, estados de consulta y un mock basado en los fixtures compartidos. Las pantallas de dominio que todavía no alcanzaron su tarea permanecen como marcadores explícitos.
+Cliente React del Avance 2 con navegación, autenticación real, perfiles, directorio, catálogo, detalle y formularios de iniciativas, capa HTTP común, servicios por dominio, estados de consulta y un mock basado en los fixtures compartidos. Las pantallas de dominio que todavía no alcanzaron su tarea permanecen como marcadores explícitos.
 
 ## Requisitos
 
@@ -84,6 +84,8 @@ sessionStorage.setItem('innovationHub.accessToken', 'mock-expired-token')
 
 Recargar después del cambio. El primer token representa al propietario de los fixtures; el segundo, a un solicitante; el tercero permite comprobar expiración y debe cerrar la sesión al consultar `/auth/me`. El modo mock no puede compilarse como build de producción: `VITE_API_MODE=mock npm run build` falla de forma deliberada.
 
+Los formularios ocupan el 100 % del ancho disponible del contenedor de página, incluidos ingreso, registro, perfil, iniciativas y filtros. Se retiraron los límites locales de autenticación/directorio; la grilla interna conserva su distribución responsive.
+
 ## Autenticación y rutas protegidas
 
 `AuthProvider` conserva únicamente el token opaco en `sessionStorage`; la identidad visible siempre proviene de la respuesta de login/registro o de `GET /auth/me`. Al recargar, una sesión válida se restaura. Una respuesta `401` elimina el token y dirige a ingreso con un aviso. Si `/auth/me` falla por red, el token se conserva y la página ofrece reintentar porque no se demostró que la sesión haya terminado. `sessionStorage` limita el token a la pestaña y lo elimina al cerrarla, pero sigue siendo accesible para JavaScript del mismo origen: evitar HTML no confiable y dependencias sin revisar continúa siendo obligatorio.
@@ -114,7 +116,7 @@ El filtro de propietario puede activarse desde una tarjeta. Con sesión también
 
 Las tarjetas ofrecen detalle solamente cuando `access.canViewDetails === true`. Una restringida ajena muestra únicamente resumen permitido y un aviso de acceso, sin enlace al detalle ni propietario. Los espacios se muestran como estimación y nunca negativos. El estado tiene una banda propia con etiqueta explícita: publicada verde, formando equipo azul, convertida violeta, borrador ámbar y archivada gris. La visibilidad se presenta aparte con una etiqueta de borde; privada usa rojo oscuro. Los textos permanecen legibles sin depender del color. El mock reproduce filtros, proyecciones y paginación; las pruebas contra Express verifican el modo real por separado.
 
-El detalle ya es funcional desde UI07. Publicación/edición siguen en preparación hasta UI08. Solicitudes, equipo y conversión se completan en sus tareas posteriores.
+El detalle ya es funcional desde UI07. UI08 agrega los formularios de publicación/edición. Solicitudes, equipo y conversión se completan en sus tareas posteriores.
 
 Prueba opcional React → Express → MongoDB, con API exclusiva de pruebas en 3002 y base de test recién restaurada. No se ejecuta con la suite general cuando falta la variable de activación. En una terminal, desde `servidor/`, con `.env.test` y replica set nativo activos:
 
@@ -140,7 +142,7 @@ El servidor protege las cuatro visibilidades. El cliente distingue `401` (ingres
 
 | Acción | Condición adicional a tener sesión |
 | --- | --- |
-| Editar iniciativa | `access.canEdit === true`; formulario de UI08 pendiente. |
+| Editar iniciativa | `access.canEdit === true`; formulario de UI08 disponible. |
 | Solicitar participación | `access.canRequest === true`; ruta de UI11 pendiente. Cero espacios no bloquea esta acción. |
 | Convertir en proyecto | `access.canConvert === true`; conversión de API10/UI13 pendiente. |
 | Revisar solicitudes recibidas | `access.canManageRequests === true`; gestión de API09/UI12 pendiente. |
@@ -159,6 +161,40 @@ VITE_API_MODE=real VITE_API_BASE_URL=http://127.0.0.1:3002/api VITE_RUN_API_INTE
 
 Los nueve casos prueban lectura pública, denegaciones `401/403/404`, privada como dueña, acciones de miembro, cancelar sin escritura, borrado físico de un registro temporal, rechazo de borrado con historial sin modificación, archivo voluntario sin historial y archivo conservando el detalle. El diálogo se simula en jsdom para las pruebas de componentes; esto no constituye revisión visual en un navegador. Las sesiones creadas por la suite de detalle se revocan al terminar cada caso.
 
+## Publicar y editar iniciativas (UI08)
+
+`/iniciativas/nueva` y `/iniciativas/:id/editar` comparten `InitiativeEditor` y exigen sesión. En edición se comprueban UUID, propietario por ID y `access.canEdit` antes de habilitar campos. Una archivada o una iniciativa ajena no ofrece formulario, aunque se pegue directamente la dirección. Cambiar identidad o ID desmonta el formulario anterior y cancela su consulta.
+
+El formulario controla los once campos editables:
+
+| Campos | Representación y límites |
+| --- | --- |
+| Título, resumen, descripción, problema y beneficiarios | Texto con límites contractuales 5–100, 15–240, 20–2000, 10–500 y 3–150. |
+| Tipo | Idea, Necesidad o Reto. |
+| Categoría | Opción obtenida del catálogo activo. |
+| Competencias | Selección por ID desde todas las páginas del catálogo; entre 1 y 10. |
+| Estimación de integrantes | Entero entre 1 y 100; no es un cupo. Conservar un estimado superado es válido, reducirlo por debajo de activos no. |
+| Visibilidad | Pública, Institucional, Restringida o Privada, con explicación visible. |
+| Etiquetas | Opcionales, filas individuales; hasta 10 de 1–40 caracteres, sin duplicados. Las filas vacías se omiten. |
+
+Los controles base de competencias son casillas; las etiquetas se editan en filas con claves estables y conservan comas/texto interno. UI09 agrega el selector/chips y confirmación al quitar competencias. UI10 completa la validación tras interacción, contadores y revisión final de destinos; la validación básica contractual ya funciona al enviar.
+
+POST publica directamente como `published` y vuelve al catálogo con aviso de éxito enfocado. PUT envía el reemplazo completo y vuelve al detalle actualizado con aviso enfocado. No se envían propietario, estado, ID, fechas, conteos ni capacidades; la API los conserva o calcula. MongoDB es la persistencia: el formulario solo mantiene cambios temporales en memoria, sin guardarlos en localStorage/sessionStorage ni crear borradores.
+
+Durante guardado se deshabilitan controles y envío, con protección por referencia contra doble confirmación. Fallos `400/409/red` no navegan ni limpian valores; errores de campos de la API se asocian a sus controles. Una pérdida de permiso retira el formulario. Un resultado incierto de publicación no se reenvía automáticamente: se recomienda revisar Mis iniciativas antes de repetir para evitar duplicados. Sin categoría o competencia disponible no se permite publicar; fallos de carga ofrecen reintento.
+
+Cancelar sin cambios vuelve a catálogo o detalle según modo. Con cambios, Cancelar, otro enlace interno o Atrás abren la confirmación de descarte mediante React Router. Seguir editando conserva valores; Descartar y salir ejecuta la navegación pendiente sin guardar. Recargar/cerrar usa el aviso nativo del navegador, cuyo texto y aparición dependen del navegador. Durante un guardado no se permite descartar; al confirmar éxito prevalece el destino de guardado. Las rutas usan el router de datos de la aplicación, requerido por `useBlocker`.
+
+Las mutaciones de iniciativas siguen requiriendo `VITE_API_MODE=real`; el mock permite lecturas pero devuelve `501` en creación/edición/archivo/borrado. Las pruebas de componentes simulan servicios para verificar errores deterministas; las de integración sí usan Express/MongoDB.
+
+Para la integración real del formulario, con la API aislada de test en 3002 preparada como se indicó arriba, ejecutar esta suite después de catálogo/detalle:
+
+```bash
+VITE_API_MODE=real VITE_API_BASE_URL=http://127.0.0.1:3002/api VITE_RUN_API_INTEGRATION=true npm run test:unit -- src/features/initiatives/InitiativeFormPage.integration.test.jsx
+```
+
+Comprueba publicación única ante doble envío con campos completos, edición que conserva identidad/equipo/creación y persiste al montar otra vez, descarte sin PUT, bloqueo del ajeno y de la archivada. Sus sesiones se revocan al terminar. Las pruebas no reemplazan la revisión manual de diseño, foco y diálogo nativo.
+
 ## Alcance actual
 
 - Todas las rutas acordadas se resuelven mediante React Router.
@@ -168,7 +204,7 @@ Los nueve casos prueban lectura pública, denegaciones `401/403/404`, privada co
 - Registro, login, restauración de sesión, rutas protegidas y logout revocable están implementados.
 - Perfil propio, perfiles públicos y directorio filtrado/paginado están implementados.
 - La infraestructura HTTP y sus estados de consulta están disponibles para las demás tareas funcionales.
-- Catálogo, listado propio, detalle y eliminación/archivo de iniciativas implementados; formularios pendientes de UI08–UI10.
+- Catálogo, listado propio, detalle y eliminación/archivo de iniciativas implementados; formulario base disponible en UI08; chips y refinamientos pendientes de UI09/UI10.
 - Solicitudes y proyectos todavía dependen de sus tareas funcionales.
 
 El contrato HTTP común está en [`../docs/api-contract.md`](../docs/api-contract.md). La guía general de ejecución se mantiene en el [`README.md` raíz](../README.md).

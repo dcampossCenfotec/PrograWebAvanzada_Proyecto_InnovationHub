@@ -13,6 +13,7 @@ import { OwnProfilePage, PublicProfilePage } from '../features/users/ProfilePage
 import { UserDirectoryPage } from '../features/users/UserDirectoryPage.jsx'
 import { CatalogPage } from '../features/initiatives/CatalogPage.jsx'
 import { InitiativeDetailPage } from '../features/initiatives/InitiativeDetailPage.jsx'
+import { InitiativeFormPage } from '../features/initiatives/InitiativeFormPage.jsx'
 
 function protectedPage(element) {
   return <ProtectedRoute>{element}</ProtectedRoute>
@@ -29,12 +30,7 @@ const placeholderRoutes = [
   },
   {
     path: 'iniciativas/nueva',
-    element: protectedPage(
-      <PlaceholderPage
-        description="El formulario publicará directamente una iniciativa válida."
-        title="Publicar iniciativa"
-      />,
-    ),
+    element: <InitiativeFormPage />,
   },
   { path: 'perfil', element: protectedPage(<OwnProfilePage />) },
   { path: 'usuarios', element: protectedPage(<UserDirectoryPage />) },
@@ -82,13 +78,7 @@ const entityRoutes = [
   },
   {
     path: 'iniciativas/:id/editar',
-    element: protectedPage(
-      <EntityPlaceholderPage
-        entityName="Iniciativa"
-        mode="edición"
-        title="Editar iniciativa"
-      />,
-    ),
+    element: <InitiativeFormPage edit />,
   },
   {
     path: 'iniciativas/:id/participar',

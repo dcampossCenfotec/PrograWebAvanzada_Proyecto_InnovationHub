@@ -364,3 +364,23 @@ Daniel solicitó y confirmó separar Eliminar y Archivar el 3 de noviembre. Este
 - [ ] Revisión cruzada de Francisco.
 
 Las operaciones automáticas de pruebas se ejecutaron exclusivamente en la base de test. Los registros privados de revisión manual anteriores se conservaron según el estado que Daniel les haya dado; no se restauran ni sobrescriben sin necesidad. Daniel aprobó el cambio de comportamiento y autorizó publicar UI07. Quedan UI08–UI10 para Daniel; la revisión cruzada de Francisco sigue pendiente.
+
+## Verificación UI08
+
+Formulario compartido controlado de publicación/edición con campos contractuales, catálogos, permisos, estados de carga/guardado/error y confirmación de descarte. POST vuelve al catálogo y PUT al detalle con avisos enfocados. UI09 completa controles de competencias/chips y UI10 afina la validación tras interacción y contadores.
+
+- [x] 144 pruebas del cliente aprobadas; incluyen 23 del formulario y seis de transformación/validación de sus datos. La suite general omite las 17 integraciones que requieren API real.
+- [x] ESLint y build aprobados (146 módulos); continúan cuatro avisos conocidos de Sass `@import`.
+- [x] 17 integraciones reales: 3 catálogo, 9 detalle y 5 formulario, ejecutadas en ese orden contra Express temporal 3002 y MongoDB de test.
+- [x] Publicación con todos los campos, membresía automática del propietario y un solo alta ante doble envío.
+- [x] Edición conserva ID, propietario, fecha de creación y equipo; el dato persiste al desmontar/montar otra consulta.
+- [x] Cancelar/continuar/descartar conserva o abandona valores según elección, sin escritura al descartar; otro enlace y aviso de recarga cubiertos por pruebas de componentes.
+- [x] Ajeno, archivada, UUID inválido, `404`, catálogos vacíos/fallidos y pérdida de sesión/permiso no habilitan datos o escrituras indebidos.
+- [x] Errores `400/409/red` conservan valores; errores por campo, respuesta de creación sin `published` y envío en curso no generan falso éxito.
+- [x] API temporal de test detenida después de verificar; no se hizo seed ni pruebas destructivas sobre la base de desarrollo.
+- [ ] Revisión manual/visual de Daniel: campos y guardado real, cambios sin guardar, foco, 360/768/1440 px y zoom 200 %.
+- [ ] Revisión cruzada de Francisco.
+
+El primer caso de navegación durante guardado esperaba el texto de confirmación cuando el diálogo ya mostraba Procesando; se corrigió la aserción y se cubrió que el éxito use el estado actual del bloqueo. ESLint señaló lectura de una referencia durante render al comparar valores iniciales; la base inmutable se pasó a estado, se retiró un import sin uso y las comprobaciones aprobaron. El host de navegador continúa sin estar disponible; los diálogos de componentes se simulan en jsdom y no constituyen QA visual. Las instrucciones de revisión se entregan solo en la conversación, sin archivo de guía adicional. UI07 ya se publicó en `4e03568`; Daniel autorizó publicar UI08 después de solicitar ancho completo para todos los formularios.
+
+Ajuste final de UI08 solicitado por Daniel: formularios al 100 % del contenedor de página, con autenticación, directorio y filtro de propietario sin límites locales de ancho. Se conservan sus ajustes previos de perfil/iniciativas. Autorización de commit/push recibida; no se afirma ejecución individual de todos los casos visuales o responsive. Daniel continúa con UI09–UI10 y la revisión cruzada de Francisco permanece pendiente.

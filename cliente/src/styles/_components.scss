@@ -129,8 +129,15 @@
   min-height: 1.35em;
 }
 
+.page-container form {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .auth-page {
-  max-width: 44rem;
+  width: 100%;
+  max-width: 100%;
   margin-inline: auto;
 }
 
@@ -232,7 +239,7 @@
 }
 
 .profile-form {
-  max-width: 58rem;
+  max-width: 100%;
 }
 
 .profile-skills-editor {
@@ -250,7 +257,7 @@
 }
 
 .directory-filters {
-  max-width: 64rem;
+  max-width: 100%;
 }
 
 .initiative-card__title,
@@ -370,6 +377,29 @@
   color: #62440e;
 }
 
+.initiative-form {
+  max-width: 100%;
+}
+
+.initiative-form__group {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #d7e1e5;
+}
+
+.initiative-form__skills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: .75rem 1rem;
+}
+
+.initiative-form__tag-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: .75rem;
+}
+
 .initiative-detail__layout {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
@@ -424,7 +454,7 @@
 }
 
 .catalog-owner-picker {
-  max-width: 40rem;
+  max-width: 100%;
 }
 
 .catalog-owner-picker__search {

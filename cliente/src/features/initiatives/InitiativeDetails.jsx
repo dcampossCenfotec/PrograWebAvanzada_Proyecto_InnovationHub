@@ -5,6 +5,7 @@ import { isAbortError } from '../../api/errors.js'
 import ConfirmDialog from '../../components/ConfirmDialog.jsx'
 import PageHeader from '../../components/PageHeader.jsx'
 import { InitiativeBadges } from './InitiativeBadges.jsx'
+import { InitiativeNotice } from './InitiativeNotice.jsx'
 import { initiativeDate, removalOperation } from './detail.js'
 
 function TextSection({ title, children }) {
@@ -48,6 +49,7 @@ export function InitiativeDetails({ initiative, authenticated, onMutationFailure
 
   return (
     <>
+      <InitiativeNotice allowed={['updated']} />
       <p><Link to="/iniciativas">Volver al catálogo</Link>{authenticated ? <> · <Link to="/mis-iniciativas">Mis iniciativas</Link></> : null}</p>
       <section aria-labelledby="page-title" className="card shadow-sm mb-4">
         <div className="card-body p-4 p-lg-5">

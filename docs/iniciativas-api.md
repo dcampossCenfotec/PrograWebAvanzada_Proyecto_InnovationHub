@@ -1,6 +1,6 @@
 # Iniciativas: API05–API07
 
-API05 se publicó en `a5df168`, API06 en `f86fea6` y API07 en `f26bd1c`. UI06 (`fa471e8`) implementa catálogo/listado propio; UI07 agrega detalle y eliminación/archivo. Formularios siguen pendientes de UI08–UI10. Las reglas de `docs/api-contract.md` son la fuente del HTTP. Este documento describe el consumo del módulo y la evidencia disponible.
+API05 se publicó en `a5df168`, API06 en `f86fea6` y API07 en `f26bd1c`. UI06 (`fa471e8`) implementa catálogo/listado propio; UI07 (`4e03568`) agrega detalle y eliminación/archivo independientes. UI08 implementa formularios; chips y refinamientos siguen pendientes de UI09/UI10. Las reglas de `docs/api-contract.md` son la fuente del HTTP. Este documento describe el consumo del módulo y la evidencia disponible.
 
 ## Consultas y expectativas
 
@@ -55,7 +55,7 @@ API06 se verificó con 54 pruebas locales y cinco integraciones seriales con Mon
 - [x] Estimados superados, conteos activos y capacidades ante solicitudes pendientes.
 - [x] Seed repetido sin duplicados y normalización de documentos de API05.
 
-UI06 consume las lecturas de catálogo y propiedad en `/iniciativas` y `/mis-iniciativas`. Los criterios y la página se reconstruyen desde la URL; los resúmenes restringidos no muestran propietario ni enlace a detalle. UI07 consume el detalle en `/iniciativas/:id` y dos comandos independientes con confirmación y permisos: DELETE para borrar y POST `/{id}/archive` para archivar. Creación/edición y las rutas de solicitudes/conversión continúan en preparación hasta sus tareas.
+UI06 consume las lecturas de catálogo y propiedad en `/iniciativas` y `/mis-iniciativas`. Los criterios y la página se reconstruyen desde la URL; los resúmenes restringidos no muestran propietario ni enlace a detalle. UI07 consume el detalle en `/iniciativas/:id` y dos comandos independientes con confirmación y permisos: DELETE para borrar y POST `/{id}/archive` para archivar. UI08 consume POST/PUT desde los formularios compartidos. Las rutas de solicitudes/conversión continúan en preparación hasta sus tareas.
 
 El fragmento importable de 31 peticiones se entrega en `pruebas/fragmentos/iniciativas.postman_collection.json`, con instrucciones y variables sin secretos en su README. Su ejecución en Postman se verifica al consolidar UI14; las integraciones HTTP anteriores sí se ejecutaron contra MongoDB real.
 
@@ -77,6 +77,14 @@ Evidencia actual del servidor: 66 pruebas locales, lint/fixtures y 17 resultados
 
 La pantalla valida el UUID, espera la sesión y consulta el detalle según el actor. Separa encabezado e indicadores, información principal, competencias/etiquetas y resumen de equipo/fechas. Un `401` permite ir a ingreso conservando destino; `403` y `404` no exponen datos ni títulos de errores. Respuestas sin permiso tampoco renderizan el DTO. Cambiar identidad/ID retira y cancela el contenido anterior.
 
-Editar, solicitar, convertir y revisar solicitudes dependen de las capacidades booleanas devueltas por la API y de una sesión activa; sus pantallas se completan en UI08/UI11–UI13. Eliminar usa DELETE; Archivar usa POST `/{id}/archive`. Cada botón tiene una confirmación propia y solo acepta la respuesta de su operación. Durante el envío se bloquean confirmaciones/cierre y se evita doble envío. Un rechazo por historial no archiva; explica que el recurso se conserva y permite consultar el detalle para elegir archivo. Tras éxito vuelve a `/mis-iniciativas` con aviso enfocado; ante fallo o resultado incierto retira capacidades antiguas y exige lectura nueva antes de repetir.
+Editar, solicitar, convertir y revisar solicitudes dependen de las capacidades booleanas devueltas por la API y de una sesión activa; la edición está disponible en UI08 y las otras pantallas se completan en UI11–UI13. Eliminar usa DELETE; Archivar usa POST `/{id}/archive`. Cada botón tiene una confirmación propia y solo acepta la respuesta de su operación. Durante el envío se bloquean confirmaciones/cierre y se evita doble envío. Un rechazo por historial no archiva; explica que el recurso se conserva y permite consultar el detalle para elegir archivo. Tras éxito vuelve a `/mis-iniciativas` con aviso enfocado; ante fallo o resultado incierto retira capacidades antiguas y exige lectura nueva antes de repetir.
 
 Evidencia UI07: 115 pruebas del cliente y 12 integraciones adicionales de React/Express/MongoDB (3 catálogo y 9 detalle), ESLint y build de 142 módulos aprobados. Las integraciones modificaron solo la base de pruebas; el recorrido visual/manual de Daniel está pendiente. El mock admite lectura; eliminación/archivo se verifica usando API real.
+
+## Escrituras desde React (UI08)
+
+Creación/edición comparten formulario controlado, catálogo completo de competencias y categorías activas. El cliente construye una lista explícita de once campos permitidos y convierte el estimado a número; nunca envía campos de identidad o estado. La edición obtiene detalle y comprueba permiso/propiedad antes de cargar controles. Privada ajena, archivada e ID inválido se tratan sin exponer contenido.
+
+Los valores iniciales se reconstruyen por ID y arreglos, sin transformar etiquetas en texto con comas ni perder saltos de línea. Respuestas de error conservan valores y no muestran éxito. Publicar vuelve al catálogo; editar vuelve al detalle con lectura nueva y aviso enfocado. La confirmación de descarte protege Cancelar y navegación interna; recarga/cierre usa aviso nativo. El control de doble envío no equivale a idempotencia ante pérdida de respuesta: si el resultado es incierto se informa y no hay reintento automático.
+
+Evidencia acumulada cliente con UI08: 144 pruebas, lint y build (146 módulos); 17 integraciones reales React/Express/MongoDB (3 catálogo, 9 detalle y 5 formulario). Las pruebas modificaron únicamente la base de test. La revisión visual/manual de Daniel y la revisión cruzada siguen pendientes; competencias/chips y validación refinada corresponden a UI09/UI10.
