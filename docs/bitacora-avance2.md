@@ -83,6 +83,11 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-11-03 | API06 | MongoDB Community 8.0.34; replica set real | `npm run test:integration` con ejecución serial | 5 integraciones aprobadas, 0 fallidas; matriz de cuatro visibilidades, permisos por URL, campos ocultos, filtros, paginación de 25 registros adicionales, seed repetido y migración desde API05 | Sin commit |
 | 2026-11-03 | API06 | Repositorio real; base de pruebas | `node --env-file-if-exists=.env.test scripts/seed.js` y recorrido HTTP con Express en puerto temporal | Seed con 8 iniciativas/12 membresías/13 eventos; catálogos visitante/Carla/Ana de 3/5/6, mine de Ana 8; detalle restringido ajeno `403`, privado ajeno `404`, institucional visitante `401`, búsqueda MENTORIAS 1 y CORS correcto | Sin commit |
 | 2026-11-03 | API06 | Node; colección Postman v2.1 | Analizar JSON, verificar IDs únicos, cuerpos y sintaxis de scripts con `node:vm` | Fragmento de 18 peticiones válido y variables sensibles vacías; ejecución dentro de Postman pendiente de UI14 | Sin commit |
+| 2026-11-03 | API07 | Node; ESLint | `npm run lint` y prueba focal del servicio de eliminación | Lint y 8 pruebas del servicio aprobados, con idempotencia, permisos y abortos ante conflicto | Sin commit |
+| 2026-11-03 | API07 | Node 24.21.0; ESLint; fixtures | `npm run check` | 62 pruebas locales aprobadas, 0 fallidas; 6 integraciones principales omitidas sin `.env.test`; lint y fixtures aprobados | Sin commit |
+| 2026-11-03 | API07 | MongoDB Community 8.0.34; replica set real | `npm run test:integration` con concurrencia 1 | 6 integraciones principales y los 9 subcasos de API07 aprobados (15 resultados); rollback de borrado/archivo, preservación de historial y ambos órdenes de operaciones concurrentes verificados | Sin commit |
+| 2026-11-03 | API07 | Repositorio real; Express en puerto temporal; MongoDB de pruebas | Seed y recorrido HTTP real de DELETE | Ajeno `403`, eliminación `204` sin cuerpo ni relaciones automáticas huérfanas, repetición `404`; archivo y repetición `200` con historial intacto y misma fecha/revisión; CORS correcto | Sin commit |
+| 2026-11-03 | API07 | Node; fragmento Postman v2.1 | Verificar JSON, IDs únicos, bodies y sintaxis con `node:vm` | 27 peticiones válidas, variables sensibles vacías; ejecución dentro de Postman pendiente de UI14 | Sin commit |
 
 ## Plantilla de entrada
 
@@ -291,3 +296,18 @@ Resultado de API05: **47 pruebas locales, lint, fixtures, 4 integraciones con Mo
 - [x] Documentos anteriores de API05 reciben campos de búsqueda nuevos sin cambiar IDs.
 
 Resultado de API06: **54 pruebas locales, lint, fixtures y 5 integraciones con MongoDB real aprobados; revisión cruzada de Francisco pendiente**. Las rutas React de iniciativas permanecen pendientes de UI06–UI10.
+
+## Revisión API07
+
+- [x] Dueño sin historial adicional: `204` sin cuerpo y eliminación de iniciativa/membresía/evento automáticos, conservando usuario/catálogos.
+- [x] Solicitudes pendientes/canceladas/rechazadas/aceptadas obligan a archivar y no cambian de estado.
+- [x] Miembros activos/retirados, eventos históricos y proyectos obligan a conservar relaciones.
+- [x] Archivo devuelve `200`, sale del catálogo y conserva consulta por el dueño; editar da `409`.
+- [x] Repetir archivo conserva fecha/revisión; repetir borrado físico da `404`.
+- [x] Sin sesión, ajeno, UUID inválido, body JSON/texto y query no permiten eliminar.
+- [x] Fallo después de borrar o archivar revierte iniciativa, revisión y relaciones completas.
+- [x] Relación concurrente que confirma primero obliga al reintento de DELETE y al archivo.
+- [x] Si el borrado confirma primero, el escritor reintentado no puede crear una relación huérfana.
+- [x] Dos DELETE simultáneos respetan idempotencia y unicidad del resultado físico.
+
+Resultado de API07: **62 pruebas locales, lint, fixtures y 6 integraciones principales con MongoDB real aprobados, incluidos nueve subcasos de API07; revisión cruzada de Francisco pendiente**. Las escrituras futuras de API08–API10 se simulan por transacciones según el protocolo de revisión; sus rutas HTTP se integran cuando existan.

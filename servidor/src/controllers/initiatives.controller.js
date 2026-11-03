@@ -1,7 +1,19 @@
 import { toInitiativeDto } from '../dto/initiative.dto.js'
 
-export function createInitiativesController(service, queriesService) {
+export function createInitiativesController(service, queriesService, removalService) {
   return Object.freeze({
+    async deleteInitiative(request, response, next) {
+      try {
+        const result = await removalService.deleteInitiative(request.params.id, request.auth.user.id, {
+          query: request.query, body: request.body,
+          hasBody: Number(request.get('content-length') ?? 0) > 0
+            || request.get('transfer-encoding') !== undefined,
+        })
+        if (result === null) response.status(204).end()
+        else response.status(200).json({ data: result })
+      } catch (error) { next(error) }
+    },
+
     async listInitiatives(request, response, next) {
       try {
         const result = await queriesService.listInitiatives(request.query, request.auth?.user.id ?? null)

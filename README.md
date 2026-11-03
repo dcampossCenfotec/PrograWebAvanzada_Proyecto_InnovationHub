@@ -8,7 +8,7 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
 - **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; creación, consulta, edición y archivo de iniciativas con todas sus pantallas; CO00–CO01; modelo y fixtures.
 - **Francisco José Torres Sandoval:** solicitudes propias y recibidas; equipos; proyectos/GitHub; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. Tras la reasignación del 3 de noviembre, el plan asigna 19 tareas a Daniel y 15 a Francisco; después de CO00, CO01, UI01–UI05 y API01–API06 quedan API07 y UI06–UI10 para Daniel, y 15 tareas para Francisco. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de todo el módulo de iniciativas antes del handoff y de CO02.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. Tras la reasignación del 3 de noviembre, el plan asigna 19 tareas a Daniel y 15 a Francisco; después de CO00, CO01, UI01–UI05 y API01–API07 quedan UI06–UI10 para Daniel, y 15 tareas para Francisco. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de todo el módulo de iniciativas antes del handoff y de CO02.
 
 Documentos vigentes:
 
@@ -39,6 +39,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | `16104cd` | 2026-11-02 | Daniel | API04 | Perfiles, directorio y catálogos | 34 pruebas locales, 3 integraciones MongoDB y recorrido manual aprobados |
 | `50d8c72` | 2026-11-03 | Daniel | UI05 | Perfil propio y directorio de colaboradores | 59 pruebas, lint, build, integración HTTP y recorrido manual aprobados |
 | `a5df168` | 2026-11-03 | Daniel | API05 | Creación y edición de iniciativas con membresía del propietario | 47 pruebas locales, 4 integraciones MongoDB y recorrido HTTP aprobados |
+| `f86fea6` | 2026-11-03 | Daniel | API06 | Catálogo, propiedad y detalle con visibilidad y paginación | 54 pruebas locales, 5 integraciones MongoDB y recorrido HTTP aprobados |
 
 ### Cliente React
 
@@ -113,6 +114,8 @@ node pruebas/fixtures/validate-fixtures.mjs
 Desde API06, `npm run seed` carga ocho categorías, diez competencias, cinco usuarios, ocho iniciativas, doce membresías y trece eventos de fixture. Los usuarios usan el valor local de `DEMO_USER_PASSWORD`, pero cada contraseña produce un hash distinto; repetir el seed conserva los hashes existentes y los IDs, sin eliminar registros creados por fuera del fixture. La carga de solicitudes/proyectos se completa con sus módulos y se verifica integralmente en API13.
 
 Las nuevas consultas son `GET /api/initiatives`, `GET /api/initiatives/mine` y `GET /api/initiatives/:id`. Catálogo y detalle admiten visitante con proyección por visibilidad; `/mine` exige sesión y solo lista propiedad. Con seed limpio, el catálogo devuelve 3 iniciativas al visitante, 5 a Carla y 6 a Ana; `/mine` de Ana devuelve las 8, incluidas borrador/archivada. Las pantallas React de iniciativas continúan en preparación hasta UI06/UI07. Políticas, límites y pruebas están en [docs/iniciativas-api.md](docs/iniciativas-api.md).
+
+API07 agrega `DELETE /api/initiatives/:id`: solo el propietario puede ejecutarlo, sin body ni query. Devuelve `204` al eliminar una iniciativa que solo conserva la membresía/evento automáticos del dueño; devuelve `200` y `operation: archived` cuando existe historial adicional. Las solicitudes de cualquier estado, miembros retirados, eventos y proyectos se conservan. Repetir archivo devuelve el mismo resultado sin modificar su fecha; repetir sobre una iniciativa borrada devuelve `404`.
 
 ## Avance 1 — prototipo frontend
 

@@ -41,7 +41,7 @@ export function createInitiativesRepository({ Initiative, Membership, Membership
         { id, revision },
         { $set: { updatedAt }, $inc: { revision: 1 } },
         { returnDocument: 'after', session },
-      ).exec()
+      ).select('+revision').exec()
     },
   })
 }

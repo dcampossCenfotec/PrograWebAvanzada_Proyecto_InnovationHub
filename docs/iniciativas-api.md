@@ -1,6 +1,6 @@
-# Iniciativas: API05 y API06
+# Iniciativas: API05–API07
 
-API05 se publicó en `a5df168`. API06 agrega consultas; la eliminación/archivo sigue pendiente de API07 y las pantallas de UI06–UI10. Las reglas de `docs/api-contract.md` son la fuente del HTTP. Este documento describe el consumo del módulo y la evidencia disponible.
+API05 se publicó en `a5df168` y API06 en `f86fea6`. API07 implementa eliminación/archivo; las pantallas siguen pendientes de UI06–UI10. Las reglas de `docs/api-contract.md` son la fuente del HTTP. Este documento describe el consumo del módulo y la evidencia disponible.
 
 ## Consultas y expectativas
 
@@ -28,6 +28,7 @@ El resumen restringido omite propietario, etiquetas, descripción, problema, ben
 
 - `getInitiativeModels(connection)` reutiliza las colecciones `initiatives`, `memberships`, `membershipEvents`; no crear modelos o equipos paralelos.
 - `createInitiativesRepository(models)` expone `findById(id, {session, includeInternal:true})`, `countActiveMemberships(id,{session})` y `touchRevision(id, revision, updatedAt, session)`. Toda creación de solicitud/aceptación/retiro/conversión posterior debe coordinar la revisión de la iniciativa en su transacción para serializarse con API07.
+- `lockInitiativeRevision(repository, initiative, updatedAt, session)` realiza esa escritura condicional y devuelve la iniciativa con su nueva revisión. Llamar después de leer/validar estado y permisos dentro de la misma transacción, y antes de escribir solicitudes, membresías, eventos o proyectos. Si no coincide la revisión devuelve `409 CONCURRENT_MODIFICATION`; MongoDB puede reintentar la transacción completa ante un conflicto de escritura. No reutilizar una iniciativa leída fuera de la transacción.
 - `requireInitiativeDetailsAccess(initiative, actorId, isMember)` valida lectura y produce errores seguros. `isMember` debe proceder de MongoDB dentro de la operación correspondiente, nunca del body de React.
 - `initiativeCapabilities` calcula capacidades de interfaz con propiedad, membresía, estado y solicitud pendiente. Las mutaciones deben volver a validar sus precondiciones; una capacidad visible no autoriza una escritura.
 - `canManageRequests` permite al dueño consultar/gestionar pendientes archivadas; aceptar seguirá bloqueado sobre archivadas en API09, mientras que rechazar está permitido según contrato.
@@ -44,7 +45,7 @@ Sobre un seed limpio, visitante ve 3 iniciativas en catálogo; Carla, 5; Ana, 6.
 
 ## Evidencia
 
-`npm run check` aprueba 54 pruebas locales, lint y fixtures. `npm run test:integration` aprueba 5 integraciones seriales con MongoDB real. API06 cubre:
+API06 se verificó con 54 pruebas locales y cinco integraciones seriales con MongoDB real, además de lint y fixtures. La evidencia actual con API07 se detalla al final. API06 cubre:
 
 - [x] Matriz visitante/dueño/miembro/ajeno por las cuatro visibilidades y acceso por URL.
 - [x] Borrador/archivada fuera del catálogo, propiedad en `/mine` y pérdida de acceso al retirarse.
@@ -56,4 +57,14 @@ Sobre un seed limpio, visitante ve 3 iniciativas en catálogo; Carla, 5; Ana, 6.
 
 Las rutas React `/iniciativas`, `/mis-iniciativas`, `/iniciativas/:id`, creación y edición siguen mostrando “Sección en preparación”. API06 entrega el servidor; la revisión de esas pantallas corresponde a sus tareas UI.
 
-El fragmento importable de 18 peticiones se entrega en `pruebas/fragmentos/iniciativas.postman_collection.json`, con instrucciones y variables sin secretos en su README. Su ejecución en Postman se verifica al consolidar UI14; las integraciones HTTP anteriores sí se ejecutaron contra MongoDB real.
+El fragmento importable de 27 peticiones se entrega en `pruebas/fragmentos/iniciativas.postman_collection.json`, con instrucciones y variables sin secretos en su README. Su ejecución en Postman se verifica al consolidar UI14; las integraciones HTTP anteriores sí se ejecutaron contra MongoDB real.
+
+## API07: eliminación y archivo
+
+`DELETE /api/initiatives/:id` acepta solo al dueño, sin query ni cuerpo. Devuelve `204` sin JSON cuando se confirma ausencia de historial adicional. En ese caso elimina atómicamente la iniciativa y su membresía/evento automáticos. Si existió cualquier solicitud (incluidas canceladas/rechazadas), otro miembro o evento, o proyecto, devuelve `200` con `{data:{id,state:"archived",operation:"archived"}}` y conserva todas las relaciones.
+
+Se verifica que la única membresía y el único evento correspondan al ingreso automático del propietario. Una anomalía en ese conjunto o un estado `converted` obliga a archivar conservadoramente. Repetir archivo no cambia fecha/revisión; sobre una iniciativa físicamente borrada se devuelve `404`. El archivo no cancela solicitudes pendientes, mantiene la iniciativa disponible al propietario y la excluye del catálogo.
+
+La lectura de historial se hace después de escribir la revisión común dentro de la transacción. Si otro escritor confirma una relación después de que DELETE leyó su primera instantánea, ambos compiten por esa revisión; el reintento ve la relación y archiva. Si el borrado gana, el escritor reintentado encuentra `404` antes de insertar. No existe protección referencial automática frente a escrituras externas que omitan este protocolo.
+
+La integración ejecuta nueve subcasos de API07 con permisos, solicitudes en cuatro estados, miembros activos/retirados, eventos históricos, proyectos, idempotencia, fallo inyectado tras escrituras y ambas intercalaciones concurrentes. Los escritores de solicitudes/equipo/proyecto se simulan mediante transacciones contra MongoDB real porque API08/API09/API10 siguen pendientes; sus rutas HTTP se verifican de forma conjunta cuando existan. La suite completa aprueba 62 pruebas locales y seis integraciones principales (15 resultados de test incluyendo los nueve subcasos de API07), además de lint y fixtures.

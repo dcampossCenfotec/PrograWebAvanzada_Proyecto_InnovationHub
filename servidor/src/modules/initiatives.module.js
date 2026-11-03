@@ -6,6 +6,8 @@ import { createInitiativesRepository } from '../repositories/initiatives.reposit
 import { createInitiativesService } from '../services/initiatives.service.js'
 import { createInitiativeQueriesRepository } from '../repositories/initiative-queries.repository.js'
 import { createInitiativeQueriesService } from '../services/initiative-queries.service.js'
+import { createInitiativeRemovalRepository } from '../repositories/initiative-removal.repository.js'
+import { createInitiativeRemovalService } from '../services/initiative-removal.service.js'
 
 export async function createInitiativesModule({ connection, requireSession, serviceOptions = {} }) {
   if (!connection || !requireSession) {
@@ -25,12 +27,18 @@ export async function createInitiativesModule({ connection, requireSession, serv
     catalogRepository,
     ...serviceOptions,
   })
+  const removalRepository = createInitiativeRemovalRepository({ connection, ...models })
+  const removalService = createInitiativeRemovalService({
+    connection, initiativesRepository: repository, removalRepository,
+  })
   return Object.freeze({
-    controller: createInitiativesController(service, queriesService),
+    controller: createInitiativesController(service, queriesService, removalService),
     requireSession,
     service,
     repository,
     queriesService,
+    removalService,
+    removalRepository,
     models,
   })
 }

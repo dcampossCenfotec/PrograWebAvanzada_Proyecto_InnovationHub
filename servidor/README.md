@@ -1,6 +1,6 @@
 # Servidor Express y MongoDB de Innovation Hub
 
-API01 estableció Express por capas, API02 agregó MongoDB, API03 implementó autenticación persistente, API04 agregó perfiles/directorio/catálogos, API05 agregó escritura de iniciativas y API06 agregó sus consultas con permisos. Las contraseñas usan `scrypt` con sal aleatoria; los tokens Bearer son opacos y solo su hash SHA-256 llega a MongoDB.
+API01 estableció Express por capas, API02 agregó MongoDB, API03 implementó autenticación persistente, API04 agregó perfiles/directorio/catálogos, API05 agregó escritura de iniciativas, API06 agregó consultas con permisos y API07 implementa eliminación/archivo según historial. Las contraseñas usan `scrypt` con sal aleatoria; los tokens Bearer son opacos y solo su hash SHA-256 llega a MongoDB.
 
 ## Requisitos
 
@@ -178,6 +178,22 @@ API06 ya permite `GET /api/initiatives`, `GET /api/initiatives/mine` y `GET /api
 Las privadas ajenas se ocultan con `404`; las restringidas presentan un resumen seguro a autenticados ajenos y rechazan su detalle con `403`. Un visitante recibe `401` en detalle institucional/restringido y no las ve en catálogo. Solo el propietario consulta borradores/archivadas por `/mine` o detalle. Título, resumen y etiquetas se buscan sin distinguir tildes/mayúsculas, pero una restringida ajena nunca coincide por etiquetas ocultas. `hasSpaces=false` incluye estimados superados y no impone cupo.
 
 La agregación MongoDB aplica autorización antes del conteo/página, calcula membresías activas, y usa un único `$facet` para resultados y total. Los datos relacionados se consultan por lote dentro de la agregación, sin una petición adicional por tarjeta. El módulo completa campos de búsqueda ausentes en documentos previos de API05 al arrancar, sin cambiar su UUID, fechas o revisión. Detalles de consumo para los módulos posteriores: [iniciativas-api.md](../docs/iniciativas-api.md).
+
+## Eliminar o archivar iniciativas
+
+`DELETE /api/initiatives/{id}` requiere la sesión del propietario y rechaza body o query. La operación usa una transacción con escritura condicional sobre la revisión de la iniciativa antes de inspeccionar relaciones.
+
+| Situación | Resultado |
+| --- | --- |
+| Solo membresía activa automática del propietario y su evento original, sin otra historia | `204` sin cuerpo; se eliminan iniciativa, membresía y evento automáticos. |
+| Cualquier solicitud, miembro adicional activo/retirado, evento adicional o proyecto | `200` con `{data:{id,state:"archived",operation:"archived"}}`; relaciones intactas. |
+| Ya archivada | El mismo `200`, sin cambiar fecha ni revisión. |
+| Ya borrada o inexistente | `404`. |
+| Ajeno autenticado / sin sesión | `403` / `401`. |
+
+Un estado `converted` o una relación automática incompleta obliga a conservar el registro mediante archivo. No se intenta corregir ese historial mediante borrado. Archivar saca la iniciativa del catálogo, conserva su consulta por el dueño en `/mine`/detalle e impide editarla. No cancela solicitudes pendientes.
+
+Las futuras transacciones de API08/API09/API10 deben leer y validar la iniciativa dentro de su sesión y llamar a `lockInitiativeRevision` antes de modificar sus relaciones. Las pruebas de API07 simulan esos escritores sobre las colecciones acordadas; la integración HTTP con las rutas futuras se completa cuando estén implementadas. `npm run test:integration` incluye nueve subcasos de API07: permisos, ambos resultados HTTP, historia, idempotencia, rollback y ambos órdenes de operaciones concurrentes.
 
 ## Recuperación y diagnóstico
 
