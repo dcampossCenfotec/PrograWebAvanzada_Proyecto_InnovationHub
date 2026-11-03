@@ -97,6 +97,10 @@ export function AuthProvider({ children }) {
     }
   }, [finishSession])
 
+  const updateUser = useCallback((nextUser) => {
+    setUser(nextUser)
+  }, [])
+
   const value = useMemo(() => ({
     status,
     user,
@@ -106,8 +110,9 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    updateUser,
     retryRestore: () => restoreSession(),
-  }), [login, logout, notice, register, restoreSession, sessionError, status, user])
+  }), [login, logout, notice, register, restoreSession, sessionError, status, updateUser, user])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

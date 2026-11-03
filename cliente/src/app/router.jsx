@@ -9,6 +9,8 @@ import PlaceholderPage from '../pages/PlaceholderPage.jsx'
 import LoginPage from '../pages/LoginPage.jsx'
 import RegisterPage from '../pages/RegisterPage.jsx'
 import { ProtectedRoute } from '../auth/ProtectedRoute.jsx'
+import { OwnProfilePage, PublicProfilePage } from '../features/users/ProfilePages.jsx'
+import { UserDirectoryPage } from '../features/users/UserDirectoryPage.jsx'
 
 function protectedPage(element) {
   return <ProtectedRoute>{element}</ProtectedRoute>
@@ -43,24 +45,8 @@ const placeholderRoutes = [
       />,
     ),
   },
-  {
-    path: 'perfil',
-    element: protectedPage(
-      <PlaceholderPage
-        description="El perfil propio se cargará desde la sesión y la API."
-        title="Mi perfil"
-      />,
-    ),
-  },
-  {
-    path: 'usuarios',
-    element: protectedPage(
-      <PlaceholderPage
-        description="El directorio permitirá buscar colaboradores mediante filtros del servidor."
-        title="Personas"
-      />,
-    ),
-  },
+  { path: 'perfil', element: protectedPage(<OwnProfilePage />) },
+  { path: 'usuarios', element: protectedPage(<UserDirectoryPage />) },
   {
     path: 'mis-solicitudes',
     element: protectedPage(
@@ -140,9 +126,7 @@ const entityRoutes = [
   },
   {
     path: 'usuarios/:id',
-    element: protectedPage(
-      <EntityPlaceholderPage entityName="Usuario" title="Perfil de usuario" />,
-    ),
+    element: protectedPage(<PublicProfilePage />),
   },
   {
     path: 'solicitudes/:id',

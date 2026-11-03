@@ -1,6 +1,6 @@
 # Cliente React de Innovation Hub
 
-Cliente React del Avance 2 con navegación, autenticación real, capa HTTP común, servicios por dominio, estados de consulta y un mock basado en los fixtures compartidos. Las pantallas de dominio que todavía no alcanzaron su tarea permanecen como marcadores explícitos.
+Cliente React del Avance 2 con navegación, autenticación real, perfiles, directorio, capa HTTP común, servicios por dominio, estados de consulta y un mock basado en los fixtures compartidos. Las pantallas de dominio que todavía no alcanzaron su tarea permanecen como marcadores explícitos.
 
 ## Requisitos
 
@@ -72,7 +72,7 @@ Variables admitidas:
 | `VITE_API_BASE_URL` | `http://localhost:3000/api` | URL base, sin endpoint final. |
 | `VITE_API_TIMEOUT_MS` | `15000` | Tiempo máximo entre 100 y 60000 milisegundos. |
 
-Para trabajar sin el servidor, usar `VITE_API_MODE=mock` en `.env.local` y reiniciar Vite. El mock importa directamente `pruebas/fixtures/`; no mantiene una segunda copia. Implementa consultas GET y, desde UI04, registro, login, sesión actual y logout con revocación. Las demás mutaciones devuelven `501 MOCK_NOT_IMPLEMENTED` hasta su tarea funcional, para que una simulación no oculte trabajo faltante.
+Para trabajar sin el servidor, usar `VITE_API_MODE=mock` en `.env.local` y reiniciar Vite. El mock importa directamente `pruebas/fixtures/`; no mantiene una segunda copia. Implementa consultas GET, autenticación y, desde UI05, reemplazo del perfil propio. Las demás mutaciones devuelven `501 MOCK_NOT_IMPLEMENTED` hasta su tarea funcional, para que una simulación no oculte trabajo faltante.
 
 Los endpoints protegidos se pueden revisar desde la consola del navegador con identidades sintéticas:
 
@@ -92,6 +92,14 @@ Registro solicita nombres, tipo de miembro, correo, contraseña, confirmación y
 
 Logout llama primero a la API. Solo después de `204`, o si la API confirma que el token ya no es válido, limpia el cliente. Un fallo de red mantiene la sesión local, informa que no se comprobó la revocación y permite reintentar.
 
+## Perfiles y directorio
+
+`/perfil` carga el perfil autenticado y el catálogo de competencias. Permite editar nombres, tipo de miembro, carrera o área, biografía, intereses, disponibilidad, portafolio y hasta 20 competencias con nivel. El correo se muestra como solo lectura y nunca forma parte del body de `PUT /users/me`. La actualización es completa: el cliente envía también arreglos vacíos y convierte los opcionales vacíos en `null`. Si la API responde `400`, los valores permanecen en el formulario.
+
+`/usuarios` requiere sesión y consulta el servidor cada vez que se aplican filtros o cambia la página. La URL conserva búsqueda, carrera exacta, competencia, disponibilidad, tamaño y orden para permitir Atrás/Adelante. El cliente no descarga todo el directorio para filtrarlo. Seleccionar dos resultados por página permite comprobar paginación con los cuatro usuarios activos del seed.
+
+`/usuarios/:id` presenta el perfil público sin controles de edición. El correo solo existe en la respuesta del perfil propio; las tarjetas del directorio tampoco lo muestran. Abrir el UUID propio desde el directorio redirige a `/perfil`.
+
 En modo real, ejecutar el seed del servidor. Los usuarios de `pruebas/fixtures/users.json` usan `DEMO_USER_PASSWORD`; `diego.inactive@example.test` debe ser rechazado. En modo mock, esos mismos correos usan `DemoSegura2026` y las cuentas registradas duran hasta recargar la página.
 
 Durante `npm run dev`, `/api-demo` consulta competencias y permite observar carga, éxito, vacío y error. Buscar una sola letra genera el `400` contractual; una cadena inexistente genera el estado vacío. En modo `real`, la ruta comprueba la conexión con el servidor configurado.
@@ -103,7 +111,8 @@ Durante `npm run dev`, `/api-demo` consulta competencias y permite observar carg
 - La ruta comodín presenta un error 404 con regreso al inicio.
 - La navegación interna utiliza `Link`/`NavLink` y no recarga todo el documento.
 - Registro, login, restauración de sesión, rutas protegidas y logout revocable están implementados.
+- Perfil propio, perfiles públicos y directorio filtrado/paginado están implementados.
 - La infraestructura HTTP y sus estados de consulta están disponibles para las demás tareas funcionales.
-- Los formularios y mutaciones de dominio todavía dependen de sus tareas correspondientes.
+- Las iniciativas, solicitudes y proyectos todavía dependen de sus tareas funcionales.
 
 El contrato HTTP común está en [`../docs/api-contract.md`](../docs/api-contract.md). La guía general de ejecución se mantiene en el [`README.md` raíz](../README.md).

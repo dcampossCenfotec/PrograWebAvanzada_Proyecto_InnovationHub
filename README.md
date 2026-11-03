@@ -8,7 +8,7 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
 - **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; CO00–CO01; modelo y fixtures.
 - **Francisco José Torres Sandoval:** iniciativas/catálogos; solicitudes recibidas; equipos; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01, UI01–UI04 y API01–API04 quedan 5 y 19, respectivamente. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de sus módulos antes de CO02.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01, UI01–UI05 y API01–API04 quedan 4 y 19, respectivamente. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de sus módulos antes de CO02.
 
 Documentos vigentes:
 
@@ -36,6 +36,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | `f996cb7` | 2026-10-30 | Daniel | API02 | MongoDB, catálogos y seed transaccional | 21 pruebas, 2 integraciones reales, seed repetido y rollback aprobados |
 | `8e2ac1c` | 2026-10-30 | Daniel | API03 | Registro, login y sesiones revocables | 27 pruebas locales, 2 integraciones MongoDB y recorrido HTTP real aprobados |
 | `a01f38f` | 2026-10-31 | Daniel | UI04 | Autenticación, sesión y navegación protegida | 47 pruebas, lint, build, integración HTTP y recorrido manual aprobados |
+| `16104cd` | 2026-11-02 | Daniel | API04 | Perfiles, directorio y catálogos | 34 pruebas locales, 3 integraciones MongoDB y recorrido manual aprobados |
 
 ### Cliente React
 
@@ -74,6 +75,8 @@ Los componentes disponibles son `AppLayout`, `Navbar`, `PageHeader`, `StatusPane
 El modo normal consulta `http://localhost:3000/api`. Para desarrollar sin servidor, crear `cliente/.env.local` con `VITE_API_MODE=mock`; los datos se importan desde `pruebas/fixtures/`. El mock implementa autenticación desde UI04; las demás mutaciones fallan explícitamente con `501` hasta su tarea funcional y un build con modo mock se rechaza. La configuración, tokens sintéticos y recorrido de `/api-demo` están documentados en [`cliente/README.md`](cliente/README.md).
 
 UI04 agrega registro, login, restauración mediante `/auth/me`, identidad visible, rutas protegidas y logout contra API03. El token opaco se conserva en `sessionStorage`; un `401` lo elimina, mientras que un fallo de red al cerrar mantiene la sesión y permite reintentar la revocación.
+
+UI05 conecta `/perfil`, `/usuarios` y `/usuarios/:id` con API04. El perfil propio permite reemplazar sus campos editables y conserva el correo como dato de solo lectura. El directorio envía búsqueda, filtros, orden y página al servidor; las tarjetas y perfiles ajenos nunca presentan correo.
 
 Sass 1.107.0 informa cuatro deprecaciones por los `@import` de `app.scss`. Bootstrap 5.3 todavía distribuye su entrada Sass con el sistema heredado: `quietDeps` evita repetir cientos de avisos internos, pero conserva los avisos del código propio. Migrar mecánicamente a `@use` sin compatibilidad completa de Bootstrap no forma parte de este avance.
 

@@ -113,6 +113,49 @@ describe('createMockFetch', () => {
     })
   })
 
+  it('filtra el directorio en el servidor simulado y nunca incluye correos', async () => {
+    const response = await createMockFetch({ delayMs: 0 })(
+      'http://localhost:3000/api/users?q=Ana&availability=high&page=1&size=2',
+      { headers: authorization(ownerToken) },
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.data).toHaveLength(1)
+    expect(payload.data[0]).toMatchObject({ firstName: 'Ana', availability: 'high' })
+    expect(payload.data[0]).not.toHaveProperty('email')
+  })
+
+  it('reemplaza el perfil propio y rechaza campos inmutables', async () => {
+    const mockFetch = createMockFetch({ delayMs: 0 })
+    const profile = {
+      firstName: 'Ana María',
+      lastName: 'Rojas',
+      memberType: 'student',
+      career: null,
+      bio: 'Perfil actualizado.',
+      interests: [],
+      availability: 'medium',
+      portfolioUrl: null,
+      skills: [{ skillId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', level: 'basic' }],
+    }
+    const updated = await mockFetch('http://localhost:3000/api/users/me', {
+      method: 'PUT', headers: authorization(ownerToken), body: JSON.stringify(profile),
+    })
+    const rejected = await mockFetch('http://localhost:3000/api/users/me', {
+      method: 'PUT', headers: authorization(ownerToken), body: JSON.stringify({ ...profile, email: 'otro@example.test' }),
+    })
+    const me = await mockFetch('http://localhost:3000/api/auth/me', {
+      headers: authorization(ownerToken),
+    })
+
+    expect(updated.status).toBe(200)
+    await expect(updated.json()).resolves.toMatchObject({ data: { firstName: 'Ana María', email: 'ana.owner@example.test' } })
+    expect(rejected.status).toBe(400)
+    await expect(rejected.json()).resolves.toMatchObject({ error: { fields: { email: expect.any(String) } } })
+    await expect(me.json()).resolves.toMatchObject({ data: { firstName: 'Ana María' } })
+  })
+
   it('distingue una sesión sintética expirada', async () => {
     const response = await createMockFetch({ delayMs: 0 })(
       'http://localhost:3000/api/auth/me',

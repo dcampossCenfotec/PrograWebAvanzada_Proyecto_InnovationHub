@@ -62,6 +62,15 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-11-02 | API04 | MongoDB Community 8.0.34; replica set real | `npm run test:integration` con ejecución serial | 3 integraciones aprobadas: autenticación, persistencia/transacciones y perfiles/directorio/catálogos; 0 fallidas | Sin commit |
 | 2026-11-02 | API04 | npm audit | `npm audit --omit=dev` | 0 vulnerabilidades reportadas en las 86 dependencias de producción; los 5 avisos del audit completo pertenecen a la cadena de ESLint | Sin commit |
 | 2026-11-02 | API04 | Revisión manual de Daniel | Recorrido de catálogos, autorización, filtros, privacidad y actualización completa | Daniel confirmó todos los resultados esperados; revisión cruzada de Francisco continúa pendiente | Sin commit |
+| 2026-11-02 | UI05 | Node 24.21.0; npm 12.2.0 | `npm ci --cache /private/tmp/innovation-hub-npm-cache` | 220 paquetes instalados desde lockfile; scripts opcionales de `@parcel/watcher` y `fsevents` bloqueados sin impedir pruebas o build | Sin commit |
+| 2026-11-02 | UI05 | Vitest 5.0.5 | Primera ejecución de `npm run test:unit` | 56 aprobadas y 1 fallida porque la prueba encontraba los dos botones “Limpiar filtros”; se cambió la acción del estado vacío a “Ver todas las personas” | Sin commit |
+| 2026-11-02 | UI05 | Vitest/ESLint/Vite | `cd cliente && npm test` | 59 pruebas aprobadas, ESLint aprobado y build de producción con 130 módulos; permanecen cuatro avisos Sass documentados | Sin commit |
+| 2026-11-02 | UI05 | npm audit | `npm audit --omit=dev` | 0 vulnerabilidades reportadas en dependencias de producción | Sin commit |
+| 2026-11-02 | UI05 | React, Express y MongoDB reales | Login, perfil propio, `PUT /users/me`, búsqueda `q=Ana` y perfil ajeno con origen del cliente | Estados 200; directorio con 1 coincidencia; correo ausente del listado y perfil ajeno; CORS `http://localhost:5173` | Sin commit |
+| 2026-11-02 | UI05 | Vite local en 5173 | Solicitar `/perfil`, router y módulo del directorio mediante HTTP | Ruta SPA `200 text/html`; módulos `200 text/javascript` | Sin commit |
+| 2026-11-02 | UI05 | Navegador integrado | Intentar recorrido visual automatizado | El host de acceso al navegador no estuvo disponible; no se cuenta como aprobación visual y queda en revisión manual | Sin commit |
+| 2026-11-02 | UI05 | Vitest/ESLint | Prueba focal de pantallas después de reforzar privacidad del perfil ajeno y limpieza del error de intereses | 6 pruebas de usuarios y ESLint aprobados; un correo inesperado en el DTO ajeno tampoco se renderiza | Sin commit |
+| 2026-11-03 | UI05 | Revisión manual de Daniel | Recorrido entregado y solicitud explícita de commit/push | Daniel confirmó UI05 para cierre; revisión cruzada de Francisco continúa pendiente | Sin commit |
 
 ## Plantilla de entrada
 
@@ -212,3 +221,23 @@ Resultado de UI04: **47 pruebas, lint, build, integración HTTP real y confirmac
 - [x] Confirmar que `/perfil`, `/usuarios` y `/usuarios/:id` siguen mostrando “Sección en preparación”: API04 habilita los endpoints y UI05 construirá esas pantallas.
 
 Resultado de API04: **34 pruebas locales, lint, fixtures, 3 integraciones con MongoDB real, audit de producción y recorrido manual de Daniel aprobados; revisión cruzada de Francisco pendiente**.
+
+## Revisión manual UI05
+
+- [x] Ejecutar `npm run seed` para restaurar los perfiles demo, configurar `VITE_API_MODE=real`, mantener MongoDB/API activos e iniciar el cliente con `npm run dev`.
+- [x] Ingresar como Ana y abrir `/perfil`: esperar el formulario completo, correo de solo lectura, valores del seed y competencias Diseño/Facilitación con sus niveles.
+- [x] Cambiar nombre, carrera, biografía, intereses, disponibilidad y portafolio; agregar una competencia, cambiar su nivel y quitar otra. Guardar y esperar “Perfil guardado correctamente”.
+- [x] Confirmar que el nombre actualizado aparece en la barra, recargar `/perfil` y verificar que todos los cambios persistieron.
+- [x] Intentar agregar la misma competencia dos veces y más de 15 intereses; comprobar que el cliente bloquea el envío. Una URL que no sea HTTP(S) también debe mostrar error local.
+- [x] Provocar un `400` del servidor si se desea mediante DevTools o una competencia invalidada; el formulario debe conservar lo escrito y mostrar errores por campo.
+- [x] Abrir `/usuarios`: esperar 4 personas activas, sin Diego y sin correos. Con tamaño 2, esperar “Página 1 de 2” y navegación Anterior/Siguiente.
+- [x] Buscar `Ana`, filtrar disponibilidad Alta y aplicar: esperar solo Ana. La URL y Network deben contener `q=Ana`, `availability=high`, página 1 y no una descarga completa seguida de filtro local.
+- [x] Combinar una carrera que no coincida con la competencia seleccionada: esperar “Sin coincidencias”; pulsar “Ver todas las personas” y esperar de nuevo los 4 perfiles.
+- [x] Abrir el perfil de Luis desde su tarjeta: esperar datos públicos, intereses y competencias, sin correo ni botón para guardar.
+- [x] Abrir manualmente `/usuarios/11111111-1111-4111-8111-111111111111`: debe redirigir a `/perfil`, porque es la identidad autenticada.
+- [x] Probar Atrás/Adelante después de cambiar filtros; los controles y resultados deben reconstruirse desde la query de la URL.
+- [x] Detener la API y reintentar perfil/directorio: esperar panel de error con Reintentar; al reiniciar la API, la consulta debe recuperarse.
+- [x] Revisar `/perfil`, `/usuarios` y `/usuarios/:id` a 360, 768 y 1440 px, con teclado, foco visible y zoom de 200 %.
+- [x] Confirmar que `/iniciativas` continúa mostrando “Sección en preparación”; UI05 no implementa ese módulo.
+
+Resultado de UI05: **59 pruebas, ESLint, build, audit de producción, integración HTTP real y recorrido manual de Daniel aprobados; revisión cruzada de Francisco pendiente**.

@@ -22,7 +22,13 @@ const registrationFields = new Set([
   'firstName', 'lastName', 'memberType', 'email', 'password', 'passwordConfirmation', 'termsAccepted',
 ])
 const memberTypes = new Set(['student', 'professor', 'administrative', 'graduate', 'external'])
+const availabilityValues = new Set(['low', 'medium', 'high'])
+const skillLevels = new Set(['basic', 'intermediate', 'advanced'])
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function normalizeSearch(value) {
+  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('es')
+}
 
 function jsonResponse(payload, status = 200, headers = {}) {
   return new Response(JSON.stringify(payload), {
@@ -108,11 +114,11 @@ function createProjectors(fixtures, actorId) {
       : null
   }
 
-  function publicUser(user) {
+  function publicUser(user, includeOwnEmail = true) {
     const { emailNormalized, active, ...safeUser } = user
     void emailNormalized
     void active
-    if (actorId !== user.id) delete safeUser.email
+    if (!includeOwnEmail || actorId !== user.id) delete safeUser.email
     return safeUser
   }
 
@@ -361,6 +367,68 @@ export function createMockFetch({ fixtures = defaultFixtures, delayMs = 120 } = 
       return new Response(null, { status: 204 })
     }
 
+    if (method === 'PUT' && routePath === '/users/me') {
+      if (!actorId) return errorResponse(401, 'AUTHENTICATION_REQUIRED', 'Debe iniciar sesión.')
+      const body = JSON.parse(init.body || '{}')
+      const allowed = new Set([
+        'firstName', 'lastName', 'memberType', 'career', 'bio', 'interests', 'availability', 'portfolioUrl', 'skills',
+      ])
+      const fields = {}
+      for (const key of Object.keys(body)) {
+        if (!allowed.has(key)) fields[key] = 'Este campo no está permitido.'
+      }
+      for (const key of allowed) {
+        if (!(key in body)) fields[key] = 'Es obligatorio en una actualización completa.'
+      }
+      if (typeof body.firstName !== 'string' || body.firstName.trim().length < 2 || body.firstName.trim().length > 60) fields.firstName = 'Debe tener entre 2 y 60 caracteres.'
+      if (typeof body.lastName !== 'string' || body.lastName.trim().length < 2 || body.lastName.trim().length > 80) fields.lastName = 'Debe tener entre 2 y 80 caracteres.'
+      if (!memberTypes.has(body.memberType)) fields.memberType = 'Selecciona un tipo de miembro válido.'
+      if (body.career !== null && (typeof body.career !== 'string' || body.career.trim().length < 2 || body.career.trim().length > 120)) fields.career = 'Debe tener entre 2 y 120 caracteres o ser null.'
+      if (body.bio !== null && (typeof body.bio !== 'string' || !body.bio.trim() || body.bio.trim().length > 600)) fields.bio = 'Acepta entre 1 y 600 caracteres o null.'
+      if (!availabilityValues.has(body.availability)) fields.availability = 'Selecciona una disponibilidad válida.'
+      if (!Array.isArray(body.interests) || body.interests.length > 15 || body.interests.some((value) => typeof value !== 'string' || !value.trim() || value.trim().length > 40)) fields.interests = 'Revisa los intereses.'
+      if (
+        Array.isArray(body.interests) &&
+        body.interests.every((value) => typeof value === 'string') &&
+        new Set(body.interests.map((value) => normalizeSearch(value.trim()))).size !== body.interests.length
+      ) fields.interests = 'No se permiten intereses duplicados.'
+      if (body.portfolioUrl !== null) {
+        try {
+          const portfolio = new URL(body.portfolioUrl)
+          if (!['http:', 'https:'].includes(portfolio.protocol) || body.portfolioUrl.length > 2048) throw new Error('url')
+        } catch {
+          fields.portfolioUrl = 'Debe ser una URL HTTP(S) válida.'
+        }
+      }
+      if (!Array.isArray(body.skills) || body.skills.length > 20) fields.skills = 'Revisa las competencias.'
+      else {
+        const knownSkillIds = new Set(data.catalogs.skills.filter((skill) => skill.active).map((skill) => skill.id))
+        const ids = body.skills.map((skill) => skill?.skillId)
+        if (
+          body.skills.some((skill) => !skill || !knownSkillIds.has(skill.skillId) || !skillLevels.has(skill.level)) ||
+          new Set(ids).size !== ids.length
+        ) fields.skills = 'Una competencia no existe, está repetida o tiene nivel inválido.'
+      }
+      if (Object.keys(fields).length) {
+        return errorResponse(400, 'VALIDATION_ERROR', 'Revisa los campos indicados.', fields)
+      }
+      const user = data.users.find((item) => item.id === actorId && item.active)
+      if (!user) return errorResponse(404, 'NOT_FOUND', 'No se encontró el recurso solicitado.')
+      Object.assign(user, {
+        firstName: body.firstName.trim(),
+        lastName: body.lastName.trim(),
+        memberType: body.memberType,
+        career: body.career?.trim() || null,
+        bio: body.bio?.trim() || null,
+        interests: body.interests.map((value) => value.trim()),
+        availability: body.availability,
+        portfolioUrl: body.portfolioUrl?.trim() || null,
+        skills: body.skills.map(({ skillId, level }) => ({ skillId, level })),
+        updatedAt: new Date().toISOString(),
+      })
+      return jsonResponse({ data: projectors.publicUser(user) })
+    }
+
     if (method !== 'GET') {
       return errorResponse(
         501,
@@ -383,7 +451,8 @@ export function createMockFetch({ fixtures = defaultFixtures, delayMs = 120 } = 
         })
       }
       const entries = data.catalogs.skills
-        .filter((skill) => !query || skill.nameNormalized.includes(query))
+        .filter((skill) => !query || skill.nameNormalized.includes(normalizeSearch(query)))
+        .sort((left, right) => left.nameNormalized.localeCompare(right.nameNormalized, 'es'))
         .map(({ id, name }) => ({ id, name }))
       return jsonResponse(paginate(entries, pagination))
     }
@@ -440,7 +509,34 @@ export function createMockFetch({ fixtures = defaultFixtures, delayMs = 120 } = 
       if (!actorId) return errorResponse(401, 'AUTHENTICATION_REQUIRED', 'Debe iniciar sesión.')
       const pagination = parsePagination(url)
       if (!pagination) return errorResponse(400, 'INVALID_QUERY', 'La consulta no es válida.')
-      const entries = data.users.filter((user) => user.active).map(projectors.publicUser)
+      const rawQ = (url.searchParams.get('q') || '').trim()
+      const rawCareer = (url.searchParams.get('career') || '').trim()
+      const skill = url.searchParams.get('skill') || ''
+      const availability = url.searchParams.get('availability') || ''
+      const sort = url.searchParams.get('sort') || 'lastName'
+      const order = url.searchParams.get('order') || 'asc'
+      if (
+        rawQ.length === 1 || rawCareer.length === 1 ||
+        (availability && !availabilityValues.has(availability)) ||
+        !['firstName', 'lastName', 'career', 'createdAt'].includes(sort) ||
+        !['asc', 'desc'].includes(order)
+      ) return errorResponse(400, 'INVALID_QUERY', 'La consulta no es válida.')
+      const q = normalizeSearch(rawQ)
+      const career = normalizeSearch(rawCareer)
+      const entries = data.users
+        .filter((user) => user.active)
+        .filter((user) => !q || normalizeSearch([
+          user.firstName, user.lastName, user.career || '', user.bio || '', ...(user.interests || []),
+        ].join(' ')).includes(q))
+        .filter((user) => !career || normalizeSearch(user.career || '') === career)
+        .filter((user) => !skill || user.skills.some((entry) => entry.skillId === skill))
+        .filter((user) => !availability || user.availability === availability)
+        .sort((left, right) => {
+          const compared = String(left[sort] || '').localeCompare(String(right[sort] || ''), 'es')
+          const stable = compared || left.id.localeCompare(right.id)
+          return order === 'desc' ? -stable : stable
+        })
+        .map((user) => projectors.publicUser(user, false))
       return jsonResponse(paginate(entries, pagination))
     }
 

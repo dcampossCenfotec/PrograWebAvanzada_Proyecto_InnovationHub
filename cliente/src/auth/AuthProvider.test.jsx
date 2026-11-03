@@ -23,6 +23,7 @@ function Probe() {
       <span data-testid="notice">{auth.notice}</span>
       <button onClick={() => auth.login({ email: 'ana@example.test', password: 'Clave2026' })} type="button">Login</button>
       <button onClick={() => auth.logout().catch(() => {})} type="button">Logout</button>
+      <button onClick={() => auth.updateUser({ email: 'actualizada@example.test' })} type="button">Update user</button>
     </div>
   )
 }
@@ -78,5 +79,15 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(authService.logout).toHaveBeenCalledTimes(1))
     expect(sessionStorage.getItem('innovationHub.accessToken')).toBe('opaque-token')
     expect(screen.getByTestId('status').textContent).toBe('authenticated')
+  })
+
+  it('actualiza la identidad visible después de guardar el perfil', async () => {
+    setAccessToken('opaque-token')
+    authService.getMe.mockResolvedValue({ data: { email: 'ana@example.test' } })
+    render(<AuthProvider><Probe /></AuthProvider>)
+    await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('authenticated'))
+
+    fireEvent.click(screen.getByText('Update user'))
+    expect(screen.getByTestId('user').textContent).toBe('actualizada@example.test')
   })
 })

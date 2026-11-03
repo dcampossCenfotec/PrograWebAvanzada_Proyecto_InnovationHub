@@ -160,6 +160,109 @@
   white-space: pre-line;
 }
 
+.profile-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.profile-layout__wide {
+  grid-column: 1 / -1;
+}
+
+.profile-facts {
+  display: grid;
+  grid-template-columns: minmax(8rem, .45fr) 1fr;
+  gap: .65rem 1rem;
+}
+
+.profile-facts dt {
+  color: #52676f;
+  font-weight: 650;
+}
+
+.profile-facts dd {
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+
+.profile-bio {
+  white-space: pre-line;
+}
+
+.tag-list,
+.skill-display-list,
+.profile-skill-rows {
+  display: flex;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-list {
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 0;
+}
+
+.tag-list li {
+  padding: .35rem .65rem;
+  border-radius: 100vw;
+  background: #e5f0f3;
+  color: #193039;
+  font-size: .88rem;
+}
+
+.skill-display-list,
+.profile-skill-rows {
+  flex-direction: column;
+  gap: .75rem;
+  margin: 1rem 0 0;
+}
+
+.skill-display-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .8rem 1rem;
+  border: 1px solid #d7e1e5;
+  border-radius: .65rem;
+}
+
+.profile-form {
+  max-width: 58rem;
+}
+
+.profile-skills-editor {
+  min-width: 0;
+}
+
+.profile-skill-rows li {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(10rem, .6fr) auto;
+  align-items: center;
+  gap: .75rem;
+  padding: .8rem;
+  border: 1px solid #d7e1e5;
+  border-radius: .65rem;
+}
+
+.directory-filters {
+  max-width: 64rem;
+}
+
+.user-card .tag-list {
+  align-content: flex-start;
+}
+
+.directory-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
 :focus-visible {
   outline: 3px solid rgba(37, 95, 117, .5);
   outline-offset: 3px;
@@ -172,6 +275,31 @@
 
   .confirm-dialog__footer .btn {
     width: 100%;
+  }
+
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-layout__wide {
+    grid-column: auto;
+  }
+
+  .profile-facts {
+    grid-template-columns: 1fr;
+    gap: .1rem;
+  }
+
+  .profile-facts dd {
+    margin-bottom: .85rem;
+  }
+
+  .profile-skill-rows li {
+    grid-template-columns: 1fr;
+  }
+
+  .directory-pagination {
+    flex-wrap: wrap;
   }
 }
 
