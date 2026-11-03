@@ -6,9 +6,9 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 
 - **Entrega usada por el equipo:** 8 de noviembre de 2026, fecha corregida por Daniel respecto al documento recibido.
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
-- **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; solicitudes del solicitante; proyectos/GitHub; CO00–CO01; modelo y fixtures.
-- **Francisco José Torres Sandoval:** iniciativas/catálogos; solicitudes recibidas; equipos; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. El plan completo asigna 15 tareas a Daniel y 19 a Francisco; después de CO00, CO01, UI01–UI05 y API01–API04 quedan 4 y 19, respectivamente. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de sus módulos antes de CO02.
+- **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; creación, consulta, edición y archivo de iniciativas con todas sus pantallas; CO00–CO01; modelo y fixtures.
+- **Francisco José Torres Sandoval:** solicitudes propias y recibidas; equipos; proyectos/GitHub; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. Tras la reasignación del 3 de noviembre, el plan asigna 19 tareas a Daniel y 15 a Francisco; después de CO00, CO01, UI01–UI05 y API01–API05 quedan API06–API07 y UI06–UI10 para Daniel, y 15 tareas para Francisco. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de todo el módulo de iniciativas antes del handoff y de CO02.
 
 Documentos vigentes:
 
@@ -37,6 +37,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | `8e2ac1c` | 2026-10-30 | Daniel | API03 | Registro, login y sesiones revocables | 27 pruebas locales, 2 integraciones MongoDB y recorrido HTTP real aprobados |
 | `a01f38f` | 2026-10-31 | Daniel | UI04 | Autenticación, sesión y navegación protegida | 47 pruebas, lint, build, integración HTTP y recorrido manual aprobados |
 | `16104cd` | 2026-11-02 | Daniel | API04 | Perfiles, directorio y catálogos | 34 pruebas locales, 3 integraciones MongoDB y recorrido manual aprobados |
+| `50d8c72` | 2026-11-03 | Daniel | UI05 | Perfil propio y directorio de colaboradores | 59 pruebas, lint, build, integración HTTP y recorrido manual aprobados |
 
 ### Cliente React
 
@@ -82,7 +83,7 @@ Sass 1.107.0 informa cuatro deprecaciones por los `@import` de `app.scss`. Boots
 
 ### Servidor Express
 
-La API vive en `servidor/`. API01 estableció Express por capas, API02 agregó MongoDB, API03 implementó registro y sesiones, y API04 agrega perfiles, directorio y catálogos. El correo propio se entrega solo en el perfil autenticado; los listados y perfiles ajenos usan una proyección pública. Las contraseñas usan `scrypt` con sal aleatoria y MongoDB conserva solo el hash de cada token.
+La API vive en `servidor/`. API01 estableció Express por capas, API02 agregó MongoDB, API03 implementó registro y sesiones, API04 agregó perfiles/directorio/catálogos y API05 permite crear y editar iniciativas persistentes. El correo propio se entrega solo en el perfil autenticado; los listados y perfiles ajenos usan una proyección pública. Las contraseñas usan `scrypt` con sal aleatoria y MongoDB conserva solo el hash de cada token.
 
 ```bash
 docker compose up -d

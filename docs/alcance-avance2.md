@@ -32,10 +32,10 @@ El directorio `avance1/` se conserva como evidencia histórica. Las correcciones
 
 | Titular | Implementación completa | Revisión |
 | --- | --- | --- |
-| Daniel Campos Sánchez | Bases React/HTTP y Express/MongoDB; autenticación; perfiles, competencias y directorio; solicitudes del solicitante; proyectos y GitHub; CO00–CO01; modelo y fixtures. | Francisco revisa cada tarea. |
-| Francisco José Torres Sandoval | Iniciativas y catálogos; resolución de solicitudes; equipos; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README/defensa/entrega. | Daniel revisa cada tarea. |
+| Daniel Campos Sánchez | Bases React/HTTP y Express/MongoDB; autenticación; perfiles, competencias y directorio; creación, consulta, edición y archivo de iniciativas; catálogo, detalle, formulario, competencias, etiquetas y validación; CO00–CO01; modelo y fixtures. | Francisco revisa cada tarea. |
+| Francisco José Torres Sandoval | Solicitudes propias y recibidas; equipos; proyectos y GitHub; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README/defensa/entrega. | Daniel revisa cada tarea. |
 
-El plan completo asigna 15 tareas a Daniel y 19 a Francisco. Como CO00, CO01, UI01–UI05 y API01–API04 ya están completados, quedan 4 tareas pendientes de Daniel y 19 de Francisco. Daniel entrega comandos, evidencia, fragmentos Postman y defectos conocidos de sus módulos antes de CO02; cambiar el titular no transfiere la obligación de probar y explicar su trabajo.
+Tras la reasignación del 3 de noviembre, el plan completo asigna 19 tareas a Daniel y 15 a Francisco. Como CO00, CO01, UI01–UI05 y API01–API05 ya están completados, Daniel conserva API06–API07 y UI06–UI10; Francisco conserva las 15 tareas restantes. Daniel entrega comandos, evidencia, fragmentos Postman y defectos conocidos del módulo completo de iniciativas en un handoff explícito antes de que Francisco continúe los flujos dependientes y antes de CO02; cambiar el titular no transfiere la obligación de probar y explicar el trabajo ya realizado.
 
 Cada tarea tiene un responsable único. El revisor no comparte autoría del cambio: comprueba contrato, casos límite y reproducibilidad.
 

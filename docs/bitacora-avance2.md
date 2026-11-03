@@ -71,6 +71,13 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-11-02 | UI05 | Navegador integrado | Intentar recorrido visual automatizado | El host de acceso al navegador no estuvo disponible; no se cuenta como aprobación visual y queda en revisión manual | Sin commit |
 | 2026-11-02 | UI05 | Vitest/ESLint | Prueba focal de pantallas después de reforzar privacidad del perfil ajeno y limpieza del error de intereses | 6 pruebas de usuarios y ESLint aprobados; un correo inesperado en el DTO ajeno tampoco se renderiza | Sin commit |
 | 2026-11-03 | UI05 | Revisión manual de Daniel | Recorrido entregado y solicitud explícita de commit/push | Daniel confirmó UI05 para cierre; revisión cruzada de Francisco continúa pendiente | Sin commit |
+| 2026-11-03 | API05 | Node 24.21.0; ESLint; fixtures; `node:test` | Primera ejecución local de `npm test` dentro del sandbox | Las pruebas sin HTTP aprobaron; Supertest y servidor fallaron con `listen EPERM` por bloqueo de puertos del sandbox; cuatro predicados nuevos también devolvían texto en vez de booleano | Sin commit |
+| 2026-11-03 | API05 | Node 24.21.0; ESLint; fixtures; `node:test` | `npm run check` fuera del sandbox | ESLint y fixtures aprobados; 47 pruebas aprobadas, 0 fallidas y 4 integraciones omitidas por no cargar `.env.test` | Sin commit |
+| 2026-11-03 | API05 | MongoDB Community 8.0.34; replica set real | Primera ejecución de `npm run test:integration` | 3 integraciones aprobadas y API05 falló con `500`: se ejecutaban consultas paralelas sobre una misma sesión transaccional | Sin commit |
+| 2026-11-03 | API05 | MongoDB Community 8.0.34; replica set real | Prueba focal después de hacer secuenciales las consultas de catálogo y membresías | Integración API05 aprobada; creación, edición y rollback transaccional funcionaron | Sin commit |
+| 2026-11-03 | API05 | MongoDB Community 8.0.34; replica set real | Ejecución final de `npm run test:integration` con concurrencia 1 | 4 integraciones aprobadas, 0 fallidas: autenticación, API05, persistencia/transacciones y perfiles/directorio | Sin commit |
+| 2026-11-03 | API05 | Express en 3002; MongoDB de pruebas | Login de dueño/ajeno, POST, PUT autorizado, PUT ajeno y GET todavía diferido | `201 published` con membresía 1, `200` al editar, `403 FORBIDDEN` para ajeno, `404` de lectura hasta API06 y cero campos internos expuestos | Sin commit |
+| 2026-11-03 | API05 | Express; MongoDB replica set de pruebas | `npm run lint && npm run test:integration` con casos HTTP ampliados | ESLint y 4 integraciones aprobados; campos inmutables, duplicados y body parcial rechazados; dos arranques HTTP con conexiones nuevas conservaron ID/fecha de creación y permitieron editar sin duplicar membresías | Sin commit |
 
 ## Plantilla de entrada
 
@@ -241,3 +248,24 @@ Resultado de API04: **34 pruebas locales, lint, fixtures, 3 integraciones con Mo
 - [x] Confirmar que `/iniciativas` continúa mostrando “Sección en preparación”; UI05 no implementa ese módulo.
 
 Resultado de UI05: **59 pruebas, ESLint, build, audit de producción, integración HTTP real y recorrido manual de Daniel aprobados; revisión cruzada de Francisco pendiente**.
+
+## Revisión manual API05
+
+- [x] Cargar catálogos y usuarios sintéticos sobre MongoDB replica set de pruebas e iniciar Express.
+- [x] Iniciar sesión como Ana y Carla: `200` y token opaco.
+- [x] Crear una iniciativa válida: `201`, encabezado `Location`, estado `published`, propietario Ana, `memberCount: 1` y espacios calculados.
+- [x] Verificar DTO sin `_id`, `revision`, `searchText`, correo ni hashes de contraseña/token.
+- [x] Cambiar título mediante `PUT` completo: `200`, mismo ID/propietario/fecha de creación y `updatedAt` posterior.
+- [x] Intentar editar como Carla: `403 FORBIDDEN`; el título persistido no cambia.
+- [x] Enviar `ownerId`, `state`, `id`, fechas o conteos: `400`, sin iniciativas, membresías ni eventos adicionales.
+- [x] Probar categoría desconocida, competencia inexistente/repetida, etiqueta repetida y cuerpo parcial: `400` sin escritura parcial.
+- [x] Crear o editar sin token: `401`.
+- [x] Ejecutar dos arranques HTTP con conexiones nuevas y editar el ID existente: `200`, identidad/creación y equipo conservados.
+- [x] Con estimado 2 y tres miembros activos, conservar 2 permite editar; reducir a 1 da `400`; aumentar a 4 funciona y los espacios nunca son negativos.
+- [x] Forzar colisión al crear membresía: se revierte también la iniciativa y no queda evento parcial.
+- [x] Intentar editar una iniciativa archivada: `409 STATE_CONFLICT`.
+- [x] Confirmar `404` en `GET /api/initiatives` y `GET /api/initiatives/{id}`: las lecturas pertenecen a API06.
+
+Los casos se comprobaron mediante pruebas automatizadas con HTTP/MongoDB real y el recorrido HTTP de terminal registrado arriba. Las pantallas de iniciativas se implementarán en UI06–UI10; API05 no modifica esas rutas React.
+
+Resultado de API05: **47 pruebas locales, lint, fixtures, 4 integraciones con MongoDB real y recorrido HTTP aprobados; revisión cruzada de Francisco pendiente**.

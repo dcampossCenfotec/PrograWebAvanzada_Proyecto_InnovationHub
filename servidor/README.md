@@ -1,6 +1,6 @@
 # Servidor Express y MongoDB de Innovation Hub
 
-API01 estableció Express por capas, API02 agregó MongoDB, API03 implementó autenticación persistente y API04 agregó perfiles, directorio y catálogos de consulta. Están disponibles registro, login, sesión actual, logout con revocación, perfiles propios y públicos, filtros de usuarios, categorías y competencias. Las contraseñas usan `scrypt` con sal aleatoria; los tokens Bearer son opacos y solo su hash SHA-256 llega a MongoDB.
+API01 estableció Express por capas, API02 agregó MongoDB, API03 implementó autenticación persistente, API04 agregó perfiles/directorio/catálogos y API05 agregó escritura de iniciativas. Están disponibles registro, login, sesión actual, logout con revocación, perfiles propios y públicos, filtros de usuarios, categorías, competencias y creación/edición de iniciativas. Las contraseñas usan `scrypt` con sal aleatoria; los tokens Bearer son opacos y solo su hash SHA-256 llega a MongoDB.
 
 ## Requisitos
 
@@ -79,7 +79,7 @@ cp .env.test.example .env.test
 npm run test:integration
 ```
 
-Las pruebas crean índices únicos, ejecutan seeds repetidos, reconectan para verificar persistencia y fuerzan una colisión dentro de una transacción. Autenticación cubre registro concurrente con el mismo correo, hashes distintos, credenciales indistinguibles, tokens ausentes o dañados, expiración y revocación. Perfiles cubre privacidad del correo, reemplazo completo, competencias válidas, filtros combinados, paginación y catálogos públicos. Los archivos de integración se ejecutan en serie para que sus limpiezas no compitan por la misma base. La suite limpia únicamente sus colecciones conocidas dentro de la base indicada.
+Las pruebas crean índices únicos, ejecutan seeds repetidos, reconectan para verificar persistencia y fuerzan colisiones dentro de transacciones. Autenticación cubre registro concurrente con el mismo correo, hashes distintos, credenciales indistinguibles, tokens ausentes o dañados, expiración y revocación. Perfiles cubre privacidad del correo, reemplazo completo, competencias válidas, filtros combinados, paginación y catálogos públicos. API05 cubre propietario derivado de sesión, referencias de catálogo, membresía/evento automáticos, reemplazo completo, estimados superados y rollback si una relación no puede crearse. Los archivos de integración se ejecutan en serie para que sus limpiezas no compitan por la misma base. La suite limpia únicamente sus colecciones conocidas dentro de la base indicada.
 
 El reset está deliberadamente restringido:
 
@@ -143,6 +143,35 @@ curl -s 'http://127.0.0.1:3000/api/users/11111111-1111-4111-8111-111111111111' \
 ```
 
 El perfil acepta `career`, `bio` y `portfolioUrl` como `null`, hasta 15 intereses y 20 competencias. Los niveles válidos son `basic`, `intermediate` y `advanced`. `email`, IDs, fechas y contraseñas son inmutables; una competencia inexistente o repetida rechaza toda la operación.
+
+## Escritura de iniciativas
+
+`POST /api/initiatives` y `PUT /api/initiatives/{id}` requieren `Authorization: Bearer <token>`. Ambos reciben el cuerpo completo definido en `docs/api-contract.md`; el propietario, estado, IDs y fechas los administra el servidor. La creación fija `published` y confirma en una sola transacción la iniciativa, la membresía activa del propietario y su evento `joined`.
+
+Ejemplo de creación:
+
+```bash
+curl -i -X POST http://127.0.0.1:3000/api/initiatives \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title":"Tutorías colaborativas",
+    "type":"idea",
+    "summary":"Red universitaria para intercambiar tutorías entre carreras.",
+    "description":"La iniciativa coordina sesiones y seguimiento entre estudiantes.",
+    "problem":"El apoyo académico informal es difícil de localizar.",
+    "beneficiaries":"Estudiantes de todas las carreras",
+    "categoryId":"education",
+    "skillIds":["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1"],
+    "estimatedMembers":4,
+    "visibility":"public",
+    "tags":["tutorías","comunidad"]
+  }'
+```
+
+La respuesta es `201`, incluye `Location: /api/initiatives/{id}` y nunca expone `_id`, campos técnicos ni correo. `PUT` reemplaza todos los campos editables y solo lo ejecuta el propietario. Conservar una estimación ya superada es válido; solo se rechaza reducirla por debajo de los miembros activos. Categorías o competencias inexistentes, campos de servidor y cuerpos parciales producen `400` sin escritura parcial.
+
+API05 todavía no agrega lectura HTTP: `GET /api/initiatives` y `GET /api/initiatives/{id}` permanecen en `404` hasta API06. La persistencia de API05 se verifica mediante la respuesta de escritura, un `PUT` posterior y las pruebas de MongoDB real.
 
 ## Recuperación y diagnóstico
 

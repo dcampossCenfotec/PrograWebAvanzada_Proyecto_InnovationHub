@@ -59,5 +59,18 @@ export function createCatalogRepository({ Category, Skill }) {
       const skills = await Skill.find({ id: { $in: ids }, active: true }).select({ id: 1, _id: 0 }).lean().exec()
       return skills.map(({ id }) => id)
     },
+
+    findActiveCategoryById(id, { session } = {}) {
+      return Category.findOne({ id, active: true }).session(session ?? null).lean().exec()
+    },
+
+    findActiveSkillsByIds(ids, { session } = {}) {
+      if (ids.length === 0) return []
+      return Skill.find({ id: { $in: ids }, active: true })
+        .session(session ?? null)
+        .select({ id: 1, name: 1, _id: 0 })
+        .lean()
+        .exec()
+    },
   })
 }

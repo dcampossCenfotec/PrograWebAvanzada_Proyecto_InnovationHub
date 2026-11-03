@@ -5,6 +5,7 @@ import { loadEnvironment } from './config/environment.js'
 import { createMongoDatabase } from './database/connection.js'
 import { createAuthModule } from './modules/auth.module.js'
 import { createUsersModule } from './modules/users.module.js'
+import { createInitiativesModule } from './modules/initiatives.module.js'
 
 function closeHttpServer(server) {
   return new Promise((resolveClose, rejectClose) => {
@@ -42,6 +43,7 @@ export async function startServer({
   database,
   authModuleFactory = createAuthModule,
   usersModuleFactory = createUsersModule,
+  initiativesModuleFactory = createInitiativesModule,
 } = {}) {
   const activeDatabase = database ?? createMongoDatabase({
     uri: config.mongoUri,
@@ -55,13 +57,18 @@ export async function startServer({
   let app
   let authModule
   let usersModule
+  let initiativesModule
   try {
     authModule = await authModuleFactory({
       connection,
       sessionTtlMinutes: config.authSessionTtlMinutes,
     })
     usersModule = await usersModuleFactory({ connection, requireSession: authModule.requireSession })
-    app = createApp({ config, authModule, usersModule, logger })
+    initiativesModule = await initiativesModuleFactory({
+      connection,
+      requireSession: authModule.requireSession,
+    })
+    app = createApp({ config, authModule, usersModule, initiativesModule, logger })
     server = await openHttpServer(app, config, logger)
   } catch (error) {
     await activeDatabase.disconnect()
@@ -101,7 +108,15 @@ export async function startServer({
     signalHandlers.forEach((handler, signal) => process.removeListener(signal, handler))
   })
 
-  return { app, server, shutdown, database: activeDatabase, authModule, usersModule }
+  return {
+    app,
+    server,
+    shutdown,
+    database: activeDatabase,
+    authModule,
+    usersModule,
+    initiativesModule,
+  }
 }
 
 const isMainModule = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)
