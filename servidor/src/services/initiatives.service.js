@@ -2,20 +2,13 @@ import { randomUUID } from 'node:crypto'
 import { runInTransaction } from '../database/transaction.js'
 import { HttpError } from '../errors/http-error.js'
 import { validateInitiativeId, validateInitiativeInput } from '../validation/initiatives.validation.js'
+import { initiativeSearchFields } from './initiative-search.js'
 
 const notFound = () => new HttpError(404, 'NOT_FOUND', 'No se encontró el recurso solicitado.')
 const forbidden = () => new HttpError(403, 'FORBIDDEN', 'No tienes permiso para realizar esta acción.')
 
 function validationError(fields) {
   return new HttpError(400, 'VALIDATION_ERROR', 'Revisa los campos indicados.', fields)
-}
-
-function normalizeSearch(value) {
-  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('es')
-}
-
-function buildSearchText(input) {
-  return normalizeSearch([input.title, input.summary, ...input.tags].join(' '))
 }
 
 export function createInitiativesService({
@@ -56,7 +49,7 @@ export function createInitiativesService({
             ownerId: owner.id,
             ...input,
             state: 'published',
-            searchText: buildSearchText(input),
+            ...initiativeSearchFields(input),
             revision: 0,
             createdAt: now,
             updatedAt: now,
@@ -111,7 +104,7 @@ export function createInitiativesService({
           id: initiativeId,
           ownerId: actor.id,
           revision: current.revision,
-          changes: { ...input, searchText: buildSearchText(input) },
+          changes: { ...input, ...initiativeSearchFields(input) },
           updatedAt: now,
         }, session)
         if (!initiative) {

@@ -245,8 +245,8 @@ test('API05 crea y modifica iniciativas de forma atómica y respeta propietario,
         assert.equal(persisted.body.data.id, initiativeId)
         assert.equal(persisted.body.data.createdAt, created.body.data.createdAt)
         assert.equal(persisted.body.data.memberCount, 3)
-        await request(instance.server).get('/api/initiatives').expect(404)
-        await request(instance.server).get(`/api/initiatives/${initiativeId}`).expect(404)
+        await request(instance.server).get('/api/initiatives').expect(200)
+        await request(instance.server).get(`/api/initiatives/${initiativeId}`).expect(200)
       } finally {
         await instance.shutdown()
       }

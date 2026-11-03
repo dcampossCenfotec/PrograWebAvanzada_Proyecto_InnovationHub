@@ -78,6 +78,11 @@ Esta bitácora registra resultados ejecutados, no intenciones. Cada entrada debe
 | 2026-11-03 | API05 | MongoDB Community 8.0.34; replica set real | Ejecución final de `npm run test:integration` con concurrencia 1 | 4 integraciones aprobadas, 0 fallidas: autenticación, API05, persistencia/transacciones y perfiles/directorio | Sin commit |
 | 2026-11-03 | API05 | Express en 3002; MongoDB de pruebas | Login de dueño/ajeno, POST, PUT autorizado, PUT ajeno y GET todavía diferido | `201 published` con membresía 1, `200` al editar, `403 FORBIDDEN` para ajeno, `404` de lectura hasta API06 y cero campos internos expuestos | Sin commit |
 | 2026-11-03 | API05 | Express; MongoDB replica set de pruebas | `npm run lint && npm run test:integration` con casos HTTP ampliados | ESLint y 4 integraciones aprobados; campos inmutables, duplicados y body parcial rechazados; dos arranques HTTP con conexiones nuevas conservaron ID/fecha de creación y permitieron editar sin duplicar membresías | Sin commit |
+| 2026-11-03 | API06 | ESLint | Primera ejecución de lint | 6 variables sin uso en la nueva integración; se eliminaron antes de ejecutar la suite | Sin commit |
+| 2026-11-03 | API06 | Node 24.21.0; ESLint; fixtures | `npm run check` | Lint y fixtures aprobados; 54 pruebas locales aprobadas, 0 fallidas, 5 integraciones omitidas sin cargar `.env.test` | Sin commit |
+| 2026-11-03 | API06 | MongoDB Community 8.0.34; replica set real | `npm run test:integration` con ejecución serial | 5 integraciones aprobadas, 0 fallidas; matriz de cuatro visibilidades, permisos por URL, campos ocultos, filtros, paginación de 25 registros adicionales, seed repetido y migración desde API05 | Sin commit |
+| 2026-11-03 | API06 | Repositorio real; base de pruebas | `node --env-file-if-exists=.env.test scripts/seed.js` y recorrido HTTP con Express en puerto temporal | Seed con 8 iniciativas/12 membresías/13 eventos; catálogos visitante/Carla/Ana de 3/5/6, mine de Ana 8; detalle restringido ajeno `403`, privado ajeno `404`, institucional visitante `401`, búsqueda MENTORIAS 1 y CORS correcto | Sin commit |
+| 2026-11-03 | API06 | Node; colección Postman v2.1 | Analizar JSON, verificar IDs únicos, cuerpos y sintaxis de scripts con `node:vm` | Fragmento de 18 peticiones válido y variables sensibles vacías; ejecución dentro de Postman pendiente de UI14 | Sin commit |
 
 ## Plantilla de entrada
 
@@ -269,3 +274,20 @@ Resultado de UI05: **59 pruebas, ESLint, build, audit de producción, integraci�
 Los casos se comprobaron mediante pruebas automatizadas con HTTP/MongoDB real y el recorrido HTTP de terminal registrado arriba. Las pantallas de iniciativas se implementarán en UI06–UI10; API05 no modifica esas rutas React.
 
 Resultado de API05: **47 pruebas locales, lint, fixtures, 4 integraciones con MongoDB real y recorrido HTTP aprobados; revisión cruzada de Francisco pendiente**.
+
+## Revisión API06
+
+- [x] Catálogo visitante: solo públicas de estados visibles; totales sin privadas ajenas.
+- [x] Catálogo autenticado: resumen seguro de restringidas, sin propietario, etiquetas o campos de detalle.
+- [x] Matriz visitante/propietario/miembro/ajeno para las cuatro visibilidades; errores seguros `401/403/404`.
+- [x] `/mine` exige sesión, representa propiedad y conserva borrador/archivada.
+- [x] Retirar una membresía elimina el acceso derivado a la privada.
+- [x] Búsqueda sin tildes/mayúsculas y combinación de texto/tipo/categoría/competencia/estado/espacios/propietario.
+- [x] Buscar etiqueta oculta o filtrar propietario oculto no revela una restringida por coincidencia o conteo.
+- [x] Query desconocida/repetida/inválida, UUID inválido y token malformado se rechazan.
+- [x] Páginas de 25 iniciativas adicionales: 10/10/5/0 elementos, total 25, orden estable y sin duplicados.
+- [x] Estimación superada mantiene cero espacios; solicitudes pendientes y miembros activos desactivan `canRequest`.
+- [x] Seed repetido: ocho iniciativas, doce membresías y trece eventos sin duplicación de fixtures.
+- [x] Documentos anteriores de API05 reciben campos de búsqueda nuevos sin cambiar IDs.
+
+Resultado de API06: **54 pruebas locales, lint, fixtures y 5 integraciones con MongoDB real aprobados; revisión cruzada de Francisco pendiente**. Las rutas React de iniciativas permanecen pendientes de UI06–UI10.

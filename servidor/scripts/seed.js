@@ -4,6 +4,8 @@ import { loadCatalogFixtures } from '../src/seeds/load-catalog-fixtures.js'
 import { seedCatalogs } from '../src/seeds/seed-catalogs.js'
 import { loadUserFixtures } from '../src/seeds/load-user-fixtures.js'
 import { seedUsers } from '../src/seeds/seed-users.js'
+import { loadInitiativeFixtures } from '../src/seeds/load-initiative-fixtures.js'
+import { seedInitiatives } from '../src/seeds/seed-initiatives.js'
 
 const config = loadEnvironment()
 const database = createMongoDatabase({
@@ -20,8 +22,11 @@ try {
   if (config.nodeEnvironment === 'production') throw new Error('El seed de datos demo no se ejecuta en producción.')
   const counts = await seedCatalogs(connection, catalogs)
   const userCounts = await seedUsers(connection, users, demoPassword)
+  const initiativeCounts = await seedInitiatives(connection, await loadInitiativeFixtures())
   console.info(
-    `Seed completo: ${counts.categories} categorías, ${counts.skills} competencias y ${userCounts.users} usuarios demo.`,
+    `Seed completo: ${counts.categories} categorías, ${counts.skills} competencias, ${userCounts.users} usuarios demo, `
+      + `${initiativeCounts.initiatives} iniciativas, ${initiativeCounts.memberships} membresías `
+      + `y ${initiativeCounts.membershipEvents} eventos de fixture.`,
   )
 } catch (error) {
   console.error(`No fue posible ejecutar el seed: ${error.message}`)

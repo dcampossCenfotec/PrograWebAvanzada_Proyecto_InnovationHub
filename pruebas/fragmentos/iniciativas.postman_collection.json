@@ -1,0 +1,608 @@
+{
+  "info": {
+    "_postman_id": "c967fe7c-92cb-4f74-9b11-b71c2db9e049",
+    "name": "Innovation Hub — fragmento API05–API06",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Fragmento para integrar en UI14. Ejecutar en orden tras seed. Configurar demoPassword localmente; tokens solo se generan en la ejecucion. Crea una iniciativa sintetica por recorrido y no borra datos."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "demoPassword",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ownerToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "outsiderToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "initiativeId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "id": "064a0520-9ba5-5d06-9e2e-f760e0232e50",
+      "name": "01 Login propietaria",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"ana.owner@example.test\",\n  \"password\": \"{{demoPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('ownerToken', pm.response.json().data.accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "0ec3ac7b-c32d-5511-a92f-56cb3cba59b3",
+      "name": "02 Login ajena",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"carla.outsider@example.test\",\n  \"password\": \"{{demoPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('outsiderToken', pm.response.json().data.accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "c936ff66-bea9-5649-8839-2f1a6258053e",
+      "name": "03 Catalogo visitante",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives?page=1&size=50",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Solo publicadas accesibles al visitante', () => { const b=pm.response.json(); pm.expect(b.data).to.be.an('array'); b.data.forEach(i=>{ pm.expect(i.visibility).to.equal('public'); pm.expect(['published','forming_team','converted']).to.include(i.state); }); });",
+              "pm.test('No hay campos internos o correo', () => { const text=JSON.stringify(pm.response.json()); ['_id','revision','searchText','publicSearchText','titleNormalized','email','passwordHash','tokenHash'].forEach(f=>pm.expect(text).not.to.include('\"'+f+'\"')); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "339015b1-c512-51a4-a165-f260c21a1ab9",
+      "name": "04 Mine exige sesion",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/mine",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "38e1c560-74e7-5639-989a-0f1a6e192e5e",
+      "name": "05 Mine propietaria",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/mine?size=50&sort=state&order=asc",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Solo propiedad, incluye fixtures de estados ocultos', () => { const b=pm.response.json(); b.data.forEach(i=>pm.expect(i.owner.id).to.equal('11111111-1111-4111-8111-111111111111')); pm.expect(b.data.some(i=>i.state==='draft')).to.equal(true); pm.expect(b.data.some(i=>i.state==='archived')).to.equal(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "43aa8d04-3d99-5749-b586-b0f97c2dab81",
+      "name": "06 Restringida visitante",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000003",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "34bf0949-33d6-5771-9170-a6cd3250c998",
+      "name": "07 Restringida ajena",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000003",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{outsiderToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "c2b2c0e9-4578-587d-b551-8a1d58cde40a",
+      "name": "08 Restringida propietaria",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000003",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "3f3f25b2-40f8-5244-a845-9b940428659d",
+      "name": "09 Privada ajena oculta",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000006",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{outsiderToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "b0d7db4a-608a-5246-80ab-dcf9befd9f59",
+      "name": "10 Privada propietaria",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000006",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "d37c4d2f-8d42-5f86-9cc1-043b6afb1a03",
+      "name": "11 Query invalida",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives?size=51",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error uniforme', () => pm.expect(pm.response.json().error.code).to.equal('INVALID_QUERY'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "b0dae053-6918-5769-9f29-29d07017cc30",
+      "name": "12 Filtros combinados",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives?q=HUERTOS&type=idea&category=sustainability&state=published&hasSpaces=true",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Fixture esperado', () => pm.expect(pm.response.json().data.map(i=>i.id)).to.include('10000000-0000-4000-8000-000000000001'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "1b09a9b9-c582-5def-af1a-33d36d3c43e3",
+      "name": "13 Crear iniciativa",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/initiatives",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Iniciativa de prueba Postman\",\n  \"type\": \"idea\",\n  \"summary\": \"Registro reproducible para probar escritura y consulta de iniciativas.\",\n  \"description\": \"Esta iniciativa sintética verifica el contrato del módulo durante el handoff.\",\n  \"problem\": \"Verificar escritura, permisos y persistencia sin depender de las pantallas.\",\n  \"beneficiaries\": \"Equipo del proyecto\",\n  \"categoryId\": \"technology\",\n  \"skillIds\": [\n    \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1\"\n  ],\n  \"estimatedMembers\": 4,\n  \"visibility\": \"public\",\n  \"tags\": [\n    \"prueba\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "const created=pm.response.json().data; pm.collectionVariables.set('initiativeId',created.id);",
+              "pm.test('Publicada con propietario y membresia', () => { pm.expect(created.state).to.equal('published'); pm.expect(created.memberCount).to.equal(1); pm.expect(created.availableSpaces).to.equal(3); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "870752bb-27a4-5289-9fd1-0b0393b9c8b2",
+      "name": "14 Consultar nueva iniciativa",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/{{initiativeId}}",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "4cfc1abc-3729-5319-82d3-e8973968d71e",
+      "name": "15 Editar iniciativa propia",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/initiatives/{{initiativeId}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Iniciativa de prueba Postman actualizada\",\n  \"type\": \"idea\",\n  \"summary\": \"Registro reproducible para probar escritura y consulta de iniciativas.\",\n  \"description\": \"Esta iniciativa sintética verifica el contrato del módulo durante el handoff.\",\n  \"problem\": \"Verificar escritura, permisos y persistencia sin depender de las pantallas.\",\n  \"beneficiaries\": \"Equipo del proyecto\",\n  \"categoryId\": \"technology\",\n  \"skillIds\": [\n    \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1\"\n  ],\n  \"estimatedMembers\": 4,\n  \"visibility\": \"public\",\n  \"tags\": [\n    \"prueba\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Titulo actualizado', () => pm.expect(pm.response.json().data.title).to.equal('Iniciativa de prueba Postman actualizada'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "412fffc0-28ab-5a86-b396-5ed3638fb093",
+      "name": "16 Editar ajena prohibido",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/initiatives/{{initiativeId}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{outsiderToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Iniciativa de prueba Postman actualizada\",\n  \"type\": \"idea\",\n  \"summary\": \"Registro reproducible para probar escritura y consulta de iniciativas.\",\n  \"description\": \"Esta iniciativa sintética verifica el contrato del módulo durante el handoff.\",\n  \"problem\": \"Verificar escritura, permisos y persistencia sin depender de las pantallas.\",\n  \"beneficiaries\": \"Equipo del proyecto\",\n  \"categoryId\": \"technology\",\n  \"skillIds\": [\n    \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1\"\n  ],\n  \"estimatedMembers\": 4,\n  \"visibility\": \"public\",\n  \"tags\": [\n    \"prueba\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "c362cf24-fb80-5724-99f2-370f17395a2a",
+      "name": "17 Campos inmutables",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/initiatives",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Iniciativa de prueba Postman actualizada\",\n  \"type\": \"idea\",\n  \"summary\": \"Registro reproducible para probar escritura y consulta de iniciativas.\",\n  \"description\": \"Esta iniciativa sintética verifica el contrato del módulo durante el handoff.\",\n  \"problem\": \"Verificar escritura, permisos y persistencia sin depender de las pantallas.\",\n  \"beneficiaries\": \"Equipo del proyecto\",\n  \"categoryId\": \"technology\",\n  \"skillIds\": [\n    \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1\"\n  ],\n  \"estimatedMembers\": 4,\n  \"visibility\": \"public\",\n  \"tags\": [\n    \"prueba\"\n  ],\n  \"state\": \"draft\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "9c3f1125-6b1e-54d9-84b2-618fe15ce1f6",
+      "name": "18 Inexistente",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/99999999-9999-4999-8999-999999999999",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

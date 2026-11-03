@@ -25,3 +25,10 @@ export function createAuthenticationMiddleware(authService) {
     }
   }
 }
+
+export function createOptionalAuthenticationMiddleware(requireSession) {
+  return function optionalSession(request, response, next) {
+    if (request.get('authorization') === undefined) return next()
+    return requireSession(request, response, next)
+  }
+}

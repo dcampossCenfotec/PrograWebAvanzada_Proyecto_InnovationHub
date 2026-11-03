@@ -4,6 +4,8 @@ import { ensureInitiativeIndexes, getInitiativeModels } from '../models/initiati
 import { createCatalogRepository } from '../repositories/catalog.repository.js'
 import { createInitiativesRepository } from '../repositories/initiatives.repository.js'
 import { createInitiativesService } from '../services/initiatives.service.js'
+import { createInitiativeQueriesRepository } from '../repositories/initiative-queries.repository.js'
+import { createInitiativeQueriesService } from '../services/initiative-queries.service.js'
 
 export async function createInitiativesModule({ connection, requireSession, serviceOptions = {} }) {
   if (!connection || !requireSession) {
@@ -13,6 +15,9 @@ export async function createInitiativesModule({ connection, requireSession, serv
   const catalogModels = getCatalogModels(connection)
   await Promise.all([ensureInitiativeIndexes(models), ensureCatalogIndexes(catalogModels)])
   const repository = createInitiativesRepository(models)
+  const queriesRepository = createInitiativeQueriesRepository(models)
+  await queriesRepository.backfillSearchFields()
+  const queriesService = createInitiativeQueriesService({ repository: queriesRepository })
   const catalogRepository = createCatalogRepository(catalogModels)
   const service = createInitiativesService({
     connection,
@@ -21,10 +26,11 @@ export async function createInitiativesModule({ connection, requireSession, serv
     ...serviceOptions,
   })
   return Object.freeze({
-    controller: createInitiativesController(service),
+    controller: createInitiativesController(service, queriesService),
     requireSession,
     service,
     repository,
+    queriesService,
     models,
   })
 }

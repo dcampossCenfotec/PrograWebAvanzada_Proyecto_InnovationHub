@@ -27,6 +27,8 @@ const initiativeSchema = new mongoose.Schema({
     validate: (values) => values.length <= 10,
   },
   searchText: { type: String, required: true, select: false, maxlength: 1000 },
+  publicSearchText: { type: String, required: true, select: false, maxlength: 341 },
+  titleNormalized: { type: String, required: true, select: false, maxlength: 100 },
   revision: { type: Number, required: true, min: 0, select: false },
   createdAt: { type: Date, required: true, immutable: true },
   updatedAt: { type: Date, required: true },
@@ -37,6 +39,7 @@ initiativeSchema.index({ ownerId: 1, state: 1, updatedAt: -1, id: 1 }, { name: '
 initiativeSchema.index({ state: 1, visibility: 1, createdAt: -1, id: 1 }, { name: 'initiative_catalog' })
 initiativeSchema.index({ categoryId: 1, state: 1, id: 1 }, { name: 'initiative_category' })
 initiativeSchema.index({ skillIds: 1, state: 1, id: 1 }, { name: 'initiative_skills' })
+initiativeSchema.index({ state: 1, titleNormalized: 1, id: 1 }, { name: 'initiative_title_order' })
 initiativeSchema.index(
   { searchText: 'text' },
   { name: 'initiative_search_text', default_language: 'none' },

@@ -1,6 +1,6 @@
 # Servidor Express y MongoDB de Innovation Hub
 
-API01 estableció Express por capas, API02 agregó MongoDB, API03 implementó autenticación persistente, API04 agregó perfiles/directorio/catálogos y API05 agregó escritura de iniciativas. Están disponibles registro, login, sesión actual, logout con revocación, perfiles propios y públicos, filtros de usuarios, categorías, competencias y creación/edición de iniciativas. Las contraseñas usan `scrypt` con sal aleatoria; los tokens Bearer son opacos y solo su hash SHA-256 llega a MongoDB.
+API01 estableció Express por capas, API02 agregó MongoDB, API03 implementó autenticación persistente, API04 agregó perfiles/directorio/catálogos, API05 agregó escritura de iniciativas y API06 agregó sus consultas con permisos. Las contraseñas usan `scrypt` con sal aleatoria; los tokens Bearer son opacos y solo su hash SHA-256 llega a MongoDB.
 
 ## Requisitos
 
@@ -13,6 +13,8 @@ MongoDB standalone permite lecturas y escrituras simples, pero no sirve para apr
 ## Arranque local
 
 Desde la raíz del repositorio:
+
+Si ya hay una instancia nativa de MongoDB en replica set escuchando en el puerto configurado, continuar directamente con los comandos de `servidor/`; no es necesario instalar ni ejecutar Docker. El bloque siguiente es la alternativa para equipos con Docker.
 
 ```bash
 docker compose up -d
@@ -35,7 +37,7 @@ npm run seed
 npm run dev
 ```
 
-El seed valida primero todos los fixtures de CO01 y carga ocho categorías, diez competencias y cinco usuarios demo. La contraseña de esos usuarios es `DEMO_USER_PASSWORD`; el valor de `.env.example` sirve solo para desarrollo local. Cada usuario recibe una sal distinta. Repetir el seed actualiza perfiles por `id` y conserva el hash existente para no rotar credenciales ni sesiones accidentalmente.
+El seed valida primero todos los fixtures de CO01 y carga ocho categorías, diez competencias, cinco usuarios demo, ocho iniciativas, doce membresías y trece eventos. La contraseña de los usuarios es `DEMO_USER_PASSWORD`; el valor de `.env.example` sirve solo para desarrollo local. Cada usuario recibe una sal distinta. Repetir el seed actualiza fixtures por `id`, conserva los hashes e inserta eventos una sola vez. Los registros creados fuera del fixture se conservan. Solicitudes/proyectos aún no forman parte de la carga; sus fixtures se completan con sus módulos.
 
 La API queda en `http://127.0.0.1:3000`. `GET /api/health` comprueba la vida de Express. El proceso abre el puerto solo después de conectar MongoDB, pero el DTO de health no reemplaza una comprobación detallada de dependencias.
 
@@ -65,7 +67,7 @@ La API queda en `http://127.0.0.1:3000`. `GET /api/health` comprueba la vida de 
 | `npm run dev` | Inicia API en modo watch usando `.env`. |
 | `npm start` | Inicia API usando `.env`. |
 | `npm run fixtures:validate` | Comprueba referencias e invariantes de todos los fixtures CO01. |
-| `npm run seed` | Crea índices y carga catálogos y usuarios demo de forma idempotente. |
+| `npm run seed` | Crea índices y carga catálogos, usuarios, iniciativas y membresías/eventos de fixture. |
 | `npm run lint` | Ejecuta ESLint. |
 | `npm test` | Ejecuta unidades/HTTP; omite integración cuando no hay variables reales. |
 | `npm run test:integration` | Exige `.env.test` y prueba MongoDB real; no permite una aprobación simulada. |
@@ -171,7 +173,11 @@ curl -i -X POST http://127.0.0.1:3000/api/initiatives \
 
 La respuesta es `201`, incluye `Location: /api/initiatives/{id}` y nunca expone `_id`, campos técnicos ni correo. `PUT` reemplaza todos los campos editables y solo lo ejecuta el propietario. Conservar una estimación ya superada es válido; solo se rechaza reducirla por debajo de los miembros activos. Categorías o competencias inexistentes, campos de servidor y cuerpos parciales producen `400` sin escritura parcial.
 
-API05 todavía no agrega lectura HTTP: `GET /api/initiatives` y `GET /api/initiatives/{id}` permanecen en `404` hasta API06. La persistencia de API05 se verifica mediante la respuesta de escritura, un `PUT` posterior y las pruebas de MongoDB real.
+API06 ya permite `GET /api/initiatives`, `GET /api/initiatives/mine` y `GET /api/initiatives/{id}`. El catálogo combina `q/type/category/skill/state/hasSpaces/ownerId`, páginas y orden estable. `/mine` solo acepta página/tamaño/orden y representa propiedad, no participación. El detalle y el catálogo públicos comprueban cualquier Bearer recibido: un token inválido produce `401`, no una degradación silenciosa a visitante.
+
+Las privadas ajenas se ocultan con `404`; las restringidas presentan un resumen seguro a autenticados ajenos y rechazan su detalle con `403`. Un visitante recibe `401` en detalle institucional/restringido y no las ve en catálogo. Solo el propietario consulta borradores/archivadas por `/mine` o detalle. Título, resumen y etiquetas se buscan sin distinguir tildes/mayúsculas, pero una restringida ajena nunca coincide por etiquetas ocultas. `hasSpaces=false` incluye estimados superados y no impone cupo.
+
+La agregación MongoDB aplica autorización antes del conteo/página, calcula membresías activas, y usa un único `$facet` para resultados y total. Los datos relacionados se consultan por lote dentro de la agregación, sin una petición adicional por tarjeta. El módulo completa campos de búsqueda ausentes en documentos previos de API05 al arrancar, sin cambiar su UUID, fechas o revisión. Detalles de consumo para los módulos posteriores: [iniciativas-api.md](../docs/iniciativas-api.md).
 
 ## Recuperación y diagnóstico
 
