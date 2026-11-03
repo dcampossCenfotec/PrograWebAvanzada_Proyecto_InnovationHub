@@ -9,12 +9,13 @@ La numeración RN no es estable entre la descripción general y las consignas. P
 | Competencias controladas | Descripción general + observación E21 | Relación por ID y nivel; no texto libre. | Skill inexistente/duplicado `400`. |
 | Visibilidad | Descripción general (RN-20 en ese documento) | Pública, institucional, restringida y privada; servidor proyecta antes de paginar. | Tabla de acceso del contrato; URL directa no revela datos. |
 | Solicitud propia | Descripción general (RN-10 en ese documento) | El propietario no solicita a su iniciativa. | `POST .../requests` produce `409`. |
+| Competencia ofrecida en solicitud | Contrato acordado; descripción permite declarar el aporte | Debe existir y pertenecer al perfil del solicitante; no tiene que estar requerida por la iniciativa. | API08/UI11: propia no requerida válida; inexistente/ajena al perfil `400`. |
 | Solo una pendiente | Consigna + observación E26 | Índice/servicio impide dos pendientes por iniciativa/usuario. | Doble envío: uno `201`, otro `409`. |
 | Reintento de solicitud | Decisión de Daniel | Permitido tras cancelar, rechazo o retiro; registro nuevo, historia intacta. | IDs distintos y ambos intentos consultables. |
 | Estimación de integrantes | Decisión de Daniel + regla general de reducción | No es cupo. Espacios `max(0, estimado-activos)`. Solo se impide una reducción nueva por debajo de activos. | Estimado 2/activos 3: conservar 2 funciona, subir funciona, bajar a 1 falla. |
 | Eliminar y archivar independientes | Descripción general + decisión de Daniel actualizada el 3 de noviembre | Dueño solo no bloquea borrado. Historial impide eliminar; archivar es una elección explícita con o sin historial. Una archivada sin historial puede eliminarse. | DELETE `204` o `409 INITIATIVE_HAS_HISTORY` sin cambios; POST `/{id}/archive` devuelve `200`; carrera revalida. |
 | Publicación de iniciativa | Decisión de Daniel | Guardar válida crea `published`; sin UI de borrador. | POST responde `state=published`; enviar `state` da `400`. |
-| Formación de equipo | Consigna Avance 2 | Aceptar crea/reactiva membresía y evento de forma atómica. | Request/membership/event consistentes; carrera con cancelar. |
+| Formación de equipo | Consigna Avance 2 | Aceptar crea membresía y evento de forma atómica; una reincorporación crea nuevo ID y conserva el periodo retirado. | Request/membership/event consistentes; carrera con cancelar. |
 | Retiro de miembro | Consigna Avance 2 | Solo propietario, nunca al dueño; historia se conserva. | DELETE miembro `204`; dueño `409`; ajeno `403`. |
 | Conversión | Descripción general (RN-17 en ese documento) | Requiere otro miembro activo y un proyecto único por iniciativa. | Conversión sin equipo `409`; repetida `409`. |
 | Solicitudes tras conversión | Decisión de Daniel | Continúan; aceptar modifica el mismo equipo y conserva `converted`. | Crear/aceptar sobre convertida; proyecto refleja miembro. |

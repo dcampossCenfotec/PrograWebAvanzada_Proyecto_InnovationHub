@@ -183,7 +183,7 @@ La respuesta incluye `X-Request-Id`. CORS aplica igual que al resto de la API. E
   "initiative": { "id": "uuid", "title": "Tutorías colaborativas" },
   "applicant": { "id": "uuid", "firstName": "Luis", "lastName": "Mora" },
   "message": "Puedo apoyar la coordinación de las sesiones semanales.",
-  "offeredSkill": { "id": "facilitation", "name": "Facilitación" },
+  "offeredSkill": { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6", "name": "Facilitación" },
   "role": "Coordinación de sesiones",
   "availability": "medium",
   "state": "pending",
@@ -208,7 +208,7 @@ La respuesta incluye `X-Request-Id`. CORS aplica igual que al resto de la API. E
 }
 ```
 
-La historia de ingreso/retiro se conserva internamente en `membershipEvents`; reactivar nunca sobrescribe eventos anteriores.
+La historia de ingreso/retiro se conserva internamente en `membershipEvents`; una reincorporación crea otra membresía con nuevo ID y nunca sobrescribe el periodo retirado ni sus eventos.
 
 ### 2.5 Project
 

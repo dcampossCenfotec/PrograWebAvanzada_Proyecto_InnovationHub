@@ -424,3 +424,20 @@ Primeras comprobaciones detectaron dos aserciones antiguas que esperaban el avis
 - [ ] Revisión cruzada de Francisco.
 
 UI09 publicada en `73f82ae`. Daniel confirmó UI10 y solicitó commit/push. Con este cierre completa sus 19 tareas de implementación; sigue preparar el handoff documental explícito a Francisco, cuya revisión cruzada sigue pendiente. Los pasos manuales se entregan exclusivamente en la conversación, sin guía .md nueva.
+
+
+## Preparación documental del handoff a Francisco — 2026-11-03
+
+Base de código publicada y aprobada: `5e12be3` (UI10). Se prepararon `docs/handoff-francisco.md`, el registro de entregables de Daniel, el plan portable y cuatro fuentes ya extraídas con un índice. No se reconvirtieron PDF/DOCX/XLSX; solo se normalizaron espacios finales de las extracciones. README y alcance enlazan el paquete; la matriz de pruebas usa la distribución vigente de responsables.
+
+Se corrigieron contradicciones del plan contra el contrato/modelo vigentes: competencia ofrecida del perfil, aunque no sea requerida por la iniciativa; nueva membresía por periodo tras retiro. Se aclaró en el contrato la reincorporación y se sustituyó un ID simbólico de competencia en un ejemplo por el UUID del catálogo. Sin cambios de endpoints, esquemas persistidos o comportamiento ejecutable. También se corrigió la atribución antigua de fragmentos Postman de solicitudes/equipo: los implementa Francisco; el fragmento recibido de Daniel es solo iniciativas y la evidencia de otros recursos sirve para completar UI14.
+
+La verificación documental comprueba 15 fichas con mensaje/cambio/README/entregable/checklist/pruebas/prompt, enlaces y anclas locales, 19 hashes reales y conservación del contenido de las cuatro extracciones. La primera comprobación detectó extracción demasiado amplia de secciones del plan y enlaces a archivos locales no portables; se corrigieron el corte por encabezados y el índice de fuentes antes de entregar. No se ejecutaron pruebas funcionales nuevas porque el cambio es documental, ni se inició API/MongoDB ni se tocó la base de desarrollo.
+
+- [x] Instrucciones de arranque, pruebas, arquitectura, transacciones, fuentes, prioridades y prompts preparadas.
+- [x] Límites expresos: placeholders, seeds de requests/projects pendientes, Postman no ejecutado, QA/revisión cruzada y Docker pendientes.
+- [x] Respeta instrucciones manuales por conversación, formularios de ancho completo, caché npm y evidencia verdadera.
+- [ ] Revisión de este handoff por Daniel y autorización de su commit/push.
+- [ ] Recepción y revisión cruzada por Francisco; no se atribuye al compañero por preparar el documento.
+
+No se creó etiqueta entrega-2, PDF nuevo, envío Moodle ni comunicación automática al compañero. Las 15 tareas de Francisco siguen pendientes; este documento no las implementa.

@@ -2,6 +2,8 @@
 
 Esta matriz enlaza requisito, contrato, interfaz, fixture y evidencia. Describe pruebas que deberán ejecutarse; una fila no está aprobada hasta que la bitácora incluya comando o recorrido, resultado y hash real. Los IDs simbólicos se resuelven en `pruebas/fixtures/manifest.json`.
 
+Responsables actualizados al handoff: Daniel implementó T01–T12; Francisco implementa los flujos T13–T22 y coordina las verificaciones integrales T23–T25. La revisión cruzada corresponde al compañero y API12/UI15 vuelven a comprobar ambos bloques. T10 cubre PUT/DTO; la aceptación con estimación superada se verifica en T17.
+
 ## Cobertura funcional y de contrato
 
 | ID | Regla o riesgo | Endpoint/API | Pantalla React | Fixture principal | Casos mínimos | Evidencia esperada | Responsable |
@@ -11,24 +13,24 @@ Esta matriz enlaza requisito, contrato, interfaz, fixture y evidencia. Describe 
 | T03 | Perfil propio frente a tercero | `GET /users/{id}`, `PUT /users/me` | `/perfil`, `/usuarios/:id` | `ACTOR_A`, `ACTOR_B` | propio incluye email; tercero lo omite; campo inmutable/skill duplicada `400` | API + componente | Daniel |
 | T04 | Directorio seguro y paginado | `GET /users` | `/usuarios` | actores A–E | filtros combinados; página vacía `200`; sin sesión `401`; total después de autorización | API + UI | Daniel |
 | T05 | Catálogos estables | `GET /categories`, `GET /skills` | formularios/filtros | `catalogs.json` | 8 categorías; búsqueda skill; query inválida `400`; token ausente permitido | API + Postman | Daniel |
-| T06 | Cuatro visibilidades | `GET /initiatives`, `GET /initiatives/{id}` | catálogo/detalle | `INIT_PUBLIC_DELETE`, `INIT_INSTITUTIONAL`, `INIT_RESTRICTED`, `INIT_PRIVATE` | visitante/ajeno/miembro/dueño según tabla; privada ajena `404`; restringida ajena `403` | matriz de actores API + URLs directas | Francisco |
-| T07 | Estados fuera de catálogo | catálogo, mine, detalle | catálogo/mis iniciativas | `INIT_DRAFT`, `INIT_ARCHIVED` | no aparecen en catálogo; dueño las ve en mine; solicitud nueva bloqueada | API + UI | Francisco |
-| T08 | Publicación directa | `POST /initiatives` | `/iniciativas/nueva` | catálogos | válida `201 published`; enviar `state` `400`; crea membresía/evento del dueño | integración transaccional + UI | Francisco |
-| T09 | Validación y edición completa | `PUT /initiatives/{id}` | `/iniciativas/:id/editar` | `INIT_PUBLIC_DELETE` | límites exactos; ajeno `403`; campos inmutables `400`; fallo no navega | API + formulario | Francisco |
-| T10 | Estimación no es cupo | PUT, lista, decisión | edición/detalle/recibidas | `INIT_OVER_ESTIMATE` | activos 3/estimado 2: conservar/subir funciona; bajar a 1 falla; espacios 0 | API + DTO + UI | Francisco |
-| T11 | Borrar solo sin historia | `DELETE /initiatives/{id}` | detalle propio | `INIT_PUBLIC_DELETE` | dueño sin historia `204`; historial/carrera produce `409` sin cambios ni archivo | transacción + Postman | Francisco |
-| T12 | Archivo explícito con o sin historia | `POST /initiatives/{id}/archive` | detalle propio | `INIT_ARCHIVED` | `200 archived` sin borrar relaciones; repetir es idempotente; ajeno `403` | API + UI | Francisco |
-| T13 | Solicitud válida y pendiente única | `POST /initiatives/{id}/requests` | participar | `INIT_INSTITUTIONAL`, `ACTOR_B` | `201`; doble envío/carrera `409`; dueño/miembro `409`; skill ajena `400` | índice parcial + UI | Daniel |
-| T14 | Editar/cancelar solo pendiente | PUT y cancel | mis solicitudes | `REQUEST_PENDING` | editar conserva ID/fechas; cancelar `200`; repetir/terminal `409`; cancelar archivada permitido | API + UI + Postman | Daniel |
-| T15 | Reintentos conservan historia | crear/listar solicitudes | mis solicitudes | `REQUEST_REJECTED`, `REQUEST_PENDING` | IDs/fechas distintos; intento previo terminal intacto; una pendiente actual | consulta DB + API | Daniel |
-| T16 | Listados no filtran después de paginar | `GET /requests` | propias/recibidas | todas las solicitudes | `scope` requerido; filtros/fechas; totales reales; actor ajeno no obtiene datos | API + Postman | Daniel/Francisco |
-| T17 | Decisión atómica | decision | solicitudes recibidas | `REQUEST_PENDING` | aceptar/rechazar; cancelar frente a aceptar tiene un ganador; archivada solo rechaza | réplica set + concurrencia | Francisco |
+| T06 | Cuatro visibilidades | `GET /initiatives`, `GET /initiatives/{id}` | catálogo/detalle | `INIT_PUBLIC_DELETE`, `INIT_INSTITUTIONAL`, `INIT_RESTRICTED`, `INIT_PRIVATE` | visitante/ajeno/miembro/dueño según tabla; privada ajena `404`; restringida ajena `403` | matriz de actores API + URLs directas | Daniel |
+| T07 | Estados fuera de catálogo | catálogo, mine, detalle | catálogo/mis iniciativas | `INIT_DRAFT`, `INIT_ARCHIVED` | no aparecen en catálogo; dueño las ve en mine; solicitud nueva bloqueada | API + UI | Daniel |
+| T08 | Publicación directa | `POST /initiatives` | `/iniciativas/nueva` | catálogos | válida `201 published`; enviar `state` `400`; crea membresía/evento del dueño | integración transaccional + UI | Daniel |
+| T09 | Validación y edición completa | `PUT /initiatives/{id}` | `/iniciativas/:id/editar` | `INIT_PUBLIC_DELETE` | límites exactos; ajeno `403`; campos inmutables `400`; fallo no navega | API + formulario | Daniel |
+| T10 | Estimación no es cupo | PUT, lista, decisión | edición/detalle/recibidas | `INIT_OVER_ESTIMATE` | activos 3/estimado 2: conservar/subir funciona; bajar a 1 falla; espacios 0 | API + DTO + UI | Daniel |
+| T11 | Borrar solo sin historia | `DELETE /initiatives/{id}` | detalle propio | `INIT_PUBLIC_DELETE` | dueño sin historia `204`; historial/carrera produce `409` sin cambios ni archivo | transacción + Postman | Daniel |
+| T12 | Archivo explícito con o sin historia | `POST /initiatives/{id}/archive` | detalle propio | `INIT_ARCHIVED` | `200 archived` sin borrar relaciones; repetir es idempotente; ajeno `403` | API + UI | Daniel |
+| T13 | Solicitud válida y pendiente única | `POST /initiatives/{id}/requests` | participar | `INIT_INSTITUTIONAL`, `ACTOR_B` | `201`; doble envío/carrera `409`; dueño/miembro `409`; skill inexistente/ajena al perfil `400`; propia no requerida válida | índice parcial + UI | Francisco |
+| T14 | Editar/cancelar solo pendiente | PUT y cancel | mis solicitudes | `REQUEST_PENDING` | editar conserva ID/fechas; cancelar `200`; repetir/terminal `409`; cancelar archivada permitido | API + UI + Postman | Francisco |
+| T15 | Reintentos conservan historia | crear/listar solicitudes | mis solicitudes | `REQUEST_REJECTED`, `REQUEST_PENDING` | IDs/fechas distintos; intento previo terminal intacto; una pendiente actual | consulta DB + API | Francisco |
+| T16 | Listados no filtran después de paginar | `GET /requests` | propias/recibidas | todas las solicitudes | `scope` requerido; filtros/fechas; totales reales; actor ajeno no obtiene datos | API + Postman | Francisco |
+| T17 | Decisión atómica | decision | solicitudes recibidas | `REQUEST_PENDING` | aceptar/rechazar; cancelar frente a aceptar tiene un ganador; archivada solo rechaza; aceptar por encima del estimado mantiene espacios 0 | réplica set + concurrencia | Francisco |
 | T18 | Historial de equipo | members/delete member | equipo | membresías/eventos de `INIT_CONVERTED` | retirar crea evento; no borra entrada; dueño no se retira; retirado puede volver a solicitar | transacción + API + UI | Francisco |
 | T19 | Aceptación tras convertir | decision, members, project | recibidas/proyecto | `INIT_CONVERTED`, `PROJECT_A` | nuevo aceptado aparece en mismo equipo/proyecto; iniciativa conserva `converted` | integración completa | Francisco |
-| T20 | Conversión única | `POST /initiatives/{id}/project` | convertir | `INIT_TEAM` | dueño y otro miembro `201`; sin equipo `409`; repetición `409`; proyecto/iniciativa atómicos | transacción + UI | Daniel |
-| T21 | Proyecto hereda visibilidad | GET projects/detail | proyectos/detalle | `PROJECT_A`, `INIT_CONVERTED` | actor permitido `200`; privado ajeno `404`; query extra `400`; sin editar/archivar | API + rutas | Daniel |
-| T22 | GitHub tolera fallos | API pública GitHub desde React | detalle proyecto | URL de repo sintética | válido, lenguaje null, 404, 403/429, 503, offline, timeout; proyecto sigue visible | mocks + prueba real breve | Daniel |
-| T23 | Errores uniformes | todos | paneles de estado | UUID desconocido estable | `400/401/403/404/409/500`; `fields={}`; sin stack; `204` vacío | Supertest + Postman | Ambos |
+| T20 | Conversión única | `POST /initiatives/{id}/project` | convertir | `INIT_TEAM` | dueño y otro miembro `201`; sin equipo `409`; repetición `409`; proyecto/iniciativa atómicos | transacción + UI | Francisco |
+| T21 | Proyecto hereda visibilidad | GET projects/detail | proyectos/detalle | `PROJECT_A`, `INIT_CONVERTED` | actor permitido `200`; privado ajeno `404`; query extra `400`; sin editar/archivar | API + rutas | Francisco |
+| T22 | GitHub tolera fallos | API pública GitHub desde React | detalle proyecto | URL de repo sintética | válido, lenguaje null, 404, 403/429, 503, offline, timeout; proyecto sigue visible | mocks + prueba real breve | Francisco |
+| T23 | Errores uniformes | todos | paneles de estado | UUID desconocido estable | `400/401/403/404/409/500`; `fields={}`; sin stack; `204` vacío | Supertest + Postman | Francisco |
 | T24 | CORS no autentica | preflight/API | arranque local | configuración futura | origen permitido/no permitido; curl sin Origin sigue requiriendo token | prueba HTTP | Francisco |
 | T25 | Orden estable y páginas | listados | catálogos/listas | fixtures completos | lista blanca; `id` desempata; página fuera de rango vacía con total real | API + UI | Francisco |
 

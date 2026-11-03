@@ -8,7 +8,6 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
 - **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; creación, consulta, edición y archivo de iniciativas con todas sus pantallas; CO00–CO01; modelo y fixtures.
 - **Francisco José Torres Sandoval:** solicitudes propias y recibidas; equipos; proyectos/GitHub; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. Tras la reasignación del 3 de noviembre, el plan asigna 19 tareas a Daniel y 15 a Francisco; con CO00, CO01, UI01–UI10 y API01–API07 Daniel completó sus 19 tareas de implementación; Francisco conserva 15 tareas. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de todo el módulo de iniciativas antes del handoff y de CO02.
 
 Documentos vigentes:
 
@@ -45,6 +44,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | `4e03568` | 2026-11-03 | Daniel | UI07 | Detalle con permisos y acciones independientes de eliminar y archivar | 115 pruebas cliente, 66 servidor, 17 integraciones servidor y 12 React/API; aprobación de Daniel |
 | `dafc19c` | 2026-11-03 | Daniel | UI08 | Formulario compartido de publicación/edición y ancho completo en formularios | 144 pruebas, 17 integraciones React/API/MongoDB, lint/build y publicación autorizada |
 | `73f82ae` | 2026-11-03 | Daniel | UI09 | Competencias por ID con confirmación y etiquetas como chips | 165 pruebas, 20 integraciones React/API/MongoDB y lint/build; publicación autorizada |
+| `5e12be3` | 2026-11-03 | Daniel | UI10 | Validación al corregir, contadores y avisos de una lectura | 190 pruebas, 23 integraciones React/API/MongoDB, lint/build; recorrido confirmado y publicación autorizada |
 
 ### Cliente React
 

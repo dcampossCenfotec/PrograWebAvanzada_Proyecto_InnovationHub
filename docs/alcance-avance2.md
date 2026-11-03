@@ -108,3 +108,10 @@ Estas elecciones pertenecen al equipo y no se presentan como exigencias del doce
 ## Criterio de cierre
 
 Una tarea solo se considera terminada si su código/documento, README, evidencia, pruebas, revisión cruzada y hash real están registrados. Una prueba planeada no se marca como aprobada. No se crean commits ni etiquetas hasta que el autor recorra manualmente el cambio y el revisor pueda reproducirlo.
+
+
+## Handoff al cerrar UI10
+
+Daniel entrega el [handoff operativo a Francisco](handoff-francisco.md), [su registro de entregables](avance2-daniel.md), el [plan portable](plan-avance2.md) y [fuentes ya extraídas](fuentes/README.md). Base de código aprobada/publicada `5e12be3`. La recepción/revisión cruzada de Francisco permanece pendiente; entregar documentación no implica que él ya la haya validado.
+
+Francisco conserva API08–API14, UI11–UI15 y CO02–CO04 (15 tareas). La secuencia recomendada y cada commit/checklist/prueba/prompt están en el handoff. La colección final es UI14: solo se entrega un fragmento existente de iniciativas, más la evidencia de los otros módulos de Daniel; Francisco completa su cobertura y la de sus módulos al consolidarla.
