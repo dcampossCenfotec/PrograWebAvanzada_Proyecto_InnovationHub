@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { initiativeEditorSnapshot, initiativeToValues, toInitiativePayload, validateInitiativeEditor } from './editor.js'
+import { INITIATIVE_TEXT_RULES, initiativeEditorSnapshot, initiativeTextLength, initiativeToValues, toInitiativePayload, validateInitiativeEditor } from './editor.js'
 
 const id = '10000000-0000-4000-8000-000000000001'
 const skill = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1'
@@ -44,5 +44,22 @@ describe('datos del formulario de iniciativas', () => {
     expect(initiativeEditorSnapshot(a)).toBe(initiativeEditorSnapshot(b))
     b.tags[0].value = 'Otra etiqueta'
     expect(initiativeEditorSnapshot(a)).not.toBe(initiativeEditorSnapshot(b))
+  })
+})
+
+
+describe('UI10: normalización contractual de textos', () => {
+  it.each(Object.entries(INITIATIVE_TEXT_RULES))('%s comparte límites entre validación, contador y payload', (name, rule) => {
+    for (const length of [0, rule.min - 1, rule.min, rule.max, rule.max + 1]) {
+      const values = { ...initiativeToValues(initiative), [name]: `  ${'á'.repeat(length)}  ` }
+      expect(initiativeTextLength(values[name])).toBe(length)
+      expect(toInitiativePayload(values)[name]).toBe('á'.repeat(length))
+      expect(Boolean(validateInitiativeEditor(values, catalogs)[name])).toBe(length < rule.min || length > rule.max)
+    }
+  })
+  it('mantiene saltos internos y usa longitud UTF-16, igual que el servidor', () => {
+    expect(initiativeTextLength('  A\nB  ')).toBe(3)
+    expect(initiativeTextLength('  😀  ')).toBe(2)
+    expect(toInitiativePayload({ ...initiativeToValues(initiative), description: '  Primera línea\nSegunda línea.  ' }).description).toBe('Primera línea\nSegunda línea.')
   })
 })

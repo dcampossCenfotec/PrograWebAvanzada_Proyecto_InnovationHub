@@ -24,9 +24,17 @@ export function initiativeEditorSnapshot(values) {
   return JSON.stringify({ ...values, tags: values.tags.map(({ value }) => value) })
 }
 
+export function normalizeInitiativeText(value) {
+  return value.trim()
+}
+
+export function initiativeTextLength(value) {
+  return normalizeInitiativeText(value).length
+}
+
 export function toInitiativePayload(values) {
   return {
-    ...Object.fromEntries(Object.keys(INITIATIVE_TEXT_RULES).map((key) => [key, values[key].trim()])),
+    ...Object.fromEntries(Object.keys(INITIATIVE_TEXT_RULES).map((key) => [key, normalizeInitiativeText(values[key])])),
     type: values.type, categoryId: values.categoryId,
     skillIds: [...values.skillIds], estimatedMembers: Number(values.estimatedMembers),
     visibility: values.visibility,
@@ -41,7 +49,7 @@ export function initiativeTagKey(value) {
 export function validateInitiativeEditor(values, { categories, skills, initiative } = {}) {
   const fields = {}
   for (const [key, rule] of Object.entries(INITIATIVE_TEXT_RULES)) {
-    const length = values[key].trim().length
+    const length = initiativeTextLength(values[key])
     if (length < rule.min || length > rule.max) fields[key] = `Debe tener entre ${rule.min} y ${rule.max} caracteres.`
   }
   if (!['idea', 'need', 'challenge'].includes(values.type)) fields.type = 'Selecciona un tipo válido.'

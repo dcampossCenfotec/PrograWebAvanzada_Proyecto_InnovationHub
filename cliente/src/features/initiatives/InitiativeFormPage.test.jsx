@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { createMemoryRouter, Link, RouterProvider, useLocation } from 'react-router'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { initiativesService } from '../../api/services/initiatives.js'
@@ -166,7 +166,7 @@ describe('publicación y edición controladas', () => {
     waiting.resolve({ data: initiative })
     await screen.findByText('Destino /iniciativas · created ·')
   })
-  it.each([400, 409, 0])('fallo %s conserva valores y no navega ni informa éxito', async (status) => {
+  it.each([400, 409, 500, 0])('fallo %s conserva valores y no navega ni informa éxito', async (status) => {
     initiativesService.create.mockRejectedValue(new ApiError('Error de prueba', { status, fields: status === 400 ? { title: 'Título rechazado por API' } : {} }))
     mount()
     await fillCreate()
@@ -175,6 +175,11 @@ describe('publicación y edición controladas', () => {
     expect(screen.getByLabelText('Título').value).toBe(initiative.title)
     expect(screen.queryByText(/Destino/)).toBeNull()
     if (status === 400) expect(screen.getByText('Título rechazado por API')).toBeDefined()
+    const panel = screen.getByRole('heading', { name: 'No fue posible guardar la iniciativa' }).closest('.status-panel').parentElement
+    const save = screen.getByRole('button', { name: 'Publicar iniciativa' })
+    expect(panel.closest('form')).toBe(screen.getByRole('form'))
+    expect(panel.compareDocumentPosition(save) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    if (status !== 400) await waitFor(() => expect(document.activeElement).toBe(panel))
   })
   it('perder permiso al guardar retira el formulario y no permite más envíos', async () => {
     initiativesService.update.mockRejectedValue(new ApiError('Información sensible', { status: 403 }))
@@ -271,5 +276,106 @@ describe('etiqueta pendiente y guardado', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Descartar cambios sin guardar' })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Seguir editando' }))
     expect(screen.getByLabelText('Etiqueta por agregar').value).toBe('sin agregar')
+  })
+})
+
+describe('UI10: validación al interactuar', () => {
+  it('espera a salir del campo, revalida al corregir y conserva foco y errores ajenos', async () => {
+    mount()
+    await screen.findByRole('form')
+    const title = screen.getByLabelText('Título')
+    const summary = screen.getByLabelText('Resumen')
+    expect(title.getAttribute('aria-invalid')).toBe('false')
+    title.focus()
+    fireEvent.change(title, { target: { value: 'a' } })
+    expect(title.getAttribute('aria-invalid')).toBe('false')
+    fireEvent.blur(title)
+    expect(title.getAttribute('aria-invalid')).toBe('true')
+    fireEvent.blur(summary)
+    fireEvent.change(title, { target: { value: 'ab' } })
+    expect(title.getAttribute('aria-invalid')).toBe('true')
+    expect(summary.getAttribute('aria-invalid')).toBe('true')
+    fireEvent.change(title, { target: { value: 'Título válido' } })
+    expect(title.getAttribute('aria-invalid')).toBe('false')
+    expect(summary.getAttribute('aria-invalid')).toBe('true')
+    expect(document.activeElement).toBe(title)
+    expect(initiativesService.create).not.toHaveBeenCalled()
+  })
+
+  it('tras enviar inválido corrige cada campo sin exigir otro blur ni borrar los demás errores', async () => {
+    mount()
+    fireEvent.submit(await screen.findByRole('form'))
+    const title = screen.getByLabelText('Título')
+    fireEvent.change(title, { target: { value: 'abc' } })
+    expect(title.getAttribute('aria-invalid')).toBe('true')
+    fireEvent.change(title, { target: { value: 'abcde' } })
+    expect(title.getAttribute('aria-invalid')).toBe('false')
+    expect(screen.getByLabelText('Resumen').getAttribute('aria-invalid')).toBe('true')
+    expect(screen.getByLabelText('Categoría').getAttribute('aria-invalid')).toBe('true')
+    fireEvent.change(screen.getByLabelText('Categoría'), { target: { value: 'sustainability' } })
+    expect(screen.getByLabelText('Categoría').getAttribute('aria-invalid')).toBe('false')
+    expect(document.activeElement).toBe(title)
+  })
+
+  it.each([
+    ['Título', 'title', 5, 100], ['Resumen', 'summary', 15, 240],
+    ['Descripción', 'description', 20, 2000], ['Problema que atiende', 'problem', 10, 500],
+    ['Personas beneficiarias', 'beneficiaries', 3, 150],
+  ])('%s: vacío, mínimo−1, mínimo, máximo y pegado máximo+1 sin recorte', async (label, name, min, max) => {
+    mount()
+    await screen.findByRole('form')
+    const input = screen.getByLabelText(label)
+    const counter = document.getElementById(`initiative-${name}-counter`)
+    expect(input.hasAttribute('maxlength')).toBe(false)
+    fireEvent.blur(input)
+    for (const length of [0, min - 1, min, max, max + 1]) {
+      const raw = `  ${'á'.repeat(length)}  `
+      fireEvent.change(input, { target: { value: raw } })
+      expect(input.value).toBe(raw)
+      expect(counter.textContent).toContain(`${length}/${max} caracteres`)
+      expect(input.getAttribute('aria-invalid')).toBe(String(length < min || length > max))
+    }
+    expect(counter.textContent).toContain('sobran 1')
+    expect(input.getAttribute('aria-describedby')).toContain(counter.id)
+    fireEvent.submit(screen.getByRole('form'))
+    expect(initiativesService.create).not.toHaveBeenCalled()
+  })
+
+  it('conserva error de API al salir sin editar; cambiar ese campo revalida solo su mensaje', async () => {
+    initiativesService.create.mockRejectedValue(new ApiError('fallo', { status: 400, fields: { title: 'Título rechazado', summary: 'Resumen rechazado' } }))
+    mount()
+    await fillCreate()
+    fireEvent.submit(screen.getByRole('form'))
+    await screen.findByText('Título rechazado')
+    const title = screen.getByLabelText('Título')
+    await waitFor(() => expect(document.activeElement).toBe(title))
+    fireEvent.blur(title)
+    expect(screen.getByText('Título rechazado')).toBeDefined()
+    fireEvent.change(title, { target: { value: 'abc' } })
+    expect(screen.queryByText('Título rechazado')).toBeNull()
+    expect(title.getAttribute('aria-invalid')).toBe('true')
+    expect(screen.getByText('Resumen rechazado')).toBeDefined()
+    fireEvent.change(title, { target: { value: 'Título corregido' } })
+    expect(title.getAttribute('aria-invalid')).toBe('false')
+    expect(screen.getByText('Resumen rechazado')).toBeDefined()
+  })
+
+  it('equipo de tres con estimado dos permite conservar/aumentar y rechaza reducir', async () => {
+    initiativesService.getById.mockResolvedValue({ data: { ...initiative, estimatedMembers: 2, memberCount: 3 } })
+    mount({ edit: true })
+    await screen.findByRole('form')
+    const estimate = screen.getByLabelText('Estimación de integrantes')
+    expect(estimate.min).toBe('1')
+    fireEvent.blur(estimate)
+    expect(estimate.getAttribute('aria-invalid')).toBe('false')
+    fireEvent.change(estimate, { target: { value: '4' } })
+    expect(estimate.getAttribute('aria-invalid')).toBe('false')
+    fireEvent.change(estimate, { target: { value: '1' } })
+    expect(screen.getByText('No puede reducirse por debajo de los miembros activos.')).toBeDefined()
+    fireEvent.submit(screen.getByRole('form'))
+    expect(initiativesService.update).not.toHaveBeenCalled()
+    fireEvent.change(estimate, { target: { value: '2' } })
+    fireEvent.submit(screen.getByRole('form'))
+    await screen.findByText(`Destino /iniciativas/${id} · updated ·`)
   })
 })

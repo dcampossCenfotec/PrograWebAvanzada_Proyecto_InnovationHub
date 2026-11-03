@@ -402,3 +402,25 @@ Selector de competencias controladas por catálogo/ID, aviso inmediato de duplic
 - [ ] Revisión cruzada de Francisco.
 
 La verificación automatizada de diálogos usa simulación de `showModal/close` en jsdom; no demuestra apariencia ni comportamiento nativo completo. Se conserva el ancho global de formularios aprobado en UI08. UI08 se publicó en `dafc19c`; Daniel autorizó el commit/push de UI09. Esto no afirma ejecución individual de todas las pruebas visuales ni sustituye la revisión cruzada de Francisco. UI10 sigue pendiente para validación tras interacción, contadores generales y avisos de éxito de una sola lectura.
+
+
+## Verificación y cierre UI10
+
+Validación por campo al salir y mientras se corrige, con estado de interacción/intento de envío. Se recalcula solo el error afectado y se conservan los de otros campos; los errores de API no desaparecen al salir sin editar. Contadores de los cinco textos contractuales usan la misma normalización/longitud que payload y servidor. El texto que excede el máximo permanece íntegro y bloquea el guardado, sin truncamiento silencioso.
+
+Los errores de guardado se muestran junto a las acciones y conservan valores. El éxito se presenta tras la lectura nueva del destino, enfoca su aviso y consume únicamente `initiativeOperation` de la entrada histórica, sin repetirlo al volver/recargar. Se conserva el ancho completo de formularios. No hay cambios de API, modelo, dependencias ni variables de entorno.
+
+Primeras comprobaciones detectaron dos aserciones antiguas que esperaban el aviso antes de recibir el listado. Se actualizaron a la nueva espera de datos. La prueba de filtro/Atrás detectó una clave duplicada entre aviso y filtros; se corrigió con prefijo propio. Las aserciones de foco esperan ahora el efecto de React antes de comprobarlo. La primera integración de detalle aprobó ocho casos y falló en esa espera de foco; tras ajustarla, se restauró test y las tres suites completas aprobaron en serie. Un intento desde la carpeta incorrecta y otro sin permisos del enlace node_modules no llegaron a ejecutar pruebas; se corrigieron ruta y permisos.
+
+- [x] 190 pruebas de cliente aprobadas (25 casos nuevos); 23 integraciones separadas omitidas en suite general.
+- [x] ESLint y build aprobados, 148 módulos y los cuatro avisos conocidos Sass `@import`.
+- [x] Cinco textos: vacío, mínimo−1, mínimo, máximo y máximo+1; espacios exteriores, saltos internos y UTF-16, sin pérdida del texto pegado.
+- [x] Corrección aislada, foco al primer inválido, persistencia de errores ajenos y errores API hasta editar su campo.
+- [x] Fallos `400/409/500/red` conservan datos, no anuncian éxito y muestran panel cerca de guardar.
+- [x] Avisos: espera de lectura, foco, conservación de otros datos de navegación, reemplazo sin entrada nueva, Atrás/Adelante, recarga simulada, StrictMode y filtro/Atrás.
+- [x] 23 integraciones reales aprobadas en serie con fixtures limpios: catálogo 3, detalle 9 y formulario 11. Incluyen normalización/límites en servidor sin escrituras ante rechazo, avisos de una sola lectura y D06 con dos estimados/tres activos.
+- [x] API temporal 3002 detenida tras verificar; se modificó solo innovation_hub_test. La base de desarrollo y sus procesos permanecieron intactos.
+- [x] Daniel confirmó el recorrido UI10 entregado en la conversación y autorizó commit/push. Esta confirmación no sustituye la revisión cruzada ni afirma medidas visuales adicionales.
+- [ ] Revisión cruzada de Francisco.
+
+UI09 publicada en `73f82ae`. Daniel confirmó UI10 y solicitó commit/push. Con este cierre completa sus 19 tareas de implementación; sigue preparar el handoff documental explícito a Francisco, cuya revisión cruzada sigue pendiente. Los pasos manuales se entregan exclusivamente en la conversación, sin guía .md nueva.

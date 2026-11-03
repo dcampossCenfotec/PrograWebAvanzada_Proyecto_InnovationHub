@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { authService } from '../../api/services/auth.js'
@@ -8,6 +8,7 @@ import { AuthContext } from '../../auth/auth-context.js'
 import { CatalogPage } from './CatalogPage.jsx'
 import { InitiativeDetailPage } from './InitiativeDetailPage.jsx'
 import { InitiativeFormPage } from './InitiativeFormPage.jsx'
+import { initiativeToValues, toInitiativePayload } from './editor.js'
 
 const enabled = import.meta.env.VITE_RUN_API_INTEGRATION === 'true'
 const showModal = HTMLDialogElement.prototype.showModal
@@ -32,8 +33,9 @@ function mount(entry, auth) {
     { path: '/iniciativas/:id/editar', element: <InitiativeFormPage edit /> },
     { path: '/iniciativas/:id', element: <InitiativeDetailPage /> },
     { path: '/iniciativas', element: <CatalogPage /> },
+    { path: '/otra', element: <p>Otra página</p> },
   ], { initialEntries: [entry] })
-  return render(<AuthContext.Provider value={auth}><RouterProvider router={router} /></AuthContext.Provider>)
+  return { ...render(<AuthContext.Provider value={auth}><RouterProvider router={router} /></AuthContext.Provider>), router }
 }
 async function fill(title) {
   await screen.findByRole('form', { name: 'Publicar iniciativa' }, { timeout: 10000 })
@@ -66,7 +68,7 @@ describe.skipIf(!enabled)('UI08 con React, Express y MongoDB reales', () => {
     const form = screen.getByRole('form', { name: 'Publicar iniciativa' })
     fireEvent.submit(form); fireEvent.submit(form)
     const notice = await screen.findByText('La iniciativa se publicó correctamente.', {}, { timeout: 10000 })
-    expect(document.activeElement).toBe(notice)
+    await waitFor(() => expect(document.activeElement).toBe(notice))
     const catalogue = await initiativesService.list({ q: title, size: 50 })
     expect(catalogue.pagination.total).toBe(1)
     const saved = (await initiativesService.getById(catalogue.data[0].id)).data
@@ -91,7 +93,7 @@ describe.skipIf(!enabled)('UI08 con React, Express y MongoDB reales', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Agregar etiqueta' }))
     fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
     const notice = await screen.findByText('Los cambios de la iniciativa se guardaron correctamente.', {}, { timeout: 10000 })
-    expect(document.activeElement).toBe(notice)
+    await waitFor(() => expect(document.activeElement).toBe(notice))
     const after = (await initiativesService.getById(before.id)).data
     expect(after.id).toBe(before.id)
     expect(after.owner.id).toBe(before.owner.id)
@@ -199,4 +201,74 @@ describe.skipIf(!enabled)('UI08 con React, Express y MongoDB reales', () => {
     await screen.findByRole('heading', { name: 'La iniciativa archivada no puede editarse' }, { timeout: 10000 })
     expect(screen.queryByRole('form')).toBeNull()
   })
+
+  it('UI10: creación normaliza espacios y el aviso no reaparece en historial ni al remontar', async () => {
+    const auth = await login()
+    const app = mount('/iniciativas/nueva', auth)
+    await fill('  Prueba UI10 retorno único  ')
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar iniciativa' }))
+    const notice = await screen.findByText('La iniciativa se publicó correctamente.', {}, { timeout: 10000 })
+    await waitFor(() => expect(document.activeElement).toBe(notice))
+    await waitFor(() => expect(app.router.state.location.state).toBeNull())
+    const result = await initiativesService.list({ q: 'Prueba UI10 retorno único', size: 50 })
+    expect(result.pagination.total).toBe(1)
+    expect(result.data[0].title).toBe('Prueba UI10 retorno único')
+    await act(async () => app.router.navigate('/otra'))
+    await act(async () => app.router.navigate(-1))
+    await screen.findByRole('link', { name: 'Ver detalle de Prueba UI10 retorno único' }, { timeout: 10000 })
+    expect(screen.queryByText('La iniciativa se publicó correctamente.')).toBeNull()
+    const entry = app.router.state.location.pathname
+    app.unmount()
+    mount(entry, auth)
+    await screen.findByRole('link', { name: 'Ver detalle de Prueba UI10 retorno único' }, { timeout: 10000 })
+    expect(screen.queryByText('La iniciativa se publicó correctamente.')).toBeNull()
+  })
+
+  it('UI10: límites del servidor coinciden con textos normalizados y rechazos no escriben', async () => {
+    await login()
+    const before = (await initiativesService.create({ ...input, title: 'Prueba UI10 límites reales' })).data
+    for (const [field, min, max] of [['title', 5, 100], ['summary', 15, 240], ['description', 20, 2000], ['problem', 10, 500], ['beneficiaries', 3, 150]]) {
+      for (const length of [0, min - 1, max + 1]) {
+        const prior = (await initiativesService.getById(before.id)).data
+        await expect(initiativesService.update(before.id, { ...input, [field]: `  ${'á'.repeat(length)}  ` })).rejects.toMatchObject({ status: 400, fields: { [field]: expect.any(String) } })
+        expect((await initiativesService.getById(before.id)).data).toEqual(prior)
+      }
+      for (const length of [min, max]) {
+        const saved = (await initiativesService.update(before.id, { ...input, [field]: `  ${'á'.repeat(length)}  ` })).data
+        expect(saved[field]).toBe('á'.repeat(length))
+      }
+    }
+  })
+
+  it('UI10: editar con estimado superado mantiene dos, rechaza reducir y permite aumento real', async () => {
+    const auth = await login()
+    const id = '10000000-0000-4000-8000-000000000008'
+    const before = (await initiativesService.getById(id)).data
+    expect(before.estimatedMembers).toBe(2)
+    expect(before.memberCount).toBe(3)
+    const app = mount(`/iniciativas/${id}/editar`, auth)
+    await screen.findByRole('form', { name: 'Editar iniciativa' }, { timeout: 10000 })
+    fireEvent.change(screen.getByLabelText('Título'), { target: { value: 'Orientación laboral revisada UI10' } })
+    const estimate = screen.getByLabelText('Estimación de integrantes')
+    fireEvent.change(estimate, { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+    expect(screen.getByText('No puede reducirse por debajo de los miembros activos.')).toBeDefined()
+    expect((await initiativesService.getById(id)).data).toEqual(before)
+    await expect(initiativesService.update(id, { ...toInitiativePayload(initiativeToValues(before)), estimatedMembers: 1 })).rejects.toMatchObject({ status: 400 })
+    fireEvent.change(estimate, { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+    await screen.findByText('Los cambios de la iniciativa se guardaron correctamente.', {}, { timeout: 10000 })
+    const saved = (await initiativesService.getById(id)).data
+    expect(saved).toMatchObject({ title: 'Orientación laboral revisada UI10', estimatedMembers: 2, memberCount: 3, availableSpaces: 0 })
+    expect(saved.createdAt).toBe(before.createdAt)
+    expect(saved.owner.id).toBe(before.owner.id)
+    await waitFor(() => expect(app.router.state.location.state).toBeNull())
+    await act(async () => app.router.navigate(`/iniciativas/${id}/editar`))
+    await screen.findByRole('form', { name: 'Editar iniciativa' }, { timeout: 10000 })
+    fireEvent.change(screen.getByLabelText('Estimación de integrantes'), { target: { value: '4' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+    await screen.findByText('Los cambios de la iniciativa se guardaron correctamente.', {}, { timeout: 10000 })
+    expect((await initiativesService.getById(id)).data).toMatchObject({ estimatedMembers: 4, memberCount: 3, availableSpaces: 1 })
+  })
+
 })

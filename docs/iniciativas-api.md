@@ -96,3 +96,12 @@ El cliente mantiene competencias como IDs y etiquetas como chips con claves loca
 La normalización de duplicados de etiquetas coincide con la API (trim, mayúsculas y tildes). El texto pendiente de agregar bloquea el guardado y participa en la protección de descarte; ni `tagDraft` ni claves locales viajan en POST/PUT. La API y su contrato no cambian en UI09: se mantiene la defensa de duplicados en servidor, verificada contra MongoDB real sin modificación del último estado válido.
 
 Evidencia acumulada UI09: 165 pruebas de cliente, lint/build (148 módulos) y 20 integraciones React/Express/MongoDB (3 catálogo, 9 detalle y 8 formulario). Solo se modificó la base de test. La revisión visual/manual de Daniel y la revisión cruzada están pendientes.
+
+
+## Validación y retornos del formulario (UI10)
+
+El cliente valida tras salir del campo y durante la corrección, o todos los campos al enviar. Un cambio recalcula solo su error y mantiene los demás; los errores de API se conservan al salir sin cambiar el valor. Contadores, límites y payload usan trim/longitud UTF-16 como la API. Los cinco textos contractuales conservan entradas pegadas que excedan el máximo, muestran cuánto sobra y bloquean envío sin recortarlas.
+
+Errores `400/409/500/red` conservan valores y muestran un panel cercano a guardar; se enfoca el primer campo informado o el panel, sin mover foco por cada tecla. El éxito de POST/PUT lleva a catálogo/detalle y espera su consulta nueva. El aviso se enfoca y consume del estado histórico mediante reemplazo, sin borrar otros datos de navegación ni reaparecer al recargar/Atrás/Adelante. Si falla la lectura, su reintento solo consulta; no repite la mutación.
+
+El cliente y servidor permiten conservar estimado dos con tres miembros, impiden reducirlo a uno y permiten aumentarlo. Evidencia acumulada UI10: 190 pruebas cliente, lint/build (148 módulos) y 23 integraciones reales en serie (3 catálogo, 9 detalle, 11 formulario). Límites del servidor comprueban vacío/mínimo−1/máximo+1 sin modificar registro, y mínimos/máximos válidos normalizados. Se modificó exclusivamente innovation_hub_test y se detuvo API3002. Daniel confirmó la revisión manual de UI10 y autorizó commit/push; revisión cruzada pendiente. Sin cambios de endpoints o modelo ni guía manual adicional.

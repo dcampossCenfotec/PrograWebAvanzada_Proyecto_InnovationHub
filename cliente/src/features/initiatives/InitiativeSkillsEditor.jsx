@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import ConfirmDialog from '../../components/ConfirmDialog.jsx'
 
-export function InitiativeSkillsEditor({ skills, initialSkills = [], value, onChange, error, disabled = false }) {
+export function InitiativeSkillsEditor({ skills, initialSkills = [], value, onChange, error, onBlur, disabled = false }) {
   const [candidate, setCandidate] = useState('')
   const [localError, setLocalError] = useState('')
   const [removal, setRemoval] = useState(null)
@@ -42,7 +42,7 @@ export function InitiativeSkillsEditor({ skills, initialSkills = [], value, onCh
 
   const message = localError || error
   return (
-    <fieldset aria-describedby="initiative-skillIds-description" aria-invalid={Boolean(message)} className="initiative-form__group" id="initiative-skillIds" tabIndex="-1">
+    <fieldset aria-describedby="initiative-skillIds-description" aria-invalid={Boolean(message)} className="initiative-form__group" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) onBlur?.() }} id="initiative-skillIds" tabIndex="-1">
       <legend className="h5">Competencias requeridas</legend>
       <p className={`form-text${message ? ' text-danger' : ''}`} id="initiative-skillIds-description" role={message ? 'alert' : undefined}>{message || `${value.length}/10 competencias. Agrega al menos una desde el catálogo.`}</p>
       <label className="form-label" htmlFor="initiative-new-skill">Competencia por agregar</label>

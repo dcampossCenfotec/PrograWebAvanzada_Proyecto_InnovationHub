@@ -177,11 +177,11 @@ El formulario controla los once campos editables:
 | Visibilidad | Pública, Institucional, Restringida o Privada, con explicación visible. |
 | Etiquetas | Opcionales, chips individuales; hasta 10 de 1–40 caracteres, sin duplicados. |
 
-UI09 reemplaza las casillas por selección desde catálogo y lista de competencias por ID, con confirmación al quitar. Las etiquetas se agregan como chips con claves estables y conservan comas/texto interno. UI10 completa validación tras interacción, contadores de campos de texto y revisión final de destinos; la validación básica contractual ya funciona al enviar.
+UI09 reemplaza las casillas por selección desde catálogo y lista de competencias por ID, con confirmación al quitar. Las etiquetas se agregan como chips con claves estables y conservan comas/texto interno. UI10 agrega validación tras interacción, contadores de campos de texto y confirmación única en destinos; Daniel confirmó su revisión manual y autorizó su publicación; la revisión cruzada sigue pendiente.
 
 POST publica directamente como `published` y vuelve al catálogo con aviso de éxito enfocado. PUT envía el reemplazo completo y vuelve al detalle actualizado con aviso enfocado. No se envían propietario, estado, ID, fechas, conteos ni capacidades; la API los conserva o calcula. MongoDB es la persistencia: el formulario solo mantiene cambios temporales en memoria, sin guardarlos en localStorage/sessionStorage ni crear borradores.
 
-Durante guardado se deshabilitan controles y envío, con protección por referencia contra doble confirmación. Fallos `400/409/red` no navegan ni limpian valores; errores de campos de la API se asocian a sus controles. Una pérdida de permiso retira el formulario. Un resultado incierto de publicación no se reenvía automáticamente: se recomienda revisar Mis iniciativas antes de repetir para evitar duplicados. Sin categoría o competencia disponible no se permite publicar; fallos de carga ofrecen reintento.
+Durante guardado se deshabilitan controles y envío, con protección por referencia contra doble confirmación. Fallos `400/409/500/red` no navegan ni limpian valores; errores de campos de la API se asocian a sus controles. Una pérdida de permiso retira el formulario. Un resultado incierto de publicación no se reenvía automáticamente: se recomienda revisar Mis iniciativas antes de repetir para evitar duplicados. Sin categoría o competencia disponible no se permite publicar; fallos de carga ofrecen reintento.
 
 Cancelar sin cambios vuelve a catálogo o detalle según modo. Con cambios, Cancelar, otro enlace interno o Atrás abren la confirmación de descarte mediante React Router. Seguir editando conserva valores; Descartar y salir ejecuta la navegación pendiente sin guardar. Recargar/cerrar usa el aviso nativo del navegador, cuyo texto y aparición dependen del navegador. Durante un guardado no se permite descartar; al confirmar éxito prevalece el destino de guardado. Las rutas usan el router de datos de la aplicación, requerido por `useBlocker`.
 
@@ -207,6 +207,26 @@ Cada chip tiene un botón con nombre accesible para quitar solo esa etiqueta. Al
 
 La edición reconstruye lista y chips desde los IDs/arreglos del DTO. Durante guardado todos los controles quedan deshabilitados. La misma validación de duplicados existe en la API: manipular el cliente no permite persistir competencias o etiquetas repetidas. La suite real del formulario incluye guardar/volver a editar colecciones, defensas de API y etiqueta pendiente sin publicación accidental.
 
+## Validación y confirmación de guardado (UI10)
+
+Los campos se validan al salir por primera vez y mientras se corrigen después. Intentar enviar valida todo y enfoca el primer control inválido; corregir solo un campo conserva los errores de los demás. El foco no se mueve por cada tecla. Un error de campo devuelto por la API permanece al salir sin editar; al cambiar ese campo se recalcula su regla local, y el servidor vuelve a validarlo al guardar.
+
+| Campo | Mínimo | Máximo |
+| --- | --- | --- |
+| Título | 5 | 100 |
+| Resumen | 15 | 240 |
+| Descripción | 20 | 2000 |
+| Problema que atiende | 10 | 500 |
+| Personas beneficiarias | 3 | 150 |
+
+Contadores, reglas y payload usan `trim()` y longitud UTF-16 (`String.length`), igual que la API. Los espacios exteriores no cuentan, los saltos internos permanecen; un emoji puede ocupar dos unidades. Cada texto indica longitud/máximo y cuánto falta, queda o sobra. Los textos pegados que exceden el límite se conservan íntegros para corregirlos; no se recortan con `maxlength` ni se envían mientras sean inválidos. El contador sigue disponible junto al error y ambos están asociados mediante `aria-describedby`.
+
+Errores de guardado se presentan cerca de los botones, con valores intactos: `400` permite corregir campos, `409` pide consultar el estado y `500/red` informa resultado incierto sin repetir automáticamente la escritura. El foco va al primer campo informado por la API o al panel de error. Las pérdidas `401/403/404` retiran el formulario.
+
+POST confirmado navega al catálogo; PUT confirmado al detalle. Ambas pantallas consultan datos frescos antes del aviso de éxito visible, enfocado y `aria-live="polite"`. El aviso se conserva en memoria durante ese montaje, pero se elimina `initiativeOperation` de la entrada histórica mediante reemplazo, preservando los demás datos, ruta, query y hash. No se añade otra entrada ni se repite éxito al recargar, navegar Atrás/Adelante o volver después de filtrar. Si falla la consulta del destino, se presenta el error de lectura y no un aviso de éxito sobre datos antiguos; se puede reintentar la consulta sin repetir la escritura.
+
+Mantener una estimación de dos con tres miembros sigue siendo válido. Reducirla a uno se rechaza; aumentarla se permite. El mínimo HTML permanece en uno y los espacios disponibles nunca son negativos. Estas reglas corrigen E21/E23 (validación/corrección visible) y E21/E22 (retornos y confirmación tras guardar).
+
 ## Alcance actual
 
 - Todas las rutas acordadas se resuelven mediante React Router.
@@ -216,7 +236,7 @@ La edición reconstruye lista y chips desde los IDs/arreglos del DTO. Durante gu
 - Registro, login, restauración de sesión, rutas protegidas y logout revocable están implementados.
 - Perfil propio, perfiles públicos y directorio filtrado/paginado están implementados.
 - La infraestructura HTTP y sus estados de consulta están disponibles para las demás tareas funcionales.
-- Catálogo, listado propio, detalle y eliminación/archivo de iniciativas implementados; formulario disponible en UI08 y competencias/chips en UI09; refinamientos de validación pendientes de UI10.
+- Catálogo, listado propio, detalle y eliminación/archivo de iniciativas implementados; formulario disponible en UI08 y competencias/chips en UI09; validación y avisos UI10 implementados y aprobados por Daniel; revisión cruzada pendiente.
 - Solicitudes y proyectos todavía dependen de sus tareas funcionales.
 
 El contrato HTTP común está en [`../docs/api-contract.md`](../docs/api-contract.md). La guía general de ejecución se mantiene en el [`README.md` raíz](../README.md).

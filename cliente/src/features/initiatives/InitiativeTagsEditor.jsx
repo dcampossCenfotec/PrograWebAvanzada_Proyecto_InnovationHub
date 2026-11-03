@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { initiativeTagKey } from './editor.js'
 
-export function InitiativeTagsEditor({ value, onChange, draft, onDraftChange, error, disabled = false }) {
+export function InitiativeTagsEditor({ value, onChange, draft, onDraftChange, error, onBlur, disabled = false }) {
   const [localError, setLocalError] = useState('')
   const inputRef = useRef(null)
   const focusTarget = useRef(null)
@@ -39,7 +39,7 @@ export function InitiativeTagsEditor({ value, onChange, draft, onDraftChange, er
   }
 
   return (
-    <fieldset aria-describedby="initiative-tags-description" aria-invalid={Boolean(message)} className="initiative-form__group" id="initiative-tags" tabIndex="-1">
+    <fieldset aria-describedby="initiative-tags-description" aria-invalid={Boolean(message)} className="initiative-form__group" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) onBlur?.() }} id="initiative-tags" tabIndex="-1">
       <legend className="h5">Etiquetas (opcional)</legend>
       <p className={`form-text${message ? ' text-danger' : ''}`} id="initiative-tags-description" role={message ? 'alert' : undefined}>{message || `${value.length}/10 etiquetas. Escribe una etiqueta y agrégala con Enter o el botón; las comas forman parte de la etiqueta.`}</p>
       <label className="form-label" htmlFor="initiative-new-tag">Etiqueta por agregar</label>

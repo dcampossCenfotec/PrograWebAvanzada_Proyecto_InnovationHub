@@ -251,8 +251,28 @@ describe('aviso tras eliminar o archivar', () => {
     ['archived', 'La iniciativa se archivó y su historial se conserva.'],
   ])('muestra y enfoca el resultado %s confirmado por la API', async (operation, message) => {
     renderCatalog({ auth: ownerAuth, entry: { pathname: '/mis-iniciativas', state: { initiativeOperation: operation } } })
-    const notice = screen.getByText(message)
+    const notice = await screen.findByText(message)
     expect(document.activeElement).toBe(notice)
     await screen.findByRole('heading', { name: 'Huertos escolares' })
+  })
+})
+
+describe('UI10: confirmación después de consulta nueva', () => {
+  it('espera el listado actualizado, enfoca y no repite el aviso tras filtros/Atrás', async () => {
+    const pending = deferred()
+    initiativesService.list.mockReturnValueOnce(pending.promise).mockResolvedValue(payload())
+    renderCatalog({ auth: ownerAuth, entry: { pathname: '/iniciativas', state: { initiativeOperation: 'created' } } })
+    expect(screen.queryByText('La iniciativa se publicó correctamente.')).toBeNull()
+    await act(async () => pending.resolve(payload()))
+    const notice = await screen.findByText('La iniciativa se publicó correctamente.')
+    expect(document.activeElement).toBe(notice)
+    expect(initiativesService.list).toHaveBeenCalledTimes(1)
+    fireEvent.change(screen.getByLabelText('Buscar iniciativas'), { target: { value: 'huertos' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
+    await waitFor(() => expect(initiativesService.list).toHaveBeenLastCalledWith(expect.objectContaining({ q: 'huertos' }), expect.anything()))
+    expect(screen.queryByText('La iniciativa se publicó correctamente.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Atrás' }))
+    await waitFor(() => expect(screen.getByLabelText('Buscar iniciativas').value).toBe(''))
+    expect(screen.queryByText('La iniciativa se publicó correctamente.')).toBeNull()
   })
 })

@@ -9,16 +9,26 @@ import { TYPE_OPTIONS, VISIBILITY_LABELS } from './catalog.js'
 import { InitiativeSkillsEditor } from './InitiativeSkillsEditor.jsx'
 import { InitiativeTagsEditor } from './InitiativeTagsEditor.jsx'
 import { isInitiativeId } from './detail.js'
-import { INITIATIVE_TEXT_RULES, initiativeEditorSnapshot, initiativeToValues, toInitiativePayload, validateInitiativeEditor } from './editor.js'
+import { INITIATIVE_TEXT_RULES, initiativeEditorSnapshot, initiativeTextLength, initiativeToValues, toInitiativePayload, validateInitiativeEditor } from './editor.js'
 
 const fieldId = (name) => `initiative-${name}`
+
+function InitiativeTextField({ name, rule, value, error, onChange, onBlur }) {
+  const length = initiativeTextLength(value)
+  const remaining = length < rule.min ? `faltan ${rule.min - length} para el mínimo`
+    : length > rule.max ? `sobran ${length - rule.max}` : `quedan ${rule.max - length}`
+  const props = { className: `form-control${error ? ' is-invalid' : ''}`, name, onBlur, onChange: (event) => onChange(event.target.value), required: true, value }
+  return <FormField counter={`${length}/${rule.max} caracteres · ${remaining}.`} error={error} hint={`Entre ${rule.min} y ${rule.max} caracteres.`} id={fieldId(name)} label={rule.label}>
+    {(inputProps) => rule.rows ? <textarea {...inputProps} {...props} rows={rule.rows} /> : <input {...inputProps} {...props} />}
+  </FormField>
+}
 
 export function InitiativeEditor({ initiative, categories, skills }) {
   const editing = Boolean(initiative)
   const navigate = useNavigate()
-  const [values, setValues] = useState(() => initiativeToValues(initiative))
+  const [form, setForm] = useState(() => ({ values: initiativeToValues(initiative), fields: {}, serverFields: {}, touched: {}, attempted: false }))
+  const { values, fields } = form
   const [baseline] = useState(() => initiativeEditorSnapshot(values))
-  const [fields, setFields] = useState({})
   const [requestError, setRequestError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const submittingRef = useRef(false)
@@ -56,8 +66,23 @@ export function InitiativeEditor({ initiative, categories, skills }) {
   }, [permissionLost, requestError])
 
   function change(name, value) {
-    setValues((current) => ({ ...current, [name]: value }))
-    setFields((current) => ({ ...current, [name === 'tagDraft' ? 'tags' : name]: undefined }))
+    const field = name === 'tagDraft' ? 'tags' : name
+    setForm((current) => {
+      const next = { ...current.values, [name]: value }
+      const errors = validateInitiativeEditor(next, { categories, skills, initiative })
+      return {
+        ...current, values: next,
+        serverFields: { ...current.serverFields, [field]: undefined },
+        fields: { ...current.fields, [field]: current.touched[field] || current.attempted ? errors[field] : undefined },
+      }
+    })
+  }
+
+  function blur(name) {
+    setForm((current) => ({
+      ...current, touched: { ...current.touched, [name]: true },
+      fields: { ...current.fields, [name]: current.serverFields[name] ?? validateInitiativeEditor(current.values, { categories, skills, initiative })[name] },
+    }))
   }
 
   function focusFirstError(errors) {
@@ -68,7 +93,7 @@ export function InitiativeEditor({ initiative, categories, skills }) {
     event.preventDefault()
     if (submittingRef.current || permissionLost) return
     const errors = validateInitiativeEditor(values, { categories, skills, initiative })
-    setFields(errors)
+    setForm((current) => ({ ...current, fields: errors, serverFields: {}, attempted: true }))
     setRequestError(null)
     if (Object.keys(errors).length) { focusFirstError(errors); return }
     submittingRef.current = true
@@ -89,7 +114,7 @@ export function InitiativeEditor({ initiative, categories, skills }) {
     } catch (error) {
       if (!active.current || isAbortError(error)) return
       const safeFields = Object.fromEntries(Object.entries(error.fields ?? {}).filter(([, message]) => typeof message === 'string'))
-      setFields(safeFields)
+      setForm((current) => ({ ...current, fields: safeFields, serverFields: safeFields }))
       setRequestError(error)
     } finally {
       submittingRef.current = false
@@ -102,45 +127,44 @@ export function InitiativeEditor({ initiative, categories, skills }) {
       : requestError?.status === 409 ? 'La iniciativa cambió o su estado impide guardar. Lo escrito permanece en el formulario; consulta el detalle antes de volver a guardar.'
         : `No se pudo confirmar el guardado. Lo escrito permanece en el formulario.${editing ? '' : ' Revisa Mis iniciativas antes de volver a publicar para evitar duplicados.'}`
 
+  const errorPanel = requestError ? <div ref={errorRef} tabIndex="-1"><StatusPanel title="No fue posible guardar la iniciativa" variant="error"><p>{errorMessage}</p>{!permissionLost && ![400, 409].includes(requestError.status) ? <button className="btn btn-outline-primary" onClick={() => navigate('/mis-iniciativas')} type="button">Revisar Mis iniciativas</button> : null}</StatusPanel></div> : null
+
   return (
     <>
-      {requestError ? <div ref={errorRef} tabIndex="-1"><StatusPanel title="No fue posible guardar la iniciativa" variant="error"><p>{errorMessage}</p>{!permissionLost && ![400, 409].includes(requestError.status) ? <button className="btn btn-outline-primary" onClick={() => navigate('/mis-iniciativas')} type="button">Revisar Mis iniciativas</button> : null}</StatusPanel></div> : null}
+      {permissionLost ? errorPanel : null}
       {!permissionLost ? (
         <form aria-label={editing ? 'Editar iniciativa' : 'Publicar iniciativa'} className="card shadow-sm initiative-form" noValidate onSubmit={submit}>
           <div className="card-body p-4 p-lg-5">
-            <p className="text-secondary">Todos los campos son obligatorios, excepto las etiquetas.</p>
+            <p className="text-secondary">Todos los campos son obligatorios, excepto las etiquetas. Los espacios al inicio y al final de los textos no cuentan para sus límites.</p>
             <fieldset disabled={submitting}>
               <legend className="h4 mb-4">Información de la iniciativa</legend>
-              {Object.entries(INITIATIVE_TEXT_RULES).map(([name, rule]) => (
-                <FormField error={fields[name]} hint={`Entre ${rule.min} y ${rule.max} caracteres.`} id={fieldId(name)} key={name} label={rule.label}>
-                  {(inputProps) => rule.rows ? <textarea {...inputProps} className={`form-control${fields[name] ? ' is-invalid' : ''}`} maxLength={rule.max} minLength={rule.min} name={name} onChange={(event) => change(name, event.target.value)} required rows={rule.rows} value={values[name]} /> : <input {...inputProps} className={`form-control${fields[name] ? ' is-invalid' : ''}`} maxLength={rule.max} minLength={rule.min} name={name} onChange={(event) => change(name, event.target.value)} required value={values[name]} />}
-                </FormField>
-              ))}
+              {Object.entries(INITIATIVE_TEXT_RULES).map(([name, rule]) => <InitiativeTextField error={fields[name]} key={name} name={name} onBlur={() => blur(name)} onChange={(value) => change(name, value)} rule={rule} value={values[name]} />)}
               <div className="row g-3">
                 <div className="col-12 col-md-6">
                   <FormField error={fields.type} id={fieldId('type')} label="Tipo de iniciativa">
-                    {(inputProps) => <select {...inputProps} className="form-select" name="type" onChange={(event) => change('type', event.target.value)} required value={values.type}>{TYPE_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>}
+                    {(inputProps) => <select {...inputProps} className="form-select" name="type" onBlur={() => blur('type')} onChange={(event) => change('type', event.target.value)} required value={values.type}>{TYPE_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>}
                   </FormField>
                 </div>
                 <div className="col-12 col-md-6">
                   <FormField error={fields.categoryId} id={fieldId('categoryId')} label="Categoría">
-                    {(inputProps) => <select {...inputProps} className="form-select" name="categoryId" onChange={(event) => change('categoryId', event.target.value)} required value={values.categoryId}><option value="">Selecciona una categoría</option>{values.categoryId && !categories.some(({ id }) => id === values.categoryId) ? <option disabled value={values.categoryId}>Categoría anterior no disponible</option> : null}{categories.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}</select>}
+                    {(inputProps) => <select {...inputProps} className="form-select" name="categoryId" onBlur={() => blur('categoryId')} onChange={(event) => change('categoryId', event.target.value)} required value={values.categoryId}><option value="">Selecciona una categoría</option>{values.categoryId && !categories.some(({ id }) => id === values.categoryId) ? <option disabled value={values.categoryId}>Categoría anterior no disponible</option> : null}{categories.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}</select>}
                   </FormField>
                 </div>
                 <div className="col-12 col-md-6">
                   <FormField error={fields.estimatedMembers} hint="Es una estimación, no un cupo máximo. Incluye al propietario." id={fieldId('estimatedMembers')} label="Estimación de integrantes">
-                    {(inputProps) => <input {...inputProps} className="form-control" inputMode="numeric" max="100" min="1" name="estimatedMembers" onChange={(event) => change('estimatedMembers', event.target.value)} required step="1" type="number" value={values.estimatedMembers} />}
+                    {(inputProps) => <input {...inputProps} className="form-control" inputMode="numeric" max="100" min="1" name="estimatedMembers" onBlur={() => blur('estimatedMembers')} onChange={(event) => change('estimatedMembers', event.target.value)} required step="1" type="number" value={values.estimatedMembers} />}
                   </FormField>
                 </div>
                 <div className="col-12 col-md-6">
                   <FormField error={fields.visibility} hint="Pública: cualquiera. Institucional: con sesión. Restringida: resumen visible con sesión; detalle solo para equipo/propietario. Privada: solo equipo/propietario." id={fieldId('visibility')} label="Visibilidad">
-                    {(inputProps) => <select {...inputProps} className="form-select" name="visibility" onChange={(event) => change('visibility', event.target.value)} required value={values.visibility}>{Object.entries(VISIBILITY_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>}
+                    {(inputProps) => <select {...inputProps} className="form-select" name="visibility" onBlur={() => blur('visibility')} onChange={(event) => change('visibility', event.target.value)} required value={values.visibility}>{Object.entries(VISIBILITY_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>}
                   </FormField>
                 </div>
               </div>
-              <InitiativeSkillsEditor disabled={submitting} error={fields.skillIds} initialSkills={initiative?.skills} onChange={(ids) => change('skillIds', ids)} skills={skills} value={values.skillIds} />
-              <InitiativeTagsEditor disabled={submitting} draft={values.tagDraft} error={fields.tags} onChange={(tags) => change('tags', tags)} onDraftChange={(draft) => change('tagDraft', draft)} value={values.tags} />
+              <InitiativeSkillsEditor disabled={submitting} error={fields.skillIds} initialSkills={initiative?.skills} onBlur={() => blur('skillIds')} onChange={(ids) => change('skillIds', ids)} skills={skills} value={values.skillIds} />
+              <InitiativeTagsEditor disabled={submitting} draft={values.tagDraft} error={fields.tags} onBlur={() => blur('tags')} onChange={(tags) => change('tags', tags)} onDraftChange={(draft) => change('tagDraft', draft)} value={values.tags} />
             </fieldset>
+            {errorPanel}
             <div className="d-flex flex-wrap justify-content-end gap-2 mt-4">
               <button className="btn btn-outline-secondary" disabled={submitting} onClick={() => navigate(cancelDestination)} type="button">Cancelar</button>
               <button className="btn btn-primary" disabled={submitting} type="submit">{submitting ? 'Guardando…' : editing ? 'Guardar cambios' : 'Publicar iniciativa'}</button>

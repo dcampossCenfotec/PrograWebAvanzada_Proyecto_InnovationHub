@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { authService } from '../../api/services/auth.js'
@@ -92,7 +92,7 @@ describe.skipIf(!enabled)('UI07 con Express y MongoDB reales', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar iniciativa' }))
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Eliminar definitivamente' }))
     const notice = await screen.findByText('La iniciativa se eliminó definitivamente.', {}, { timeout: 10000 })
-    expect(document.activeElement).toBe(notice)
+    await waitFor(() => expect(document.activeElement).toBe(notice))
     await expect(initiativesService.getById(created.data.id)).rejects.toMatchObject({ status: 404 })
   })
   it('archiva voluntariamente una iniciativa sin historial y la conserva', async () => {
