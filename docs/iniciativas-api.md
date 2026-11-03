@@ -1,6 +1,6 @@
 # Iniciativas: API05–API07
 
-API05 se publicó en `a5df168`, API06 en `f86fea6` y API07 en `f26bd1c`. UI06 implementa catálogo/listado propio; detalle y acciones siguen pendientes de UI07–UI10. Las reglas de `docs/api-contract.md` son la fuente del HTTP. Este documento describe el consumo del módulo y la evidencia disponible.
+API05 se publicó en `a5df168`, API06 en `f86fea6` y API07 en `f26bd1c`. UI06 (`fa471e8`) implementa catálogo/listado propio; UI07 agrega detalle y eliminación/archivo. Formularios siguen pendientes de UI08–UI10. Las reglas de `docs/api-contract.md` son la fuente del HTTP. Este documento describe el consumo del módulo y la evidencia disponible.
 
 ## Consultas y expectativas
 
@@ -55,16 +55,28 @@ API06 se verificó con 54 pruebas locales y cinco integraciones seriales con Mon
 - [x] Estimados superados, conteos activos y capacidades ante solicitudes pendientes.
 - [x] Seed repetido sin duplicados y normalización de documentos de API05.
 
-UI06 consume las lecturas de catálogo y propiedad en `/iniciativas` y `/mis-iniciativas`. Los criterios y la página se reconstruyen desde la URL; los resúmenes restringidos no muestran propietario ni enlace a detalle. La ruta `/iniciativas/:id`, creación y edición continúan mostrando “Sección en preparación” hasta UI07/UI08.
+UI06 consume las lecturas de catálogo y propiedad en `/iniciativas` y `/mis-iniciativas`. Los criterios y la página se reconstruyen desde la URL; los resúmenes restringidos no muestran propietario ni enlace a detalle. UI07 consume el detalle en `/iniciativas/:id` y dos comandos independientes con confirmación y permisos: DELETE para borrar y POST `/{id}/archive` para archivar. Creación/edición y las rutas de solicitudes/conversión continúan en preparación hasta sus tareas.
 
-El fragmento importable de 27 peticiones se entrega en `pruebas/fragmentos/iniciativas.postman_collection.json`, con instrucciones y variables sin secretos en su README. Su ejecución en Postman se verifica al consolidar UI14; las integraciones HTTP anteriores sí se ejecutaron contra MongoDB real.
+El fragmento importable de 31 peticiones se entrega en `pruebas/fragmentos/iniciativas.postman_collection.json`, con instrucciones y variables sin secretos en su README. Su ejecución en Postman se verifica al consolidar UI14; las integraciones HTTP anteriores sí se ejecutaron contra MongoDB real.
 
-## API07: eliminación y archivo
+## API07: eliminación y archivo independientes (decisión actualizada en UI07)
 
-`DELETE /api/initiatives/:id` acepta solo al dueño, sin query ni cuerpo. Devuelve `204` sin JSON cuando se confirma ausencia de historial adicional. En ese caso elimina atómicamente la iniciativa y su membresía/evento automáticos. Si existió cualquier solicitud (incluidas canceladas/rechazadas), otro miembro o evento, o proyecto, devuelve `200` con `{data:{id,state:"archived",operation:"archived"}}` y conserva todas las relaciones.
+Daniel eligió separar las acciones el 3 de noviembre. Esta decisión sustituye el archivo automático implementado originalmente en `f26bd1c`. El contrato vigente tiene 27 endpoints funcionales.
 
-Se verifica que la única membresía y el único evento correspondan al ingreso automático del propietario. Una anomalía en ese conjunto o un estado `converted` obliga a archivar conservadoramente. Repetir archivo no cambia fecha/revisión; sobre una iniciativa físicamente borrada se devuelve `404`. El archivo no cancela solicitudes pendientes, mantiene la iniciativa disponible al propietario y la excluye del catálogo.
+`DELETE /api/initiatives/:id` acepta solo al dueño, sin query ni cuerpo. Devuelve `204` sin JSON al eliminar atómicamente la iniciativa y su membresía/evento automáticos. Cualquier solicitud histórica, miembro adicional o evento/proyecto produce `409 INITIATIVE_HAS_HISTORY`, sin archivo ni cambio de fechas/revisión. Una archivada puede borrarse únicamente si nunca tuvo historia adicional.
 
-La lectura de historial se hace después de escribir la revisión común dentro de la transacción. Si otro escritor confirma una relación después de que DELETE leyó su primera instantánea, ambos compiten por esa revisión; el reintento ve la relación y archiva. Si el borrado gana, el escritor reintentado encuentra `404` antes de insertar. No existe protección referencial automática frente a escrituras externas que omitan este protocolo.
+`POST /api/initiatives/:id/archive` es independiente: devuelve `200` con `{data:{id,state:"archived",operation:"archived"}}`, conserva todas las relaciones y funciona incluso sin historia adicional. Repetirlo conserva fecha/revisión. El archivo no cancela solicitudes pendientes, mantiene consulta propia y excluye del catálogo.
 
-La integración ejecuta nueve subcasos de API07 con permisos, solicitudes en cuatro estados, miembros activos/retirados, eventos históricos, proyectos, idempotencia, fallo inyectado tras escrituras y ambas intercalaciones concurrentes. Los escritores de solicitudes/equipo/proyecto se simulan mediante transacciones contra MongoDB real porque API08/API09/API10 siguen pendientes; sus rutas HTTP se verifican de forma conjunta cuando existan. La suite completa aprueba 62 pruebas locales y seis integraciones principales (15 resultados de test incluyendo los nueve subcasos de API07), además de lint y fixtures.
+Ambas operaciones validan actor y escriben la revisión común dentro de su transacción. Si una relación concurrente confirma primero, DELETE reintenta y rechaza sin archivar. Si el borrado gana, el escritor reintentado encuentra `404` antes de insertar. Los futuros escritores deben validar estado y llamar a `lockInitiativeRevision`; escrituras externas que omitan el protocolo carecen de esa protección.
+
+`canDelete` representa autoridad, no garantía de ausencia de historia. `canArchive` permite archivo al dueño de una iniciativa no archivada. El mock conserva ambas capacidades de lectura; las mutaciones se verifican contra API real.
+
+Evidencia actual del servidor: 66 pruebas locales, lint/fixtures y 17 resultados de integración real (seis pruebas principales y once subcasos de API07) aprobados. Incluye archivo sin historial, DELETE rechazado sin escrituras, permisos de ambos endpoints, archivo idempotente, rollback y carreras. Solicitudes/equipo/proyectos futuros se simulan transaccionalmente hasta que existan sus rutas.
+
+## Consumo del detalle desde React (UI07)
+
+La pantalla valida el UUID, espera la sesión y consulta el detalle según el actor. Separa encabezado e indicadores, información principal, competencias/etiquetas y resumen de equipo/fechas. Un `401` permite ir a ingreso conservando destino; `403` y `404` no exponen datos ni títulos de errores. Respuestas sin permiso tampoco renderizan el DTO. Cambiar identidad/ID retira y cancela el contenido anterior.
+
+Editar, solicitar, convertir y revisar solicitudes dependen de las capacidades booleanas devueltas por la API y de una sesión activa; sus pantallas se completan en UI08/UI11–UI13. Eliminar usa DELETE; Archivar usa POST `/{id}/archive`. Cada botón tiene una confirmación propia y solo acepta la respuesta de su operación. Durante el envío se bloquean confirmaciones/cierre y se evita doble envío. Un rechazo por historial no archiva; explica que el recurso se conserva y permite consultar el detalle para elegir archivo. Tras éxito vuelve a `/mis-iniciativas` con aviso enfocado; ante fallo o resultado incierto retira capacidades antiguas y exige lectura nueva antes de repetir.
+
+Evidencia UI07: 115 pruebas del cliente y 12 integraciones adicionales de React/Express/MongoDB (3 catálogo y 9 detalle), ESLint y build de 142 módulos aprobados. Las integraciones modificaron solo la base de pruebas; el recorrido visual/manual de Daniel está pendiente. El mock admite lectura; eliminación/archivo se verifica usando API real.

@@ -12,7 +12,7 @@ La numeración RN no es estable entre la descripción general y las consignas. P
 | Solo una pendiente | Consigna + observación E26 | Índice/servicio impide dos pendientes por iniciativa/usuario. | Doble envío: uno `201`, otro `409`. |
 | Reintento de solicitud | Decisión de Daniel | Permitido tras cancelar, rechazo o retiro; registro nuevo, historia intacta. | IDs distintos y ambos intentos consultables. |
 | Estimación de integrantes | Decisión de Daniel + regla general de reducción | No es cupo. Espacios `max(0, estimado-activos)`. Solo se impide una reducción nueva por debajo de activos. | Estimado 2/activos 3: conservar 2 funciona, subir funciona, bajar a 1 falla. |
-| Borrar o archivar | Descripción general + decisión de Daniel | Dueño solo no bloquea borrado; cualquier solicitud, miembro adicional histórico o proyecto obliga a archivar. | DELETE `204` o `200 operation=archived`; carrera revalida. |
+| Eliminar y archivar independientes | Descripción general + decisión de Daniel actualizada el 3 de noviembre | Dueño solo no bloquea borrado. Historial impide eliminar; archivar es una elección explícita con o sin historial. Una archivada sin historial puede eliminarse. | DELETE `204` o `409 INITIATIVE_HAS_HISTORY` sin cambios; POST `/{id}/archive` devuelve `200`; carrera revalida. |
 | Publicación de iniciativa | Decisión de Daniel | Guardar válida crea `published`; sin UI de borrador. | POST responde `state=published`; enviar `state` da `400`. |
 | Formación de equipo | Consigna Avance 2 | Aceptar crea/reactiva membresía y evento de forma atómica. | Request/membership/event consistentes; carrera con cancelar. |
 | Retiro de miembro | Consigna Avance 2 | Solo propietario, nunca al dueño; historia se conserva. | DELETE miembro `204`; dueño `409`; ajeno `403`. |
@@ -33,3 +33,5 @@ La numeración RN no es estable entre la descripción general y las consignas. P
 ## Control de cambios
 
 Cualquier cambio a una regla antes de `entrega-2` debe modificar en un solo commit: esta matriz, `api-contract.md`, mocks, API, cliente afectado y casos Postman. Después de la etiqueta, un cambio incompatible requiere versión explícita; no se corrige silenciosamente para la migración .NET.
+
+El 3 de noviembre Daniel eligió acciones independientes durante UI07. Esta decisión sustituye el archivo automático de DELETE originalmente implementado en API07; no se cambian fechas ni el contenido histórico de los commits publicados.

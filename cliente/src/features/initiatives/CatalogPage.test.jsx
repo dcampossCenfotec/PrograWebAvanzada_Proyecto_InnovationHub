@@ -243,3 +243,16 @@ describe('mis iniciativas', () => {
     expect(initiativesService.listMine).not.toHaveBeenCalled()
   })
 })
+
+
+describe('aviso tras eliminar o archivar', () => {
+  it.each([
+    ['deleted', 'La iniciativa se eliminó definitivamente.'],
+    ['archived', 'La iniciativa se archivó y su historial se conserva.'],
+  ])('muestra y enfoca el resultado %s confirmado por la API', async (operation, message) => {
+    renderCatalog({ auth: ownerAuth, entry: { pathname: '/mis-iniciativas', state: { initiativeOperation: operation } } })
+    const notice = screen.getByText(message)
+    expect(document.activeElement).toBe(notice)
+    await screen.findByRole('heading', { name: 'Huertos escolares' })
+  })
+})

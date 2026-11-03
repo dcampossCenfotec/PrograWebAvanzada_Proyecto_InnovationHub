@@ -323,10 +323,44 @@ Catálogo y listado propio integrados con los servicios reales, filtros en URL, 
 - [x] Daniel aprobó los ajustes visuales y autorizó publicar UI06; no se registra confirmación individual de cada caso del recorrido.
 - [ ] Revisión cruzada de Francisco.
 
-El primer intento de Vitest necesitó permisos por el `node_modules` compartido de la copia de trabajo. La integración real detectó dos fallos de pruebas: opción “Sostenibilidad” ambigua entre categoría/competencia y aserciones sobre resultados anteriores mientras cambiaba la página. Se corrigieron el alcance del selector y la espera al conjunto final de ocho tarjetas; los tres escenarios aprobaron. El acceso al navegador no estuvo disponible, por lo que no se afirma aprobación visual ni manual. Las tres pruebas reales requieren activación explícita y aparecen omitidas en la suite general.
+El primer intento de Vitest necesitó permisos por el `node_modules` compartido de la copia de trabajo. La integración real detectó dos fallos de pruebas: opción “Sostenibilidad” ambigua entre categoría/competencia y aserciones sobre resultados anteriores mientras cambiaba la página. Se corrigieron el alcance del selector y la espera al conjunto final de ocho tarjetas; los tres escenarios aprobaron. El acceso automatizado al navegador no estuvo disponible; la aprobación visual posterior de Daniel se registra abajo. Las tres pruebas reales requieren activación explícita y aparecen omitidas en la suite general.
 
 Resultado de UI06: **pruebas automáticas, ESLint, build e integración React/Express/MongoDB aprobados; aprobación visual de Daniel recibida y publicación autorizada**. API07 ya se publicó como `f26bd1c`.
 
 Ajuste visual de UI06 solicitado por Daniel: estado en banda independiente con texto y colores por estado; visibilidad en etiqueta separada de borde. Contraste calculado de texto/fondo entre 6.15:1 y 8.88:1 para las nueve combinaciones conocidas. ESLint y build aprobados; se conservan los cuatro avisos Sass anteriores. Daniel aprobó el ajuste visual.
 
 Segundo ajuste visual de UI06: tipo de iniciativa aumentado a 1.1rem y visibilidad alineada al extremo superior derecho del contenido de la tarjeta mediante una cabecera de dos columnas. Los textos pueden ajustarse en pantallas estrechas y con zoom; Daniel aprobó el ajuste visual.
+
+## Verificación UI07
+
+Detalle funcional por UUID, campos completos en grilla adaptable, indicadores compartidos con catálogo, capacidades por actor y eliminación/archivo confirmados mediante la API real. Las rutas de formularios, solicitudes y conversión siguen en preparación hasta sus tareas.
+
+- [x] 111 pruebas de cliente aprobadas; la suite general omite expresamente las 11 integraciones que requieren API real.
+- [x] ESLint y build de producción aprobados (142 módulos); cuatro avisos conocidos Sass `@import`.
+- [x] Tres integraciones de catálogo aprobadas antes de las ocho nuevas de detalle, sobre Express temporal 3002 y MongoDB de test limpio.
+- [x] Detalle público, `401` institucional, `403` restringida ajena, `404` privada visitante y consulta privada como propietaria verificados con HTTP real.
+- [x] Elena consulta una iniciativa de su equipo sin acciones de propietaria ni nueva solicitud; no se presume membresía en la restringida del fixture.
+- [x] Cancelar mantiene la iniciativa; confirmar un alta temporal sin historia produce borrado físico y aviso enfocado.
+- [x] Archivo de iniciativa con otro integrante conserva detalle/equipo, desaparece del catálogo y permanece en propias.
+- [x] Pruebas de componentes: URL inválida, contenido seguro, vacíos, respuesta sin permiso, cambio de identidad/ID, reintento, doble envío, Escape/fondo, errores de mutación y operación desconocida.
+- [x] API temporal detenida; pruebas destructivas ejecutadas solo contra `innovation_hub_test`, sin cambiar la base de desarrollo.
+- [ ] Revisión visual/manual de Daniel, incluidos 360/768/1440 px, zoom 200 %, foco y diálogo nativo.
+- [ ] Revisión cruzada de Francisco.
+
+La primera prueba de restauración de foco falló porque `fireEvent.click` no enfoca el disparador como lo hace la interacción de navegador. Se ajustó la preparación de la prueba para enfocar el botón antes de abrir; Cancelar y restauración aprobaron. El host de navegador sigue sin estar disponible, por lo que no se adjunta captura ni se afirma revisión visual automática. Las pruebas de diálogo usan una implementación simulada de `showModal/close` en jsdom. UI06 ya está publicada en `fa471e8`; Esta versión inicial fue ajustada después a acciones independientes; la aprobación del cambio se registra abajo.
+
+## UI07: decisión posterior de acciones independientes
+
+Daniel solicitó y confirmó separar Eliminar y Archivar el 3 de noviembre. Este cambio sustituye el comportamiento automático de DELETE de API07 y la primera versión combinada de UI07 descritos en entradas históricas anteriores.
+
+- [x] DELETE solo elimina sin historia (`204`). Historial produce `409 INITIATIVE_HAS_HISTORY`, sin archivar ni modificar documentos/fechas/revisión.
+- [x] POST `/{id}/archive` conserva siempre la iniciativa y sus relaciones, incluso sin historia; `200`, repetición idempotente.
+- [x] Botones, capacidades y diálogos independientes. Una archivada no ofrece archivar de nuevo; puede eliminarse solo si cumple la ausencia de historial.
+- [x] 66 pruebas locales del servidor, ESLint y fixtures aprobados; 17 resultados de integración MongoDB real (6 principales y 11 subcasos), sin omisiones.
+- [x] 115 pruebas del cliente, ESLint y build de 142 módulos aprobados. Cuatro avisos Sass conocidos.
+- [x] 12 integraciones React/Express/MongoDB: 3 catálogo y 9 detalle. Incluyen archivo sin historial, rechazo de DELETE sin cambios, borrado definitivo y archivo con equipo.
+- [x] Contrato (27 endpoints), matriz de reglas/pruebas, modelo, alcance, servicios, capacidades mock y fragmento Postman actualizados. Colección de 31 peticiones con JSON/scripts e IDs verificados; no se afirma ejecución en Postman.
+- [x] Daniel aprobó las acciones independientes y autorizó commit/push; no se registra confirmación individual de cada caso visual o responsive.
+- [ ] Revisión cruzada de Francisco.
+
+Las operaciones automáticas de pruebas se ejecutaron exclusivamente en la base de test. Los registros privados de revisión manual anteriores se conservaron según el estado que Daniel les haya dado; no se restauran ni sobrescriben sin necesidad. Daniel aprobó el cambio de comportamiento y autorizó publicar UI07. Quedan UI08–UI10 para Daniel; la revisión cruzada de Francisco sigue pendiente.

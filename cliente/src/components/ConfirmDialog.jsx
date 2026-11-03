@@ -7,6 +7,7 @@ function ConfirmDialog({
   confirmLabel = 'Confirmar',
   cancelLabel = 'Cancelar',
   variant = 'danger',
+  pending = false,
   onConfirm,
   onCancel,
 }) {
@@ -35,15 +36,16 @@ function ConfirmDialog({
 
   function handleCancel(event) {
     event.preventDefault()
-    onCancel()
+    if (!pending) onCancel()
   }
 
   function handleBackdropClick(event) {
-    if (event.target === dialogRef.current) onCancel()
+    if (!pending && event.target === dialogRef.current) onCancel()
   }
 
   return (
     <dialog
+      aria-busy={pending}
       aria-describedby={descriptionId}
       aria-labelledby={titleId}
       className="confirm-dialog"
@@ -64,6 +66,7 @@ function ConfirmDialog({
         <div className="confirm-dialog__footer">
           <button
             className="btn btn-outline-secondary"
+            disabled={pending}
             onClick={onCancel}
             ref={cancelButtonRef}
             type="button"
@@ -72,10 +75,11 @@ function ConfirmDialog({
           </button>
           <button
             className={`btn ${variant === 'danger' ? 'btn-danger' : 'btn-primary'}`}
+            disabled={pending}
             onClick={onConfirm}
             type="button"
           >
-            {confirmLabel}
+            {pending ? 'Procesando…' : confirmLabel}
           </button>
         </div>
       </div>

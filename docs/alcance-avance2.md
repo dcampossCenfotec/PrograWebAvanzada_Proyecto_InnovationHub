@@ -11,7 +11,7 @@ El directorio `avance1/` se conserva como evidencia histórica. Las correcciones
 - Registro, inicio/cierre de sesión real y consulta de la sesión actual.
 - Perfil propio editable sin cambio de correo, competencias relacionadas y directorio de usuarios con filtros.
 - Catálogos controlados de ocho categorías y competencias.
-- Iniciativas: crear, editar, eliminar o archivar según relaciones, listar, detallar, buscar, filtrar, ordenar y paginar.
+- Iniciativas: crear, editar, eliminar sin historial o archivar explícitamente, listar, detallar, buscar, filtrar, ordenar y paginar.
 - Visibilidad pública, institucional, restringida y privada aplicada en el servidor.
 - Solicitudes: crear, editar mientras estén pendientes, cancelar, listar propias/recibidas y aceptar/rechazar.
 - Equipo: ingreso automático al aceptar, consulta y retiro por el propietario, con historia conservada.
@@ -35,7 +35,7 @@ El directorio `avance1/` se conserva como evidencia histórica. Las correcciones
 | Daniel Campos Sánchez | Bases React/HTTP y Express/MongoDB; autenticación; perfiles, competencias y directorio; creación, consulta, edición y archivo de iniciativas; catálogo, detalle, formulario, competencias, etiquetas y validación; CO00–CO01; modelo y fixtures. | Francisco revisa cada tarea. |
 | Francisco José Torres Sandoval | Solicitudes propias y recibidas; equipos; proyectos y GitHub; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README/defensa/entrega. | Daniel revisa cada tarea. |
 
-Tras la reasignación del 3 de noviembre, el plan completo asigna 19 tareas a Daniel y 15 a Francisco. Como CO00, CO01, UI01–UI06 y API01–API07 ya están completados, Daniel conserva UI07–UI10; Francisco conserva las 15 tareas restantes. Daniel entrega comandos, evidencia, fragmentos Postman y defectos conocidos del módulo completo de iniciativas en un handoff explícito antes de que Francisco continúe los flujos dependientes y antes de CO02; cambiar el titular no transfiere la obligación de probar y explicar el trabajo ya realizado.
+Tras la reasignación del 3 de noviembre, el plan completo asigna 19 tareas a Daniel y 15 a Francisco. Como CO00, CO01, UI01–UI07 y API01–API07 ya están completados, Daniel conserva UI08–UI10; Francisco conserva las 15 tareas restantes. Daniel entrega comandos, evidencia, fragmentos Postman y defectos conocidos del módulo completo de iniciativas en un handoff explícito antes de que Francisco continúe los flujos dependientes y antes de CO02; cambiar el titular no transfiere la obligación de probar y explicar el trabajo ya realizado.
 
 Cada tarea tiene un responsable único. El revisor no comparte autoría del cambio: comprueba contrato, casos límite y reproducibilidad.
 
@@ -62,7 +62,7 @@ Los directorios de código se crean en sus tareas correspondientes. Esta estruct
 
 ## Decisiones de negocio confirmadas
 
-1. Una iniciativa solo se borra físicamente si nunca tuvo relaciones adicionales a la membresía automática del dueño. Cualquier solicitud histórica, miembro adicional o proyecto obliga a archivar.
+1. Una iniciativa solo se borra físicamente si nunca tuvo relaciones adicionales a la membresía automática del dueño. Cualquier solicitud histórica, miembro adicional o proyecto impide eliminar (`409` sin cambios). Archivar es una acción independiente disponible con o sin historial; una archivada sin historial adicional también puede eliminarse.
 2. `estimatedMembers` es una estimación. Puede superarse y `availableSpaces` nunca baja de cero ni bloquea solicitudes/aceptaciones.
 3. Se permite volver a solicitar después de cancelación, rechazo o retiro; cada intento tiene ID/fecha nuevos y se conserva todo el historial.
 4. Una iniciativa convertida continúa recibiendo y resolviendo solicitudes. Los aceptados se integran al equipo vinculado al proyecto y el estado sigue `converted`.

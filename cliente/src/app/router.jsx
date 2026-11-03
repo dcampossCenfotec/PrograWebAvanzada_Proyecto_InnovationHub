@@ -12,6 +12,7 @@ import { ProtectedRoute } from '../auth/ProtectedRoute.jsx'
 import { OwnProfilePage, PublicProfilePage } from '../features/users/ProfilePages.jsx'
 import { UserDirectoryPage } from '../features/users/UserDirectoryPage.jsx'
 import { CatalogPage } from '../features/initiatives/CatalogPage.jsx'
+import { InitiativeDetailPage } from '../features/initiatives/InitiativeDetailPage.jsx'
 
 function protectedPage(element) {
   return <ProtectedRoute>{element}</ProtectedRoute>
@@ -77,12 +78,7 @@ const placeholderRoutes = [
 const entityRoutes = [
   {
     path: 'iniciativas/:id',
-    element: (
-      <EntityPlaceholderPage
-        entityName="Iniciativa"
-        title="Detalle de iniciativa"
-      />
-    ),
+    element: <InitiativeDetailPage />,
   },
   {
     path: 'iniciativas/:id/editar',

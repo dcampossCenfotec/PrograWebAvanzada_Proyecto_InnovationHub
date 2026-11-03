@@ -48,3 +48,12 @@ test('dueño puede gestionar pendientes archivadas pero no editar ni convertir',
   assert.equal(access.canEdit, false)
   assert.equal(access.canConvert, false)
 })
+
+
+test('archivar es capacidad independiente del permiso de eliminar', () => {
+  const base = { ownerId: 'owner', visibility: 'private' }
+  assert.equal(initiativeCapabilities({ ...base, state: 'published' }, { actorId: 'owner', memberCount: 1 }).canArchive, true)
+  assert.equal(initiativeCapabilities({ ...base, state: 'archived' }, { actorId: 'owner', memberCount: 1 }).canArchive, false)
+  assert.equal(initiativeCapabilities({ ...base, state: 'archived' }, { actorId: 'owner', memberCount: 1 }).canDelete, true)
+  assert.equal(initiativeCapabilities({ ...base, state: 'published' }, { actorId: 'other', memberCount: 1 }).canArchive, false)
+})

@@ -3,7 +3,7 @@
     "_postman_id": "c967fe7c-92cb-4f74-9b11-b71c2db9e049",
     "name": "Innovation Hub — fragmento API05–API07",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Fragmento para integrar en UI14. Ejecutar en orden tras seed. Configurar demoPassword localmente; tokens solo se generan en la ejecucion. Crea y elimina una iniciativa sintetica, y archiva el fixture Accesibilidad urbana, conservando su historial. Repetir seed restaura los campos de fixtures."
+    "description": "Fragmento para UI14. Operaciones independientes: DELETE solo borra sin historial; POST /archive conserva incluso sin historial. Ejecutar en orden tras seed limpio; variables demo y tokens solo locales."
   },
   "variable": [
     {
@@ -702,8 +702,39 @@
       ]
     },
     {
+      "id": "95720df5-9244-512e-8768-31f740c84953",
+      "name": "22 Archivo voluntario sin historial",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/{{initiativeId}}/archive",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Se archiva sin borrar', () => pm.expect(pm.response.json().data.operation).to.equal('archived'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "cd239902-24a6-56af-ba49-55cc27ec3e7b",
-      "name": "22 Borrar sin historia",
+      "name": "23 Borrar sin historia",
       "request": {
         "method": "DELETE",
         "header": [],
@@ -734,7 +765,7 @@
     },
     {
       "id": "eba6e924-304d-58a1-a6a9-1dd8b2dfb5b7",
-      "name": "23 Repetir sobre borrada",
+      "name": "24 Repetir sobre borrada",
       "request": {
         "method": "DELETE",
         "header": [],
@@ -763,12 +794,104 @@
       ]
     },
     {
-      "id": "d1373c55-314b-5ca2-abc5-6fba65fd62bb",
-      "name": "24 Archivar iniciativa con equipo",
+      "id": "8536587f-ba82-5aef-a638-e2a978a7f8ca",
+      "name": "25 DELETE con equipo rechaza sin archivar",
       "request": {
         "method": "DELETE",
         "header": [],
         "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000002",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+              "pm.test('Historial impide borrar', () => pm.expect(pm.response.json().error.code).to.equal('INITIATIVE_HAS_HISTORY'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "b5d172a7-2f44-5bb8-9eea-019dc1c80cdf",
+      "name": "26 Equipo sigue en su estado anterior",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000002",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('No se archivó silenciosamente', () => pm.expect(pm.response.json().data.state).to.equal('forming_team'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "28f06a51-eb58-58d9-9932-7239416943e7",
+      "name": "27 Archivo ajeno prohibido",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000002/archive",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{outsiderToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "d1373c55-314b-5ca2-abc5-6fba65fd62bb",
+      "name": "28 Archivar iniciativa con equipo",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000002/archive",
         "auth": {
           "type": "bearer",
           "bearer": [
@@ -795,11 +918,11 @@
     },
     {
       "id": "ac70fdd4-3299-5fa2-a086-3ae32f391603",
-      "name": "25 Repetir archivo",
+      "name": "29 Repetir archivo",
       "request": {
-        "method": "DELETE",
+        "method": "POST",
         "header": [],
-        "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000002",
+        "url": "{{baseUrl}}/initiatives/10000000-0000-4000-8000-000000000002/archive",
         "auth": {
           "type": "bearer",
           "bearer": [
@@ -826,7 +949,7 @@
     },
     {
       "id": "6238dc43-46e9-556b-88a8-079f69929293",
-      "name": "26 Consultar archivada propia",
+      "name": "30 Consultar archivada propia",
       "request": {
         "method": "GET",
         "header": [],
@@ -857,7 +980,7 @@
     },
     {
       "id": "c75c4517-4334-53cf-9148-74b6e3266733",
-      "name": "27 Archivada fuera del catalogo",
+      "name": "31 Archivada fuera del catalogo",
       "request": {
         "method": "GET",
         "header": [],

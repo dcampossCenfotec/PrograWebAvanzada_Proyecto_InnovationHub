@@ -39,7 +39,7 @@ function deferred() {
   return { promise, resolve }
 }
 
-test('API07 elimina solo sin historia y archiva con atomicidad e invariantes concurrentes', {
+test('API07 separa borrado y archivo con atomicidad e invariantes concurrentes', {
   skip: uri && databaseName ? false : 'Requiere MONGODB_TEST_URI y MONGODB_TEST_DATABASE.',
 }, async (t) => {
   assertSafeTestDatabase({ nodeEnvironment: 'test', databaseName })
@@ -75,6 +75,7 @@ test('API07 elimina solo sin historia y archiva con atomicidad e invariantes con
     }
     const path = (id) => `/api/initiatives/${id}`
     const remove = (id, targetApp = app) => request(targetApp).delete(path(id)).set('Authorization', tokens[ownerId])
+    const archive = (id, targetApp = app) => request(targetApp).post(`${path(id)}/archive`).set('Authorization', tokens[ownerId])
     async function create() {
       const response = await request(app).post('/api/initiatives')
         .set('Authorization', tokens[ownerId]).send(input).expect(201)
@@ -145,19 +146,49 @@ test('API07 elimina solo sin historia y archiva con atomicidad e invariantes con
       assert.deepEqual(await snapshot(id), before)
     })
 
-    await t.test('cualquier estado histórico de solicitud obliga a archivar y se conserva intacto', async () => {
+    await t.test('archivo sin historial conserva el agregado y permite borrado definitivo posterior', async () => {
+      const id = await create()
+      const before = await snapshot(id)
+      const archived = await archive(id).expect(200)
+      assert.equal(archived.body.data.operation, 'archived')
+      const after = await snapshot(id)
+      assert.equal(after.initiatives[0].state, 'archived')
+      for (const name of ['requests', 'memberships', 'membershipEvents', 'projects']) assert.deepEqual(after[name], before[name])
+      await archive(id).expect(200)
+      assert.deepEqual(await snapshot(id), after)
+      await remove(id).expect(204)
+      assert.ok(Object.values(await snapshot(id)).every((entries) => entries.length === 0))
+    })
+
+    await t.test('POST archive exige propietario y rechaza cuerpo, query e ID inválidos', async () => {
+      const id = await create()
+      const before = await snapshot(id)
+      await request(app).post(`${path(id)}/archive`).expect(401)
+      await request(app).post(`${path(id)}/archive`).set('Authorization', tokens[outsiderId]).expect(403)
+      await archive('invalido').expect(400)
+      await archive('99999999-9999-4999-8999-999999999999').expect(404)
+      await archive(id).send({ force: true }).expect(400)
+      await archive(id).type('text/plain').send('force=true').expect(400)
+      await request(app).post(`${path(id)}/archive?force=true`).set('Authorization', tokens[ownerId]).expect(400)
+      assert.deepEqual(await snapshot(id), before)
+    })
+
+    await t.test('DELETE con solicitudes se rechaza intacto; POST archive conserva cada estado histórico', async () => {
       for (const state of ['pending', 'cancelled', 'rejected', 'accepted']) {
         const id = await create()
         await addRequest(id, state)
         const before = await snapshot(id)
-        const response = await remove(id).expect(200)
+        const denied = await remove(id).expect(409)
+        assert.equal(denied.body.error.code, 'INITIATIVE_HAS_HISTORY')
+        assert.deepEqual(await snapshot(id), before)
+        const response = await archive(id).expect(200)
         assert.deepEqual(response.body, { data: { id, state: 'archived', operation: 'archived' } })
         const after = await snapshot(id)
         assert.equal(after.initiatives[0].state, 'archived')
         for (const name of ['requests', 'memberships', 'membershipEvents', 'projects']) {
           assert.deepEqual(after[name], before[name])
         }
-        const again = await remove(id).expect(200)
+        const again = await archive(id).expect(200)
         assert.deepEqual(again.body, response.body)
         assert.deepEqual(await snapshot(id), after)
         await request(app).put(path(id)).set('Authorization', tokens[ownerId]).send(input).expect(409)
@@ -180,7 +211,9 @@ test('API07 elimina solo sin historia y archiva con atomicidad e invariantes con
           await module.models.Membership.deleteMany({ initiativeId: id, userId: applicantId })
         }
         const before = await snapshot(id)
-        await remove(id).expect(200)
+        await remove(id).expect(409)
+        assert.deepEqual(await snapshot(id), before)
+        await archive(id).expect(200)
         const after = await snapshot(id)
         assert.deepEqual(after.memberships, before.memberships)
         assert.deepEqual(after.membershipEvents, before.membershipEvents)
@@ -192,11 +225,13 @@ test('API07 elimina solo sin historia y archiva con atomicidad e invariantes con
       const projectId = await create()
       await addProject(projectId)
       const beforeProject = (await snapshot(projectId)).projects
-      await remove(projectId).expect(200)
+      await remove(projectId).expect(409)
+      await archive(projectId).expect(200)
       assert.deepEqual((await snapshot(projectId)).projects, beforeProject)
       const damagedId = await create()
       await module.models.MembershipEvent.deleteMany({ initiativeId: damagedId })
-      await remove(damagedId).expect(200)
+      await remove(damagedId).expect(409)
+      await archive(damagedId).expect(200)
       assert.equal((await snapshot(damagedId)).initiatives[0].state, 'archived')
     })
 
@@ -214,14 +249,14 @@ test('API07 elimina solo sin historia y archiva con atomicidad e invariantes con
             },
           },
         })
-        const response = await remove(id, buildApp(failingService)).expect(500)
+        const response = await (operation === 'archiveAtRevision' ? archive : remove)(id, buildApp(failingService)).expect(500)
         assert.equal(response.body.error.code, 'INTERNAL_ERROR')
         assert.equal(JSON.stringify(response.body).includes('fallo simulado'), false)
         assert.deepEqual(await snapshot(id), before)
       }
     })
 
-    await t.test('una relación que confirma mientras DELETE ya leyó fuerza reintento y archivo', { timeout: 15000 }, async () => {
+    await t.test('una relación que confirma mientras DELETE ya leyó fuerza reintento y rechazo sin archivo', { timeout: 15000 }, async () => {
       for (const relation of ['request', 'member', 'project']) {
         const id = await create()
         const readReached = deferred()
@@ -250,10 +285,11 @@ test('API07 elimina solo sin historia y archiva con atomicidad e invariantes con
           })
         } finally { release.resolve() }
         const response = await deletion
-        assert.equal(response.status, 200)
+        assert.equal(response.status, 409)
+        assert.equal(response.body.error.code, 'INITIATIVE_HAS_HISTORY')
         assert.ok(reads >= 2, 'MongoDB debe reintentar usando una instantánea nueva.')
         const after = await snapshot(id)
-        assert.equal(after.initiatives[0].state, 'archived')
+        assert.equal(after.initiatives[0].state, 'published')
         const key = { request: 'requests', member: 'memberships', project: 'projects' }[relation]
         assert.ok(after[key].length > (relation === 'member' ? 1 : 0))
       }
@@ -282,12 +318,16 @@ test('API07 elimina solo sin historia y archiva con atomicidad e invariantes con
       assert.equal((await snapshot(id)).initiatives.length, 0)
     })
 
-    await t.test('dos DELETE simultáneos no duplican archivo ni borran historial', async () => {
+    await t.test('DELETE concurrentes rechazan historial y archivos concurrentes son idempotentes', async () => {
       const id = await create()
       await addRequest(id, 'rejected')
       const results = await Promise.all([remove(id), remove(id)])
-      assert.deepEqual(results.map(({ status }) => status), [200, 200])
-      assert.deepEqual(results[0].body, results[1].body)
+      assert.deepEqual(results.map(({ status }) => status), [409, 409])
+      assert.equal((await snapshot(id)).initiatives[0].state, 'published')
+      assert.equal((await snapshot(id)).initiatives[0].revision, 0)
+      const archives = await Promise.all([archive(id), archive(id)])
+      assert.deepEqual(archives.map(({ status }) => status), [200, 200])
+      assert.deepEqual(archives[0].body, archives[1].body)
       const after = await snapshot(id)
       assert.equal(after.initiatives[0].revision, 1)
       assert.equal(after.requests.length, 1)

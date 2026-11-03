@@ -199,6 +199,7 @@ function createProjectors(fixtures, actorId) {
         canViewDetails,
         canEdit: isOwner && initiativeValue.state !== 'archived',
         canDelete: isOwner,
+        canArchive: isOwner && initiativeValue.state !== 'archived',
         canRequest:
           Boolean(actorId) &&
           canViewDetails && !hasPending &&

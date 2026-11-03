@@ -66,7 +66,7 @@ Formato estable:
 }
 ```
 
-`fields` siempre existe y es un objeto. Códigos usados: `VALIDATION_ERROR`, `INVALID_JSON`, `INVALID_QUERY`, `AUTHENTICATION_REQUIRED`, `INVALID_CREDENTIALS`, `SESSION_EXPIRED`, `FORBIDDEN`, `NOT_FOUND`, `EMAIL_ALREADY_EXISTS`, `PENDING_REQUEST_EXISTS`, `ACTIVE_MEMBER_EXISTS`, `STATE_CONFLICT`, `CONCURRENT_MODIFICATION`, `PROJECT_ALREADY_EXISTS` e `INTERNAL_ERROR`.
+`fields` siempre existe y es un objeto. Códigos usados: `VALIDATION_ERROR`, `INVALID_JSON`, `INVALID_QUERY`, `AUTHENTICATION_REQUIRED`, `INVALID_CREDENTIALS`, `SESSION_EXPIRED`, `FORBIDDEN`, `NOT_FOUND`, `EMAIL_ALREADY_EXISTS`, `PENDING_REQUEST_EXISTS`, `ACTIVE_MEMBER_EXISTS`, `STATE_CONFLICT`, `CONCURRENT_MODIFICATION`, `INITIATIVE_HAS_HISTORY`, `PROJECT_ALREADY_EXISTS` e `INTERNAL_ERROR`.
 
 Ejemplos sin datos internos:
 
@@ -118,7 +118,7 @@ Respuesta `200`:
 }
 ```
 
-La respuesta incluye `X-Request-Id`. CORS aplica igual que al resto de la API. Este endpoint operativo no se cuenta entre los 26 endpoints funcionales del dominio.
+La respuesta incluye `X-Request-Id`. CORS aplica igual que al resto de la API. Este endpoint operativo no se cuenta entre los 27 endpoints funcionales del dominio.
 
 ## 2. DTO compartidos
 
@@ -162,6 +162,7 @@ La respuesta incluye `X-Request-Id`. CORS aplica igual que al resto de la API. E
     "canViewDetails": true,
     "canEdit": false,
     "canDelete": false,
+    "canArchive": false,
     "canRequest": true,
     "canManageRequests": false,
     "canViewTeam": true,
@@ -366,12 +367,17 @@ Solo se rechaza un cambio de estimación cuando `newEstimatedMembers < previousE
 
 ### DELETE `/initiatives/{id}` — propietario
 
-Sin body. El servidor decide de manera atómica:
+Sin body ni query. Elimina físicamente con `204` sin cuerpo solo si nunca hubo solicitudes, miembros/eventos adicionales ni proyecto. La membresía automática del propietario y su evento original se eliminan junto con la iniciativa y no bloquean el borrado.
 
-- `204` sin cuerpo si nunca hubo solicitud, miembro adicional/evento de miembro adicional ni proyecto. La membresía automática del propietario no impide borrar.
-- `200` con `{ "data": { "id": "uuid", "state": "archived", "operation": "archived" } }` si existe cualquiera de esas relaciones.
+Si existe historial, responde `409 INITIATIVE_HAS_HISTORY` **sin borrar, archivar ni modificar fechas/revisión**. Una relación concurrente que confirma primero obliga a revalidar y rechazar DELETE; jamás cambia su intención a archivo. Una archivada sin historial adicional también puede eliminarse; una borrada devuelve `404`.
 
-Repetir sobre archivada devuelve el mismo `200`. Una relación creada entre la confirmación del cliente y la operación obliga a archivar. Archivada no acepta nuevas solicitudes, aceptación ni conversión; una solicitud pendiente existente sí puede ser cancelada por su solicitante.
+### POST `/initiatives/{id}/archive` — propietario
+
+Sin body ni query. Acción explícita independiente: cambia a `archived` y responde `200` con `{ "data": { "id": "uuid", "state": "archived", "operation": "archived" } }`, incluso si nunca hubo relaciones adicionales. Siempre conserva iniciativa, membresías, eventos, solicitudes y proyectos. Repetir sobre archivada devuelve el mismo `200` sin cambiar fecha/revisión.
+
+Archivada sale del catálogo, conserva consulta del propietario y no admite edición, nuevas solicitudes, aceptación ni conversión. Una solicitud pendiente existente sí puede cancelarse o rechazarse según su actor. Ambas operaciones usan la revisión común dentro de transacción y requieren propietario: sin sesión `401`, ajeno `403`, UUID inválido `400`, inexistente `404`.
+
+`access.canDelete` representa permiso de propietario, no garantiza ausencia de historia; DELETE la revalida. `access.canArchive` es verdadero solo para propietario de una iniciativa no archivada. React presenta botones y diálogos separados y no interpreta un archivo como éxito de DELETE.
 
 ## 6. Solicitudes
 
@@ -513,7 +519,8 @@ Los UUID abreviados de esta tabla representan UUID válidos completos en fixture
 | `GET /initiatives/{id}` | Pública conocida -> `200` | Privada ajena -> `404`; restringida ajena autenticada -> `403` |
 | `POST /initiatives` | Body de §5 -> `201` y `published` | Incluye `state=draft` o título de 4 -> `400` |
 | `PUT /initiatives/{id}` | Dueño y body completo -> `200` | Ajeno -> `403`; nueva estimación inválida -> `400` |
-| `DELETE /initiatives/{id}` | Dueño -> `204` o `200 archived` | Ajeno -> `403`; UUID desconocido -> `404` |
+| `DELETE /initiatives/{id}` | Dueño sin historial -> `204`; con historial -> `409 INITIATIVE_HAS_HISTORY` | Ajeno -> `403`; UUID desconocido -> `404` |
+| `POST /initiatives/{id}/archive` | Dueño con o sin historial -> `200 archived`; repetida idempotente | Ajeno -> `403`; UUID desconocido -> `404` |
 | `POST /initiatives/{id}/requests` | Solicitante elegible -> `201` | Pendiente existente -> `409 PENDING_REQUEST_EXISTS` |
 | `GET /requests` | `?scope=mine&state=pending` -> `200` | Sin `scope` -> `400` |
 | `GET /requests/{id}` | Solicitante o dueño -> `200` | Otro autenticado -> `403`; desconocida -> `404` |

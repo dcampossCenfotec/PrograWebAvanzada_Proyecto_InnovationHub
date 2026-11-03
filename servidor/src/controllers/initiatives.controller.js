@@ -9,8 +9,19 @@ export function createInitiativesController(service, queriesService, removalServ
           hasBody: Number(request.get('content-length') ?? 0) > 0
             || request.get('transfer-encoding') !== undefined,
         })
-        if (result === null) response.status(204).end()
-        else response.status(200).json({ data: result })
+        if (result !== null) throw new TypeError('DELETE no puede confirmar un archivo.')
+        response.status(204).end()
+      } catch (error) { next(error) }
+    },
+
+    async archiveInitiative(request, response, next) {
+      try {
+        const result = await removalService.archiveInitiative(request.params.id, request.auth.user.id, {
+          query: request.query, body: request.body,
+          hasBody: Number(request.get('content-length') ?? 0) > 0
+            || request.get('transfer-encoding') !== undefined,
+        })
+        response.status(200).json({ data: result })
       } catch (error) { next(error) }
     },
 

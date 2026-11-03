@@ -1,6 +1,6 @@
 # Cliente React de Innovation Hub
 
-Cliente React del Avance 2 con navegación, autenticación real, perfiles, directorio, catálogo de iniciativas, capa HTTP común, servicios por dominio, estados de consulta y un mock basado en los fixtures compartidos. Las pantallas de dominio que todavía no alcanzaron su tarea permanecen como marcadores explícitos.
+Cliente React del Avance 2 con navegación, autenticación real, perfiles, directorio, catálogo y detalle de iniciativas, capa HTTP común, servicios por dominio, estados de consulta y un mock basado en los fixtures compartidos. Las pantallas de dominio que todavía no alcanzaron su tarea permanecen como marcadores explícitos.
 
 ## Requisitos
 
@@ -56,7 +56,7 @@ Con `npm run dev`, abrir `/componentes` para revisar estados y el diálogo. Esa 
 
 ## Cliente HTTP y datos de desarrollo
 
-Todas las llamadas pasan por `src/api/http.js`. Esta capa incorpora la URL base, serializa query y JSON, agrega el token de `sessionStorage`, interpreta respuestas `204`, aplica timeout y convierte los errores al tipo `ApiError`. Los módulos de `src/api/services/` exponen los 26 endpoints del contrato sin mezclar HTTP con componentes.
+Todas las llamadas pasan por `src/api/http.js`. Esta capa incorpora la URL base, serializa query y JSON, agrega el token de `sessionStorage`, interpreta respuestas `204`, aplica timeout y convierte los errores al tipo `ApiError`. Los módulos de `src/api/services/` exponen los 27 endpoints del contrato sin mezclar HTTP con componentes.
 
 Copiar `.env.example` a `.env.local` únicamente cuando sea necesario cambiar la configuración local:
 
@@ -114,7 +114,7 @@ El filtro de propietario puede activarse desde una tarjeta. Con sesión también
 
 Las tarjetas ofrecen detalle solamente cuando `access.canViewDetails === true`. Una restringida ajena muestra únicamente resumen permitido y un aviso de acceso, sin enlace al detalle ni propietario. Los espacios se muestran como estimación y nunca negativos. El estado tiene una banda propia con etiqueta explícita: publicada verde, formando equipo azul, convertida violeta, borrador ámbar y archivada gris. La visibilidad se presenta aparte con una etiqueta de borde; privada usa rojo oscuro. Los textos permanecen legibles sin depender del color. El mock reproduce filtros, proyecciones y paginación; las pruebas contra Express verifican el modo real por separado.
 
-Los enlaces a detalle y publicación resuelven rutas que siguen en preparación hasta UI07/UI08.
+El detalle ya es funcional desde UI07. Publicación/edición siguen en preparación hasta UI08. Solicitudes, equipo y conversión se completan en sus tareas posteriores.
 
 Prueba opcional React → Express → MongoDB, con API exclusiva de pruebas en 3002 y base de test recién restaurada. No se ejecuta con la suite general cuando falta la variable de activación. En una terminal, desde `servidor/`, con `.env.test` y replica set nativo activos:
 
@@ -132,6 +132,33 @@ VITE_API_MODE=real VITE_API_BASE_URL=http://127.0.0.1:3002/api VITE_RUN_API_INTE
 
 Comprueba visitante con 3 públicas y búsqueda por servidor, Carla con 5 y resumen restringido sin enlaces, y Ana con 8 propias incluyendo borrador/archivada. Supone fixtures limpios y contraseña sintética `DemoSegura2026`; utiliza sesiones reales. Detener la API temporal con `Ctrl+C` al terminar.
 
+## Detalle de iniciativas (UI07)
+
+`/iniciativas/:id` consulta `GET /initiatives/:id`. Presenta tipo/visibilidad/estado con los mismos indicadores del catálogo, título/resumen, propietario, descripción, problema, beneficiarios, competencias, etiquetas, conteos activos, estimación/espacios y fechas. Las fechas se muestran en español y en la zona horaria del navegador. Una dirección con UUID inválido se rechaza antes del HTTP. Arrays vacíos y textos multilínea tienen presentación explícita.
+
+El servidor protege las cuatro visibilidades. El cliente distingue `401` (ingreso con regreso al detalle), `403` (acceso no permitido) y `404` (recurso no disponible, sin confirmar si existe una privada). No muestra el contenido de respuestas sin `canViewDetails` ni mensajes de error que puedan contener datos del recurso. Cambiar de identidad o UUID desmonta el detalle anterior y cancela su consulta. Un fallo al restaurar sesión permite reintentar antes de consultar datos.
+
+| Acción | Condición adicional a tener sesión |
+| --- | --- |
+| Editar iniciativa | `access.canEdit === true`; formulario de UI08 pendiente. |
+| Solicitar participación | `access.canRequest === true`; ruta de UI11 pendiente. Cero espacios no bloquea esta acción. |
+| Convertir en proyecto | `access.canConvert === true`; conversión de API10/UI13 pendiente. |
+| Revisar solicitudes recibidas | `access.canManageRequests === true`; gestión de API09/UI12 pendiente. |
+| Eliminar iniciativa | `access.canDelete === true`; el servidor rechaza con `409` si existe historial, sin archivar. |
+| Archivar iniciativa | `access.canArchive === true` y estado distinto de archivada; funciona con o sin historial. |
+
+Eliminar y Archivar tienen botones y diálogos independientes. Eliminar llama exclusivamente DELETE y solo acepta `204`; si hay historial, `409 INITIATIVE_HAS_HISTORY` explica que se conserva sin cambios y permite consultar el detalle para elegir archivo. Archivar llama exclusivamente POST `/{id}/archive` y solo acepta `200` con `operation: archived`. Ambas vuelven a Mis iniciativas con un aviso enfocado. Una respuesta correspondiente a la acción contraria nunca se anuncia como éxito. Las archivadas no ofrecen volver a archivar ni editar, pero pueden eliminarse si realmente nunca tuvieron relaciones adicionales.
+
+Cancelar, Escape y fondo cierran sin escribir y restauran foco; durante el envío se bloquean ambos botones y el cierre accidental, con protección adicional contra doble envío. Una respuesta desconocida, fallo de red o denegación retira el contenido y las capacidades anteriores. No se repite automáticamente una eliminación de resultado incierto: Consultar estado actual monta una lectura nueva. El modo mock permite leer detalle, pero la eliminación/archivo requiere API real; su mutación mock permanece en `501`.
+
+Verificación adicional React → Express → MongoDB (solo API de test en puerto 3002 y base de pruebas limpia): ejecutar primero la suite de catálogo anterior y después la de detalle, porque esta última archiva un fixture. Con la API temporal de la sección anterior activa:
+
+```bash
+VITE_API_MODE=real VITE_API_BASE_URL=http://127.0.0.1:3002/api VITE_RUN_API_INTEGRATION=true npm run test:unit -- src/features/initiatives/InitiativeDetailPage.integration.test.jsx
+```
+
+Los nueve casos prueban lectura pública, denegaciones `401/403/404`, privada como dueña, acciones de miembro, cancelar sin escritura, borrado físico de un registro temporal, rechazo de borrado con historial sin modificación, archivo voluntario sin historial y archivo conservando el detalle. El diálogo se simula en jsdom para las pruebas de componentes; esto no constituye revisión visual en un navegador. Las sesiones creadas por la suite de detalle se revocan al terminar cada caso.
+
 ## Alcance actual
 
 - Todas las rutas acordadas se resuelven mediante React Router.
@@ -141,7 +168,7 @@ Comprueba visitante con 3 públicas y búsqueda por servidor, Carla con 5 y resu
 - Registro, login, restauración de sesión, rutas protegidas y logout revocable están implementados.
 - Perfil propio, perfiles públicos y directorio filtrado/paginado están implementados.
 - La infraestructura HTTP y sus estados de consulta están disponibles para las demás tareas funcionales.
-- Catálogo y listado propio de iniciativas implementados; detalle y mutaciones pendientes de UI07–UI10.
+- Catálogo, listado propio, detalle y eliminación/archivo de iniciativas implementados; formularios pendientes de UI08–UI10.
 - Solicitudes y proyectos todavía dependen de sus tareas funcionales.
 
 El contrato HTTP común está en [`../docs/api-contract.md`](../docs/api-contract.md). La guía general de ejecución se mantiene en el [`README.md` raíz](../README.md).

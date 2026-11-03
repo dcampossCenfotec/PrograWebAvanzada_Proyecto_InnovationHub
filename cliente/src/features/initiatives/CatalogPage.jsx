@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router'
 import { catalogsService } from '../../api/services/catalogs.js'
 import { initiativesService } from '../../api/services/initiatives.js'
 import { useAuth } from '../../auth/useAuth.js'
@@ -11,6 +11,20 @@ import { CatalogPagination } from './CatalogPagination.jsx'
 import { InitiativeCard } from './InitiativeCard.jsx'
 import { catalogSearch, ownerCatalogueLink, readCatalogSearch } from './catalog.js'
 import { loadInitiativeSkills } from './catalog-options.js'
+
+function InitiativeOperationNotice() {
+  const location = useLocation()
+  const noticeRef = useRef(null)
+  const operation = location.state?.initiativeOperation
+  const recognized = operation === 'deleted' || operation === 'archived'
+  useEffect(() => { if (recognized) noticeRef.current?.focus() }, [recognized, location.key])
+  if (!recognized) return null
+  return (
+    <div className="alert alert-success" ref={noticeRef} role="status" tabIndex="-1">
+      {operation === 'deleted' ? 'La iniciativa se eliminó definitivamente.' : 'La iniciativa se archivó y su historial se conserva.'}
+    </div>
+  )
+}
 
 function CatalogContent({ mine, authenticated }) {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -45,6 +59,7 @@ function CatalogContent({ mine, authenticated }) {
         eyebrow="Comunidad universitaria"
         title={mine ? 'Mis iniciativas' : 'Iniciativas'}
       />
+      {mine ? <InitiativeOperationNotice /> : null}
       {authenticated ? (
         <nav aria-label="Vistas de iniciativas" className="d-flex flex-wrap gap-2 mb-4">
           <Link aria-current={!mine ? 'page' : undefined} className={`btn ${mine ? 'btn-outline-primary' : 'btn-primary'}`} to="/iniciativas">Explorar iniciativas</Link>

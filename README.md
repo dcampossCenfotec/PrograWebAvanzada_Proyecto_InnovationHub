@@ -8,7 +8,7 @@ Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos
 - **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
 - **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; creación, consulta, edición y archivo de iniciativas con todas sus pantallas; CO00–CO01; modelo y fixtures.
 - **Francisco José Torres Sandoval:** solicitudes propias y recibidas; equipos; proyectos/GitHub; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
-- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. Tras la reasignación del 3 de noviembre, el plan asigna 19 tareas a Daniel y 15 a Francisco; después de CO00, CO01, UI01–UI06 y API01–API07 quedan UI07–UI10 para Daniel, y 15 tareas para Francisco. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de todo el módulo de iniciativas antes del handoff y de CO02.
+- Cada tarea tiene un responsable único y revisión del compañero. Ambos desarrollan cliente y servidor para funcionalidades completas. Tras la reasignación del 3 de noviembre, el plan asigna 19 tareas a Daniel y 15 a Francisco; después de CO00, CO01, UI01–UI07 y API01–API07 quedan UI08–UI10 para Daniel, y 15 tareas para Francisco. Daniel debe entregar comandos, fragmentos Postman, evidencia y defectos conocidos de todo el módulo de iniciativas antes del handoff y de CO02.
 
 Documentos vigentes:
 
@@ -41,6 +41,7 @@ La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El 
 | `a5df168` | 2026-11-03 | Daniel | API05 | Creación y edición de iniciativas con membresía del propietario | 47 pruebas locales, 4 integraciones MongoDB y recorrido HTTP aprobados |
 | `f86fea6` | 2026-11-03 | Daniel | API06 | Catálogo, propiedad y detalle con visibilidad y paginación | 54 pruebas locales, 5 integraciones MongoDB y recorrido HTTP aprobados |
 | `f26bd1c` | 2026-11-03 | Daniel | API07 | Eliminación o archivo según historial, con transacciones y revisión común | 62 pruebas locales, 6 integraciones MongoDB con 9 subcasos de API07 aprobados |
+| `fa471e8` | 2026-11-03 | Daniel | UI06 | Catálogo paginado, filtros en URL y tarjetas con permisos e indicadores visuales | 85 pruebas, 3 integraciones React/API/MongoDB, lint/build y ajustes visuales aprobados |
 
 ### Cliente React
 
@@ -74,7 +75,7 @@ Los componentes disponibles son `AppLayout`, `Navbar`, `PageHeader`, `StatusPane
 
 #### Cliente HTTP y mock local
 
-`cliente/src/api/` centraliza URL base, query, JSON, token Bearer, timeout, cancelación y errores uniformes. Los servicios de dominio reflejan los 26 endpoints de [`docs/api-contract.md`](docs/api-contract.md). `useApiQuery` separa carga, éxito, vacío y error, cancela consultas desmontadas e impide que una respuesta anterior reemplace una búsqueda más reciente.
+`cliente/src/api/` centraliza URL base, query, JSON, token Bearer, timeout, cancelación y errores uniformes. Los servicios de dominio reflejan los 27 endpoints de [`docs/api-contract.md`](docs/api-contract.md). `useApiQuery` separa carga, éxito, vacío y error, cancela consultas desmontadas e impide que una respuesta anterior reemplace una búsqueda más reciente.
 
 El modo normal consulta `http://localhost:3000/api`. Para desarrollar sin servidor, crear `cliente/.env.local` con `VITE_API_MODE=mock`; los datos se importan desde `pruebas/fixtures/`. El mock implementa autenticación desde UI04; las demás mutaciones fallan explícitamente con `501` hasta su tarea funcional y un build con modo mock se rechaza. La configuración, tokens sintéticos y recorrido de `/api-demo` están documentados en [`cliente/README.md`](cliente/README.md).
 
@@ -114,9 +115,9 @@ node pruebas/fixtures/validate-fixtures.mjs
 
 Desde API06, `npm run seed` carga ocho categorías, diez competencias, cinco usuarios, ocho iniciativas, doce membresías y trece eventos de fixture. Los usuarios usan el valor local de `DEMO_USER_PASSWORD`, pero cada contraseña produce un hash distinto; repetir el seed conserva los hashes existentes y los IDs, sin eliminar registros creados por fuera del fixture. La carga de solicitudes/proyectos se completa con sus módulos y se verifica integralmente en API13.
 
-Las nuevas consultas son `GET /api/initiatives`, `GET /api/initiatives/mine` y `GET /api/initiatives/:id`. Catálogo y detalle admiten visitante con proyección por visibilidad; `/mine` exige sesión y solo lista propiedad. Con seed limpio, el catálogo devuelve 3 iniciativas al visitante, 5 a Carla y 6 a Ana; `/mine` de Ana devuelve las 8, incluidas borrador/archivada. UI06 implementa `/iniciativas` y `/mis-iniciativas`, con filtros/orden/paginación de servidor y query persistida en la URL. Las tarjetas respetan `access.canViewDetails`; una restringida ajena no ofrece enlaces a detalle ni muestra propietario. Detalle, creación y edición continúan pendientes de UI07/UI08. Políticas, límites y pruebas están en [docs/iniciativas-api.md](docs/iniciativas-api.md).
+Las nuevas consultas son `GET /api/initiatives`, `GET /api/initiatives/mine` y `GET /api/initiatives/:id`. Catálogo y detalle admiten visitante con proyección por visibilidad; `/mine` exige sesión y solo lista propiedad. Con seed limpio, el catálogo devuelve 3 iniciativas al visitante, 5 a Carla y 6 a Ana; `/mine` de Ana devuelve las 8, incluidas borrador/archivada. UI06 implementa `/iniciativas` y `/mis-iniciativas`, con filtros/orden/paginación de servidor y query persistida en la URL. Las tarjetas respetan `access.canViewDetails`; una restringida ajena no ofrece enlaces a detalle ni muestra propietario. UI07 implementa el detalle por UUID, acceso por visibilidad y confirmación de borrado/archivo con resultado real de la API. Creación/edición siguen pendientes de UI08. Políticas, límites y pruebas están en [docs/iniciativas-api.md](docs/iniciativas-api.md).
 
-API07 agrega `DELETE /api/initiatives/:id`: solo el propietario puede ejecutarlo, sin body ni query. Devuelve `204` al eliminar una iniciativa que solo conserva la membresía/evento automáticos del dueño; devuelve `200` y `operation: archived` cuando existe historial adicional. Las solicitudes de cualquier estado, miembros retirados, eventos y proyectos se conservan. Repetir archivo devuelve el mismo resultado sin modificar su fecha; repetir sobre una iniciativa borrada devuelve `404`.
+Desde la separación solicitada por Daniel en UI07, `DELETE /api/initiatives/:id` solo elimina definitivamente: devuelve `204` sin historial adicional o `409 INITIATIVE_HAS_HISTORY` sin cambios cuando existe. `POST /api/initiatives/:id/archive` archiva explícitamente con `200`, con o sin historial, conservando todas las relaciones. Ambas requieren propietario y no reciben cuerpo ni query. Repetir archivo no cambia fecha/revisión; una archivada sin historial adicional también puede eliminarse. El commit original API07 conserva su evidencia histórica, pero el contrato vigente separa ambas acciones.
 
 ## Avance 1 — prototipo frontend
 
@@ -272,7 +273,7 @@ Existen diferencias concretas entre el contrato heredado y el documento general:
 | Restringidas | Resumen y aviso genérico; no participan en filtros de metadatos ni permiten solicitudes. El propietario conserva edición y eliminación desde la tarjeta. | Permite título, tipo, resumen, categoría y competencias; autor y miembros aceptados acceden a información completa. |
 | Categorías | Ambiente, Comunidad, Cultura, Educación y Tecnología. | Ocho categorías mínimas, incluidas Sostenibilidad, Impacto social, Negocios y emprendimiento, Salud y bienestar, Cultura y creatividad y Otro. |
 | Estados | Los datos usan Abierta y En evaluación; las nuevas iniciativas nacen Abiertas. | Borrador, Publicada, En formación de equipo, Convertida en proyecto y Archivada. |
-| Eliminación | Borrado local de iniciativas propias tras confirmación. | Eliminar o archivar según solicitudes, miembros y proyecto relacionado. |
+| Eliminación | Borrado local de iniciativas propias tras confirmación. | Eliminar solo sin historial; Archivar es una acción independiente con o sin relaciones. |
 | Búsqueda y filtros | Título/resumen y filtros por tipo, categoría y competencia. | También contempla etiquetas, estado, espacios, propietario y visibilidad permitida. |
 
 No hay backend, autenticación, autorización de servidor, aprobación de solicitudes ni conversión a proyectos. Las solicitudes no tienen gestión de estados ni control de duplicados. La sección de «proyectos» del perfil lista iniciativas donde figura el usuario; no implementa una entidad de proyecto independiente.

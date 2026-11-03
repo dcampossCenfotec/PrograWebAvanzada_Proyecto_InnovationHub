@@ -114,7 +114,8 @@ Campos: `id`, `sourceInitiativeId`, `ownerId`, `name`, `description`, `objective
 | Cancelar solicitud | Actualizar condicionalmente la solicitud pendiente; se permite aunque la iniciativa esté archivada. |
 | Retirar miembro | Cambiar membresía activa a retirada y agregar evento; impedir retirar propietario. |
 | Convertir | Verificar propietario, estado y otro miembro activo; insertar proyecto único y cambiar iniciativa a `converted`. |
-| Borrar/archivar | Releer relaciones dentro de la transacción. Borrar iniciativa, membresía/evento automático del propietario solo si no hay historia adicional; en otro caso actualizar a `archived`. |
+| Eliminar | Releer relaciones dentro de la transacción. Borrar iniciativa y membresía/evento automáticos solo sin historia adicional; con historia abortar con `409` sin cambios. |
+| Archivar | Operación explícita independiente: actualizar a `archived` conservando todas las relaciones, incluso sin historia adicional. Repetición idempotente. |
 
 Las pruebas de estas operaciones requieren replica set. Ejecutarlas contra MongoDB standalone y omitir la transacción sería una falsa aprobación.
 

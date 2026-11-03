@@ -7,6 +7,7 @@ export const initiativesService = {
   create: (values, options) => apiClient.post('/initiatives', values, options),
   update: (id, values, options) =>
     apiClient.put(`/initiatives/${id}`, values, options),
+  archive: (id, options) => apiClient.post(`/initiatives/${id}/archive`, undefined, options),
   remove: (id, options) => apiClient.delete(`/initiatives/${id}`, options),
   requestParticipation: (id, values, options) =>
     apiClient.post(`/initiatives/${id}/requests`, values, options),

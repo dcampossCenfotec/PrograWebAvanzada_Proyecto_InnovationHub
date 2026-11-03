@@ -29,14 +29,17 @@ test('eliminar sin historial devuelve null para HTTP 204', async () => {
   assert.equal(await buildService().deleteInitiative(id, ownerId), null)
 })
 
-test('historial obliga a archivar sin eliminar relaciones', async () => {
+test('DELETE con historial se rechaza sin borrar ni archivar', async () => {
   let deletes = 0
+  let archives = 0
   const service = buildService({ removal: {
     inspectHistory: async () => ({ canDelete: false }),
+    archiveAtRevision: async () => { archives += 1 },
     deleteAggregate: async () => { deletes += 1; return true },
   } })
-  assert.deepEqual(await service.deleteInitiative(id, ownerId), { id, state: 'archived', operation: 'archived' })
+  await assert.rejects(service.deleteInitiative(id, ownerId), (e) => e.status === 409 && e.code === 'INITIATIVE_HAS_HISTORY')
   assert.equal(deletes, 0)
+  assert.equal(archives, 0)
 })
 
 test('inexistente y actor ajeno no escriben ni inspeccionan historia', async () => {
@@ -53,7 +56,7 @@ test('repetir archivo devuelve el mismo resultado sin otra escritura', async () 
     initiative: { ...current, state: 'archived' },
     initiatives: { touchRevision: async () => { writes += 1 } },
   })
-  assert.deepEqual(await service.deleteInitiative(id, ownerId), { id, state: 'archived', operation: 'archived' })
+  assert.deepEqual(await service.archiveInitiative(id, ownerId), { id, state: 'archived', operation: 'archived' })
   assert.equal(writes, 0)
 })
 
@@ -81,5 +84,30 @@ test('archivo que pierde su revisión se rechaza con conflicto', async () => {
     inspectHistory: async () => ({ canDelete: false }),
     archiveAtRevision: async () => null,
   } })
-  await assert.rejects(service.deleteInitiative(id, ownerId), (e) => e.status === 409)
+  await assert.rejects(service.archiveInitiative(id, ownerId), (e) => e.status === 409)
+})
+
+
+test('archivo explícito funciona sin historial y nunca elimina ni inspecciona relaciones', async () => {
+  const service = buildService({ removal: {
+    inspectHistory: async () => { throw new Error('no debe inspeccionar historial') },
+    deleteAggregate: async () => { throw new Error('no debe borrar') },
+  } })
+  assert.deepEqual(await service.archiveInitiative(id, ownerId), { id, state: 'archived', operation: 'archived' })
+})
+
+test('archivada sin historial puede eliminarse definitivamente', async () => {
+  assert.equal(await buildService({ initiative: { ...current, state: 'archived' } }).deleteInitiative(id, ownerId), null)
+})
+
+test('archivo rechaza UUID, body y query antes de la transacción y protege propietario', async () => {
+  let transactions = 0
+  const service = buildService({ transactionRunner: async () => { transactions += 1 } })
+  await assert.rejects(service.archiveInitiative('invalid', ownerId), (e) => e.status === 400)
+  await assert.rejects(service.archiveInitiative(id, ownerId, { body: {} }), (e) => e.status === 400)
+  await assert.rejects(service.archiveInitiative(id, ownerId, { hasBody: true }), (e) => e.status === 400)
+  await assert.rejects(service.archiveInitiative(id, ownerId, { query: { force: 'true' } }), (e) => e.code === 'INVALID_QUERY')
+  assert.equal(transactions, 0)
+  await assert.rejects(buildService({ initiative: null }).archiveInitiative(id, ownerId), (e) => e.status === 404)
+  await assert.rejects(buildService().archiveInitiative(id, 'otro'), (e) => e.status === 403)
 })
