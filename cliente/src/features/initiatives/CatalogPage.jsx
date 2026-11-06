@@ -1,3 +1,4 @@
+
 import { useCallback, useMemo, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { catalogsService } from '../../api/services/catalogs.js'
@@ -46,7 +47,7 @@ function CatalogContent({ mine, authenticated }) {
         eyebrow="Comunidad universitaria"
         title={mine ? 'Mis iniciativas' : 'Iniciativas'}
       />
-      <InitiativeNotice key={`notice:${searchKey}`} ready={ready} allowed={mine ? ['created', 'deleted', 'archived'] : ['created']} />
+      <InitiativeNotice key={`notice:${searchKey}`} ready={ready} allowed={mine ? ['created', 'deleted', 'archived'] : ['created', 'requestCreated']} />
       {authenticated ? (
         <nav aria-label="Vistas de iniciativas" className="d-flex flex-wrap gap-2 mb-4">
           <Link aria-current={!mine ? 'page' : undefined} className={`btn ${mine ? 'btn-outline-primary' : 'btn-primary'}`} to="/iniciativas">Explorar iniciativas</Link>

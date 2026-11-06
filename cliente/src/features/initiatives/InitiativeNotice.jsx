@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -6,6 +7,7 @@ const messages = {
   updated: 'Los cambios de la iniciativa se guardaron correctamente.',
   deleted: 'La iniciativa se eliminó definitivamente.',
   archived: 'La iniciativa se archivó y su historial se conserva.',
+  requestCreated: 'Tu solicitud se envió correctamente. Puedes consultar su estado en Mis solicitudes.',
 }
 
 export function InitiativeNotice({ allowed, ready = true }) {

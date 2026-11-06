@@ -1,3 +1,4 @@
+
 import { createBrowserRouter } from 'react-router'
 import AppLayout from '../components/AppLayout.jsx'
 import ApiPreviewPage from '../dev/ApiPreviewPage.jsx'
@@ -14,6 +15,9 @@ import { UserDirectoryPage } from '../features/users/UserDirectoryPage.jsx'
 import { CatalogPage } from '../features/initiatives/CatalogPage.jsx'
 import { InitiativeDetailPage } from '../features/initiatives/InitiativeDetailPage.jsx'
 import { InitiativeFormPage } from '../features/initiatives/InitiativeFormPage.jsx'
+import { RequestFormPage } from '../features/requests/RequestFormPage.jsx'
+import { MyRequestsPage } from '../features/requests/MyRequestsPage.jsx'
+import { RequestDetailPage } from '../features/requests/RequestDetailPage.jsx'
 
 function protectedPage(element) {
   return <ProtectedRoute>{element}</ProtectedRoute>
@@ -36,12 +40,7 @@ const placeholderRoutes = [
   { path: 'usuarios', element: protectedPage(<UserDirectoryPage />) },
   {
     path: 'mis-solicitudes',
-    element: protectedPage(
-      <PlaceholderPage
-        description="Listado personal de solicitudes y sus estados."
-        title="Mis solicitudes"
-      />,
-    ),
+    element: protectedPage(<MyRequestsPage />),
   },
   {
     path: 'solicitudes-recibidas',
@@ -82,13 +81,7 @@ const entityRoutes = [
   },
   {
     path: 'iniciativas/:id/participar',
-    element: protectedPage(
-      <EntityPlaceholderPage
-        entityName="Iniciativa"
-        mode="solicitud"
-        title="Solicitar participación"
-      />,
-    ),
+    element: protectedPage(<RequestFormPage />),
   },
   {
     path: 'iniciativas/:id/convertir',
@@ -106,19 +99,11 @@ const entityRoutes = [
   },
   {
     path: 'solicitudes/:id',
-    element: protectedPage(
-      <EntityPlaceholderPage entityName="Solicitud" title="Detalle de solicitud" />,
-    ),
+    element: protectedPage(<RequestDetailPage />),
   },
   {
     path: 'solicitudes/:id/editar',
-    element: protectedPage(
-      <EntityPlaceholderPage
-        entityName="Solicitud"
-        mode="edición"
-        title="Editar solicitud"
-      />,
-    ),
+    element: protectedPage(<RequestFormPage edit />),
   },
   {
     path: 'proyectos/:id',
