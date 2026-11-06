@@ -91,3 +91,14 @@ export function validateNoRequestPayload(query, body, hasBody) {
 export function validateEmptyRequestQuery(query) {
   if (Object.keys(query).length) invalid(Object.fromEntries(Object.keys(query).map((key) => [key, 'No se permiten parámetros.'])), true)
 }
+
+export function validateRequestDecision(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) invalid({ body: 'Debe ser un objeto JSON.' })
+  const fields = {}
+  for (const key of Object.keys(body)) if (!['decision', 'comment'].includes(key)) fields[key] = 'Este campo no está permitido.'
+  if (!['accepted', 'rejected'].includes(body.decision)) fields.decision = 'Selecciona accepted o rejected.'
+  const comment = body.comment === undefined || body.comment === null ? null : typeof body.comment === 'string' ? body.comment.trim() : ''
+  if (comment !== null && (comment.length < 1 || comment.length > 500)) fields.comment = 'Debe tener entre 1 y 500 caracteres o ser null.'
+  if (Object.keys(fields).length) invalid(fields)
+  return { decision: body.decision, comment }
+}

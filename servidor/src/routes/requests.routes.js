@@ -8,6 +8,7 @@ export function createRequestsRouter(controller, requireSession) {
   router.get('/:id', controller.get)
   router.put('/:id', controller.update)
   router.post('/:id/cancel', controller.cancel)
+  router.post('/:id/decision', controller.decide)
   return router
 }
 

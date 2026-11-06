@@ -1,6 +1,6 @@
 
 import { toRequestDto } from '../dto/request.dto.js'
-import { validateEmptyRequestQuery, validateNoRequestPayload } from '../validation/requests.validation.js'
+import { validateEmptyRequestQuery, validateNoRequestPayload, validateRequestDecision } from '../validation/requests.validation.js'
 
 function hasBody(request) {
   return Number(request.get('content-length') ?? 0) > 0 || request.get('transfer-encoding') !== undefined
@@ -19,7 +19,7 @@ export function createRequestsController(service) {
     },
     async list(request, response, next) {
       try {
-        const result = await service.list(request.query, request.auth.user.id)
+        const result = await service.list(request.query, request.auth.user.id, { received: true })
         response.status(200).json({
           data: result.items.map(toRequestDto), pagination: result.pagination,
         })
@@ -37,6 +37,17 @@ export function createRequestsController(service) {
         validateEmptyRequestQuery(request.query)
         const result = await service.update(request.params.id, request.auth.user.id, request.body)
         response.status(200).json({ data: toRequestDto(result) })
+      } catch (error) { next(error) }
+    },
+    async decide(request, response, next) {
+      try {
+        validateEmptyRequestQuery(request.query)
+        const input = validateRequestDecision(request.body)
+        const result = await service.decide(request.params.id, request.auth.user.id, input)
+        response.status(200).json({ data: {
+          request: toRequestDto(result.request),
+          membership: result.membership ? { id: result.membership.id, state: result.membership.state } : null,
+        } })
       } catch (error) { next(error) }
     },
     async cancel(request, response, next) {

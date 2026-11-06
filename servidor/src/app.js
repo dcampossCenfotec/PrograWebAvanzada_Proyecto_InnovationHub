@@ -11,6 +11,7 @@ import { createAuthRouter } from './routes/auth.routes.js'
 import { createCatalogRouter, createUsersRouter } from './routes/users.routes.js'
 import { createInitiativesRouter } from './routes/initiatives.routes.js'
 import { createRequestsRouter, createRequestInitiativeRouter } from './routes/requests.routes.js'
+import { createMembersInitiativeRouter } from './routes/members.routes.js'
 
 export function createApp({
   config,
@@ -48,6 +49,7 @@ export function createApp({
   if (requestsModule) {
     app.use('/api/requests', createRequestsRouter(requestsModule.controller, requestsModule.requireSession))
     app.use('/api/initiatives', createRequestInitiativeRouter(requestsModule.controller, requestsModule.requireSession))
+    app.use('/api/initiatives', createMembersInitiativeRouter(requestsModule.membersController, requestsModule.requireSession))
   }
 
   app.use(notFoundMiddleware)

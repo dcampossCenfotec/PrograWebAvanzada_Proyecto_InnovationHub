@@ -114,6 +114,47 @@ export function createRequestsService({
       })
       return decorate(saved)
     },
+    async decide(id, actorId, { decision, comment }) {
+      const requestId = validateRequestId(id)
+      const result = await transact(async (session) => {
+        const { record, initiative } = await requireRelatedRequest(requestId, actorId, session)
+        if (!initiative) throw notFound()
+        if (initiative.ownerId !== actorId) throw forbidden()
+        if (record.state !== 'pending') throw stateConflict()
+        if (decision === 'accepted' && initiative.state === 'archived') throw stateConflict()
+        if (decision === 'accepted') {
+          if (!REQUESTABLE_STATES.includes(initiative.state)) throw stateConflict()
+          if (!await repository.findUser(record.applicantId, session)) throw stateConflict()
+          if (await repository.findMembership(initiative.id, record.applicantId, session)) {
+            throw new HttpError(409, 'ACTIVE_MEMBER_EXISTS', 'El solicitante ya forma parte del equipo.')
+          }
+        }
+        const now = clock()
+        if (!await repository.touchRevision(initiative, now, session)) throw changed()
+        const updated = await repository.updateState({
+          id: requestId, state: decision,
+          changes: { decisionComment: comment, decidedAt: now, updatedAt: now },
+        }, session)
+        if (!updated) throw changed()
+        let membership = null
+        if (decision === 'accepted') {
+          membership = await repository.createMembership({
+            id: createId(), initiativeId: initiative.id, userId: record.applicantId,
+            role: record.role, state: 'active', joinedAt: now,
+            retiredAt: null, sourceRequestId: record.id,
+          }, session)
+          if (initiative.state === 'published'
+            && !await repository.markFormingTeam(initiative.id, session)) throw changed()
+          await repository.createMembershipEvent({
+            id: createId(), initiativeId: initiative.id, userId: record.applicantId,
+            membershipId: membership.id, type: 'joined', occurredAt: now,
+            actorId, requestId: record.id,
+          }, session)
+        }
+        return { request: updated, membership }
+      }, { duplicateCode: 'ACTIVE_MEMBER_EXISTS' })
+      return { request: await decorate(result.request), membership: result.membership }
+    },
     async cancel(id, actorId) {
       const requestId = validateRequestId(id)
       const saved = await transact(async (session) => {

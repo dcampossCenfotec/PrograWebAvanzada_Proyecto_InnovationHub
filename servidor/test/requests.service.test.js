@@ -81,3 +81,37 @@ test('API08 niega operaciones ajenas y no filtra recursos privados a terceros', 
   f.initiative.visibility = 'private'
   await assert.rejects(f.service.create(initiativeId, '33333333-3333-4333-8333-333333333333', body), (e) => e.status === 404)
 })
+
+test('API09 aceptar registra solicitud, miembro y evento en la misma operación', async () => {
+  const calls = []
+  const f = fixture({
+    createMembership: async (record) => { calls.push('membership'); return record },
+    createMembershipEvent: async (record) => { calls.push('event'); return record },
+    markFormingTeam: async () => { calls.push('state'); f.initiative.state = 'forming_team'; return f.initiative },
+  })
+  const entry = (await f.service.create(initiativeId, applicantId, body)).raw
+  const response = await f.service.decide(entry.id, ownerId, { decision: 'accepted', comment: 'Adelante.' })
+  assert.equal(response.request.raw.state, 'accepted')
+  assert.equal(response.membership.userId, applicantId)
+  assert.equal(response.membership.sourceRequestId, entry.id)
+  assert.deepEqual(calls, ['membership', 'state', 'event'])
+  assert.equal(f.initiative.state, 'forming_team')
+  await assert.rejects(f.service.decide(entry.id, ownerId, { decision: 'rejected', comment: null }), (e) => e.status === 409)
+})
+
+test('API09 rechazo no crea miembro y permite cerrar pendiente archivada', async () => {
+  const f = fixture()
+  const entry = (await f.service.create(initiativeId, applicantId, body)).raw
+  f.initiative.state = 'archived'
+  await assert.rejects(f.service.decide(entry.id, ownerId, { decision: 'accepted', comment: null }), (e) => e.status === 409)
+  const response = await f.service.decide(entry.id, ownerId, { decision: 'rejected', comment: null })
+  assert.equal(response.request.raw.state, 'rejected')
+  assert.equal(response.membership, null)
+  assert.equal(f.initiative.state, 'archived')
+})
+
+test('API09 no permite que solicitante o tercero decidan', async () => {
+  const f = fixture()
+  const entry = (await f.service.create(initiativeId, applicantId, body)).raw
+  await assert.rejects(f.service.decide(entry.id, applicantId, { decision: 'accepted' }), (e) => e.status === 403)
+})
