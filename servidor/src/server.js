@@ -1,3 +1,4 @@
+
 import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
 import { createApp } from './app.js'
@@ -6,6 +7,7 @@ import { createMongoDatabase } from './database/connection.js'
 import { createAuthModule } from './modules/auth.module.js'
 import { createUsersModule } from './modules/users.module.js'
 import { createInitiativesModule } from './modules/initiatives.module.js'
+import { createRequestsModule } from './modules/requests.module.js'
 
 function closeHttpServer(server) {
   return new Promise((resolveClose, rejectClose) => {
@@ -44,6 +46,7 @@ export async function startServer({
   authModuleFactory = createAuthModule,
   usersModuleFactory = createUsersModule,
   initiativesModuleFactory = createInitiativesModule,
+  requestsModuleFactory = createRequestsModule,
 } = {}) {
   const activeDatabase = database ?? createMongoDatabase({
     uri: config.mongoUri,
@@ -58,6 +61,7 @@ export async function startServer({
   let authModule
   let usersModule
   let initiativesModule
+  let requestsModule
   try {
     authModule = await authModuleFactory({
       connection,
@@ -68,7 +72,10 @@ export async function startServer({
       connection,
       requireSession: authModule.requireSession,
     })
-    app = createApp({ config, authModule, usersModule, initiativesModule, logger })
+    requestsModule = await requestsModuleFactory({
+      connection, requireSession: authModule.requireSession,
+    })
+    app = createApp({ config, authModule, usersModule, initiativesModule, requestsModule, logger })
     server = await openHttpServer(app, config, logger)
   } catch (error) {
     await activeDatabase.disconnect()
@@ -116,6 +123,7 @@ export async function startServer({
     authModule,
     usersModule,
     initiativesModule,
+    requestsModule,
   }
 }
 

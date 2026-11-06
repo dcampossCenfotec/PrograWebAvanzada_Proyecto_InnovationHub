@@ -1,3 +1,4 @@
+
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { once } from 'node:events'
@@ -25,6 +26,7 @@ const fakeAuthModule = Object.freeze({
 const authModuleFactory = async () => fakeAuthModule
 const usersModuleFactory = async () => undefined
 const initiativesModuleFactory = async () => undefined
+const requestsModuleFactory = async () => undefined
 
 test('conecta MongoDB antes de escuchar y cierra HTTP antes de desconectar', async () => {
   const messages = []
@@ -45,6 +47,7 @@ test('conecta MongoDB antes de escuchar y cierra HTTP antes de desconectar', asy
     authModuleFactory,
     usersModuleFactory,
     initiativesModuleFactory,
+    requestsModuleFactory,
   })
   if (!instance.server.listening) await once(instance.server, 'listening')
 
@@ -87,6 +90,7 @@ test('cierra MongoDB si el puerto HTTP ya está ocupado', async () => {
         authModuleFactory,
         usersModuleFactory,
         initiativesModuleFactory,
+        requestsModuleFactory,
       }),
       (error) => error.code === 'EADDRINUSE',
     )

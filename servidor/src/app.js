@@ -1,3 +1,4 @@
+
 import express from 'express'
 import { createHealthController } from './controllers/health.controller.js'
 import { createCorsMiddleware } from './middleware/cors.js'
@@ -9,6 +10,7 @@ import { createHealthService } from './services/health.service.js'
 import { createAuthRouter } from './routes/auth.routes.js'
 import { createCatalogRouter, createUsersRouter } from './routes/users.routes.js'
 import { createInitiativesRouter } from './routes/initiatives.routes.js'
+import { createRequestsRouter, createRequestInitiativeRouter } from './routes/requests.routes.js'
 
 export function createApp({
   config,
@@ -16,6 +18,7 @@ export function createApp({
   authModule,
   usersModule,
   initiativesModule,
+  requestsModule,
   logger = console,
 }) {
   if (!config) throw new Error('createApp requiere una configuración validada.')
@@ -40,6 +43,11 @@ export function createApp({
       '/api/initiatives',
       createInitiativesRouter(initiativesModule.controller, initiativesModule.requireSession),
     )
+  }
+
+  if (requestsModule) {
+    app.use('/api/requests', createRequestsRouter(requestsModule.controller, requestsModule.requireSession))
+    app.use('/api/initiatives', createRequestInitiativeRouter(requestsModule.controller, requestsModule.requireSession))
   }
 
   app.use(notFoundMiddleware)
