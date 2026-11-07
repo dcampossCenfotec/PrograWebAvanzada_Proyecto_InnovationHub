@@ -8,6 +8,7 @@ import { createAuthModule } from './modules/auth.module.js'
 import { createUsersModule } from './modules/users.module.js'
 import { createInitiativesModule } from './modules/initiatives.module.js'
 import { createRequestsModule } from './modules/requests.module.js'
+import { createProjectsModule } from './modules/projects.module.js'
 
 function closeHttpServer(server) {
   return new Promise((resolveClose, rejectClose) => {
@@ -15,6 +16,7 @@ function closeHttpServer(server) {
       resolveClose()
       return
     }
+
     server.close((error) => {
       if (error) rejectClose(error)
       else resolveClose()
@@ -25,15 +27,20 @@ function closeHttpServer(server) {
 function openHttpServer(app, config, logger) {
   return new Promise((resolveOpen, rejectOpen) => {
     const server = app.listen(config.port, config.host)
+
     const onError = (error) => {
       server.removeListener('listening', onListening)
       rejectOpen(error)
     }
+
     const onListening = () => {
       server.removeListener('error', onError)
-      logger.info(`Innovation Hub API disponible en http://${config.host}:${config.port}.`)
+      logger.info(
+        `Innovation Hub API disponible en http://${config.host}:${config.port}.`,
+      )
       resolveOpen(server)
     }
+
     server.once('error', onError)
     server.once('listening', onListening)
   })
@@ -47,6 +54,7 @@ export async function startServer({
   usersModuleFactory = createUsersModule,
   initiativesModuleFactory = createInitiativesModule,
   requestsModuleFactory = createRequestsModule,
+  projectsModuleFactory = createProjectsModule,
 } = {}) {
   const activeDatabase = database ?? createMongoDatabase({
     uri: config.mongoUri,
@@ -56,26 +64,51 @@ export async function startServer({
   })
 
   const connection = await activeDatabase.connect()
+
   let server
   let app
   let authModule
   let usersModule
   let initiativesModule
   let requestsModule
+  let projectsModule
+
   try {
     authModule = await authModuleFactory({
       connection,
       sessionTtlMinutes: config.authSessionTtlMinutes,
     })
-    usersModule = await usersModuleFactory({ connection, requireSession: authModule.requireSession })
+
+    usersModule = await usersModuleFactory({
+      connection,
+      requireSession: authModule.requireSession,
+    })
+
     initiativesModule = await initiativesModuleFactory({
       connection,
       requireSession: authModule.requireSession,
     })
+
     requestsModule = await requestsModuleFactory({
-      connection, requireSession: authModule.requireSession,
+      connection,
+      requireSession: authModule.requireSession,
     })
-    app = createApp({ config, authModule, usersModule, initiativesModule, requestsModule, logger })
+
+    projectsModule = await projectsModuleFactory({
+      connection,
+      requireSession: authModule.requireSession,
+    })
+
+    app = createApp({
+      config,
+      authModule,
+      usersModule,
+      initiativesModule,
+      requestsModule,
+      projectsModule,
+      logger,
+    })
+
     server = await openHttpServer(app, config, logger)
   } catch (error) {
     await activeDatabase.disconnect()
@@ -83,9 +116,11 @@ export async function startServer({
   }
 
   let stopping = false
+
   const shutdown = async () => {
     if (stopping) return
     stopping = true
+
     try {
       await closeHttpServer(server)
     } finally {
@@ -94,11 +129,15 @@ export async function startServer({
   }
 
   async function stopFromSignal(signal) {
-    logger.info(`Señal ${signal} recibida; cerrando HTTP y MongoDB.`)
+    logger.info(
+      `Señal ${signal} recibida; cerrando HTTP y MongoDB.`,
+    )
     try {
       await shutdown()
     } catch {
-      logger.error('No fue posible cerrar el servidor limpiamente.')
+      logger.error(
+        'No fue posible cerrar el servidor limpiamente.',
+      )
       process.exitCode = 1
     }
   }
@@ -112,7 +151,8 @@ export async function startServer({
   )
 
   server.once('close', () => {
-    signalHandlers.forEach((handler, signal) => process.removeListener(signal, handler))
+    signalHandlers.forEach((handler, signal) =>
+      process.removeListener(signal, handler))
   })
 
   return {
@@ -124,14 +164,19 @@ export async function startServer({
     usersModule,
     initiativesModule,
     requestsModule,
+    projectsModule,
   }
 }
 
-const isMainModule = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+const isMainModule =
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 
 if (isMainModule) {
   startServer().catch((error) => {
-    console.error(`No fue posible iniciar Innovation Hub API: ${error.message}`)
+    console.error(
+      `No fue posible iniciar Innovation Hub API: ${error.message}`,
+    )
     process.exitCode = 1
   })
 }

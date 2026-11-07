@@ -16,59 +16,100 @@ const config = Object.freeze({
 
 const fakeAuthModule = Object.freeze({
   controller: {
-    register(_request, response) { response.status(501).end() },
-    login(_request, response) { response.status(501).end() },
-    logout(_request, response) { response.status(501).end() },
-    me(_request, response) { response.status(501).end() },
+    register(_request, response) {
+      response.status(501).end()
+    },
+    login(_request, response) {
+      response.status(501).end()
+    },
+    logout(_request, response) {
+      response.status(501).end()
+    },
+    me(_request, response) {
+      response.status(501).end()
+    },
   },
-  requireSession(_request, _response, next) { next() },
+  requireSession(_request, _response, next) {
+    next()
+  },
 })
+
 const authModuleFactory = async () => fakeAuthModule
 const usersModuleFactory = async () => undefined
 const initiativesModuleFactory = async () => undefined
 const requestsModuleFactory = async () => undefined
+const projectsModuleFactory = async () => undefined
 
-test('conecta MongoDB antes de escuchar y cierra HTTP antes de desconectar', async () => {
-  const messages = []
-  const events = []
-  const logger = {
-    info(message) { messages.push(message) },
-    error(message) { messages.push(message) },
-  }
-  const database = {
-    async connect() { events.push('database:connect'); return {} },
-    async disconnect() { events.push('database:disconnect') },
-  }
+test(
+  'conecta MongoDB antes de escuchar y cierra HTTP antes de desconectar',
+  async () => {
+    const messages = []
+    const events = []
 
-  const instance = await startServer({
-    config,
-    logger,
-    database,
-    authModuleFactory,
-    usersModuleFactory,
-    initiativesModuleFactory,
-    requestsModuleFactory,
-  })
-  if (!instance.server.listening) await once(instance.server, 'listening')
+    const logger = {
+      info(message) { messages.push(message) },
+      error(message) { messages.push(message) },
+    }
 
-  const address = instance.server.address()
-  assert.equal(address.address, '127.0.0.1')
-  assert.ok(address.port > 0)
-  assert.deepEqual(events, ['database:connect'])
+    const database = {
+      async connect() {
+        events.push('database:connect')
+        return {}
+      },
+      async disconnect() {
+        events.push('database:disconnect')
+      },
+    }
 
-  await instance.shutdown()
-  assert.equal(instance.server.listening, false)
-  assert.deepEqual(events, ['database:connect', 'database:disconnect'])
-  assert.equal(messages.some((message) => message.includes('Innovation Hub API')), true)
-})
+    const instance = await startServer({
+      config,
+      logger,
+      database,
+      authModuleFactory,
+      usersModuleFactory,
+      initiativesModuleFactory,
+      requestsModuleFactory,
+      projectsModuleFactory,
+    })
+
+    if (!instance.server.listening) {
+      await once(instance.server, 'listening')
+    }
+
+    const address = instance.server.address()
+    assert.equal(address.address, '127.0.0.1')
+    assert.ok(address.port > 0)
+    assert.deepEqual(events, ['database:connect'])
+
+    await instance.shutdown()
+
+    assert.equal(instance.server.listening, false)
+    assert.deepEqual(
+      events,
+      ['database:connect', 'database:disconnect'],
+    )
+    assert.equal(
+      messages.some((message) =>
+        message.includes('Innovation Hub API')),
+      true,
+    )
+  },
+)
 
 test('no abre el puerto cuando MongoDB no está disponible', async () => {
   const database = {
-    async connect() { throw new Error('MongoDB sin respuesta') },
-    async disconnect() { throw new Error('no debe llamarse') },
+    async connect() {
+      throw new Error('MongoDB sin respuesta')
+    },
+    async disconnect() {
+      throw new Error('no debe llamarse')
+    },
   }
 
-  await assert.rejects(startServer({ config, database }), /MongoDB sin respuesta/)
+  await assert.rejects(
+    startServer({ config, database }),
+    /MongoDB sin respuesta/,
+  )
 })
 
 test('cierra MongoDB si el puerto HTTP ya está ocupado', async () => {
@@ -77,24 +118,38 @@ test('cierra MongoDB si el puerto HTTP ya está ocupado', async () => {
   await once(occupyingServer, 'listening')
 
   const events = []
+
   const database = {
-    async connect() { events.push('database:connect'); return {} },
-    async disconnect() { events.push('database:disconnect') },
+    async connect() {
+      events.push('database:connect')
+      return {}
+    },
+    async disconnect() {
+      events.push('database:disconnect')
+    },
   }
 
   try {
     await assert.rejects(
       startServer({
-        config: { ...config, port: occupyingServer.address().port },
+        config: {
+          ...config,
+          port: occupyingServer.address().port,
+        },
         database,
         authModuleFactory,
         usersModuleFactory,
         initiativesModuleFactory,
         requestsModuleFactory,
+        projectsModuleFactory,
       }),
       (error) => error.code === 'EADDRINUSE',
     )
-    assert.deepEqual(events, ['database:connect', 'database:disconnect'])
+
+    assert.deepEqual(
+      events,
+      ['database:connect', 'database:disconnect'],
+    )
   } finally {
     occupyingServer.close()
     await once(occupyingServer, 'close')
