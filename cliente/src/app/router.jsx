@@ -18,6 +18,7 @@ import { InitiativeFormPage } from '../features/initiatives/InitiativeFormPage.j
 import { RequestFormPage } from '../features/requests/RequestFormPage.jsx'
 import { MyRequestsPage } from '../features/requests/MyRequestsPage.jsx'
 import { RequestDetailPage } from '../features/requests/RequestDetailPage.jsx'
+import { ReceivedRequestsPage } from '../features/requests/ReceivedRequestsPage.jsx'
 
 function protectedPage(element) {
   return <ProtectedRoute>{element}</ProtectedRoute>
@@ -36,20 +37,21 @@ const placeholderRoutes = [
     path: 'iniciativas/nueva',
     element: <InitiativeFormPage />,
   },
-  { path: 'perfil', element: protectedPage(<OwnProfilePage />) },
-  { path: 'usuarios', element: protectedPage(<UserDirectoryPage />) },
+  {
+    path: 'perfil',
+    element: protectedPage(<OwnProfilePage />),
+  },
+  {
+    path: 'usuarios',
+    element: protectedPage(<UserDirectoryPage />),
+  },
   {
     path: 'mis-solicitudes',
     element: protectedPage(<MyRequestsPage />),
   },
   {
     path: 'solicitudes-recibidas',
-    element: protectedPage(
-      <PlaceholderPage
-        description="Los propietarios revisarán solicitudes recibidas en sus iniciativas."
-        title="Solicitudes recibidas"
-      />,
-    ),
+    element: protectedPage(<ReceivedRequestsPage />),
   },
   {
     path: 'proyectos',
@@ -108,7 +110,10 @@ const entityRoutes = [
   {
     path: 'proyectos/:id',
     element: (
-      <EntityPlaceholderPage entityName="Proyecto" title="Detalle de proyecto" />
+      <EntityPlaceholderPage
+        entityName="Proyecto"
+        title="Detalle de proyecto"
+      />
     ),
   },
 ]
