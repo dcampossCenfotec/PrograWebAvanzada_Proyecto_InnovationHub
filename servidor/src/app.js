@@ -7,6 +7,7 @@ import { notFoundMiddleware } from './middleware/not-found.js'
 import { requestIdMiddleware } from './middleware/request-id.js'
 import { createHealthRouter } from './routes/health.routes.js'
 import { createHealthService } from './services/health.service.js'
+import { paginationWindowMiddleware } from './middleware/pagination-window.js'
 import { createAuthRouter } from './routes/auth.routes.js'
 import { createCatalogRouter, createUsersRouter } from './routes/users.routes.js'
 import { createInitiativesRouter } from './routes/initiatives.routes.js'
@@ -43,6 +44,7 @@ export function createApp({
     limit: config.bodyLimit,
     strict: true,
   }))
+  app.use(paginationWindowMiddleware)
 
   const healthController = createHealthController(healthService)
   app.use('/api/health', createHealthRouter(healthController))
@@ -86,6 +88,7 @@ export function createApp({
         requestsModule.requireSession,
       ),
     )
+
     app.use(
       '/api/initiatives',
       createRequestInitiativeRouter(
@@ -93,6 +96,7 @@ export function createApp({
         requestsModule.requireSession,
       ),
     )
+
     app.use(
       '/api/initiatives',
       createMembersInitiativeRouter(
@@ -110,6 +114,7 @@ export function createApp({
         projectsModule.requireSession,
       ),
     )
+
     app.use(
       '/api/initiatives',
       createProjectInitiativeRouter(
