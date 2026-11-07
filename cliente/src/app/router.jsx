@@ -3,14 +3,15 @@ import { createBrowserRouter } from 'react-router'
 import AppLayout from '../components/AppLayout.jsx'
 import ApiPreviewPage from '../dev/ApiPreviewPage.jsx'
 import ComponentPreviewPage from '../dev/ComponentPreviewPage.jsx'
-import EntityPlaceholderPage from '../pages/EntityPlaceholderPage.jsx'
 import HomePage from '../pages/HomePage.jsx'
 import NotFoundPage from '../pages/NotFoundPage.jsx'
-import PlaceholderPage from '../pages/PlaceholderPage.jsx'
 import LoginPage from '../pages/LoginPage.jsx'
 import RegisterPage from '../pages/RegisterPage.jsx'
 import { ProtectedRoute } from '../auth/ProtectedRoute.jsx'
-import { OwnProfilePage, PublicProfilePage } from '../features/users/ProfilePages.jsx'
+import {
+  OwnProfilePage,
+  PublicProfilePage,
+} from '../features/users/ProfilePages.jsx'
 import { UserDirectoryPage } from '../features/users/UserDirectoryPage.jsx'
 import { CatalogPage } from '../features/initiatives/CatalogPage.jsx'
 import { InitiativeDetailPage } from '../features/initiatives/InitiativeDetailPage.jsx'
@@ -19,6 +20,9 @@ import { RequestFormPage } from '../features/requests/RequestFormPage.jsx'
 import { MyRequestsPage } from '../features/requests/MyRequestsPage.jsx'
 import { RequestDetailPage } from '../features/requests/RequestDetailPage.jsx'
 import { ReceivedRequestsPage } from '../features/requests/ReceivedRequestsPage.jsx'
+import { ProjectsPage } from '../features/projects/ProjectsPage.jsx'
+import { ProjectDetailPage } from '../features/projects/ProjectDetailPage.jsx'
+import { ProjectConvertPage } from '../features/projects/ProjectConvertPage.jsx'
 
 function protectedPage(element) {
   return <ProtectedRoute>{element}</ProtectedRoute>
@@ -55,12 +59,7 @@ const placeholderRoutes = [
   },
   {
     path: 'proyectos',
-    element: (
-      <PlaceholderPage
-        description="Listado de proyectos visibles para el actor actual."
-        title="Proyectos"
-      />
-    ),
+    element: <ProjectsPage />,
   },
   {
     path: 'ingresar',
@@ -87,13 +86,7 @@ const entityRoutes = [
   },
   {
     path: 'iniciativas/:id/convertir',
-    element: protectedPage(
-      <EntityPlaceholderPage
-        entityName="Iniciativa"
-        mode="conversión"
-        title="Convertir en proyecto"
-      />,
-    ),
+    element: protectedPage(<ProjectConvertPage />),
   },
   {
     path: 'usuarios/:id',
@@ -109,19 +102,20 @@ const entityRoutes = [
   },
   {
     path: 'proyectos/:id',
-    element: (
-      <EntityPlaceholderPage
-        entityName="Proyecto"
-        title="Detalle de proyecto"
-      />
-    ),
+    element: <ProjectDetailPage />,
   },
 ]
 
 const developmentRoutes = import.meta.env.DEV
   ? [
-      { path: 'componentes', element: <ComponentPreviewPage /> },
-      { path: 'api-demo', element: <ApiPreviewPage /> },
+      {
+        path: 'componentes',
+        element: <ComponentPreviewPage />,
+      },
+      {
+        path: 'api-demo',
+        element: <ApiPreviewPage />,
+      },
     ]
   : []
 
