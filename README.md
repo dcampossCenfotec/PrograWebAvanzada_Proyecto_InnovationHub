@@ -1,322 +1,1638 @@
 # Innovation Hub
 
-Proyecto de Programación Web Avanzada para publicar iniciativas, formar equipos y convertir iniciativas en proyectos. El repositorio conserva el prototipo del Avance 1 y evoluciona hacia React, Express y MongoDB en el Avance 2.
+**Plataforma universitaria para la gestión de iniciativas, colaboración interdisciplinaria y desarrollo de proyectos.**
 
-## Avance 2 — alcance y coordinación
+| Información | Detalle |
+|---|---|
+| Universidad | Universidad CENFOTEC — Escuela de Software |
+| Curso | SOFT-12 — Programación Web Avanzada |
+| Periodo | III cuatrimestre de 2026 |
+| Sección | SCV2 |
+| Docente | Álvaro Cordero Peña |
+| Proyecto | Innovation Hub |
+| Entrega | Avance 2 — Aplicación web cliente-servidor |
+| Integrantes | Daniel Campos Sánchez y Francisco José Torres Sandoval |
+| Modalidad | Ejecución local con React, Express y MongoDB |
 
-- **Entrega usada por el equipo:** 8 de noviembre de 2026, fecha corregida por Daniel respecto al documento recibido.
-- **Ejecución:** demostración local del cliente, la API y MongoDB; no se contempla despliegue público en esta entrega.
-- **Daniel Campos Sánchez:** bases React/HTTP y Express/MongoDB; autenticación; perfiles/directorio; creación, consulta, edición y archivo de iniciativas con todas sus pantallas; CO00–CO01; modelo y fixtures.
-- **Francisco José Torres Sandoval:** solicitudes propias y recibidas; equipos; proyectos/GitHub; consistencia API; colección Postman; QA integral del cliente; CO02–CO04; integración/README; guía de defensa y entrega.
+---
 
-Documentos vigentes:
+## 1. Descripción general
 
-- [Alcance del Avance 2](docs/alcance-avance2.md)
-- [Contrato HTTP](docs/api-contract.md)
-- [Modelo de datos](docs/modelo-datos.md)
-- [Matriz de pruebas](docs/matriz-pruebas.md)
-- [Matriz de reglas y equivalencias](docs/matriz-reglas.md)
-- [Bitácora de verificación](docs/bitacora-avance2.md)
+**Innovation Hub** es una aplicación web orientada a la comunidad universitaria que permite publicar ideas, identificar necesidades, proponer retos, encontrar colaboradores y formar equipos interdisciplinarios para desarrollar proyectos.
 
-Estructura objetivo: `cliente/`, `servidor/`, `docs/` y `pruebas/`, además del directorio histórico `avance1/`. Los directorios de implementación se agregan en sus tareas; documentarlos aquí no significa que ya funcionen.
+La plataforma centraliza el ciclo de vida de una iniciativa: desde su publicación y descubrimiento hasta la recepción de solicitudes, la incorporación de participantes y su eventual conversión en un proyecto.
 
-La consigna solicita al menos 30 commits distribuidos durante cinco semanas. El plan contempla 34 cambios progresivos, pero comenzar tarde no recupera esa distribución. No se alterarán fechas ni autores. La tabla se llena únicamente después de crear y verificar cada commit.
+El sistema contempla distintos perfiles de la comunidad académica, competencias técnicas, reglas de visibilidad y mecanismos de autorización que determinan qué información puede consultar o modificar cada usuario.
 
-### Historial del Avance 2
+### 1.1 Objetivo general
 
-| Commit | Fecha | Autor | Tarea | Cambio verificable | Evidencia |
-| --- | --- | --- | --- | --- | --- |
-| `17dba85` | 2026-10-29 | Daniel | CO00 | Contrato HTTP y alcance | 26 endpoints; 31 pruebas heredadas; revisión de Francisco pendiente |
-| `01c5658` | 2026-10-29 | Daniel | UI01 | Base React y rutas del sistema | `npm ci`, ESLint, build y 20 URLs aprobados; revisión de Francisco pendiente |
-| `7d71af3` | 2026-10-29 | Daniel | UI02 | Tema Sass y componentes compartidos | ESLint/build aprobados; revisión responsive y teclado pendiente |
-| `18dfd7c` | 2026-10-29 | Daniel | CO01 | Modelo, fixtures y matriz de pruebas | Validador estructural y recorrido manual aprobados; revisión de Francisco pendiente |
-| `c1c6eba` | 2026-10-30 | Daniel | UI03 | Cliente HTTP, servicios, mocks y estados de consulta | 31 pruebas, ESLint, build y aislamiento productivo de mocks aprobados |
-| `25e0206` | 2026-10-30 | Daniel | API01 | Base Express por capas y errores uniformes | 12 pruebas, ESLint, HTTP/CORS real y cierre limpio aprobados |
-| `f996cb7` | 2026-10-30 | Daniel | API02 | MongoDB, catálogos y seed transaccional | 21 pruebas, 2 integraciones reales, seed repetido y rollback aprobados |
-| `8e2ac1c` | 2026-10-30 | Daniel | API03 | Registro, login y sesiones revocables | 27 pruebas locales, 2 integraciones MongoDB y recorrido HTTP real aprobados |
-| `a01f38f` | 2026-10-31 | Daniel | UI04 | Autenticación, sesión y navegación protegida | 47 pruebas, lint, build, integración HTTP y recorrido manual aprobados |
-| `16104cd` | 2026-11-02 | Daniel | API04 | Perfiles, directorio y catálogos | 34 pruebas locales, 3 integraciones MongoDB y recorrido manual aprobados |
-| `50d8c72` | 2026-11-03 | Daniel | UI05 | Perfil propio y directorio de colaboradores | 59 pruebas, lint, build, integración HTTP y recorrido manual aprobados |
-| `a5df168` | 2026-11-03 | Daniel | API05 | Creación y edición de iniciativas con membresía del propietario | 47 pruebas locales, 4 integraciones MongoDB y recorrido HTTP aprobados |
-| `f86fea6` | 2026-11-03 | Daniel | API06 | Catálogo, propiedad y detalle con visibilidad y paginación | 54 pruebas locales, 5 integraciones MongoDB y recorrido HTTP aprobados |
-| `f26bd1c` | 2026-11-03 | Daniel | API07 | Eliminación o archivo según historial, con transacciones y revisión común | 62 pruebas locales, 6 integraciones MongoDB con 9 subcasos de API07 aprobados |
-| `fa471e8` | 2026-11-03 | Daniel | UI06 | Catálogo paginado, filtros en URL y tarjetas con permisos e indicadores visuales | 85 pruebas, 3 integraciones React/API/MongoDB, lint/build y ajustes visuales aprobados |
-| `4e03568` | 2026-11-03 | Daniel | UI07 | Detalle con permisos y acciones independientes de eliminar y archivar | 115 pruebas cliente, 66 servidor, 17 integraciones servidor y 12 React/API; aprobación de Daniel |
-| `dafc19c` | 2026-11-03 | Daniel | UI08 | Formulario compartido de publicación/edición y ancho completo en formularios | 144 pruebas, 17 integraciones React/API/MongoDB, lint/build y publicación autorizada |
-| `73f82ae` | 2026-11-03 | Daniel | UI09 | Competencias por ID con confirmación y etiquetas como chips | 165 pruebas, 20 integraciones React/API/MongoDB y lint/build; publicación autorizada |
-| `5e12be3` | 2026-11-03 | Daniel | UI10 | Validación al corregir, contadores y avisos de una lectura | 190 pruebas, 23 integraciones React/API/MongoDB, lint/build; recorrido confirmado y publicación autorizada |
+Desarrollar una plataforma web que facilite la colaboración entre integrantes de la comunidad universitaria mediante la publicación y gestión de iniciativas, el descubrimiento de oportunidades de participación, la conformación de equipos y el seguimiento inicial de proyectos.
 
-### Cliente React
+### 1.2 Objetivos específicos
 
-El cliente del Avance 2 vive en `cliente/`. Requiere Node.js `22.12.0` o posterior compatible; `.nvmrc` fija la versión compartida recomendada y `package-lock.json` conserva las dependencias exactas. La configuración inicial se verificará con Node `24.21.0`, disponible en el equipo de desarrollo.
+- Permitir el registro y autenticación de usuarios.
+- Administrar perfiles y competencias.
+- Publicar, consultar, editar, eliminar o archivar iniciativas según las reglas del sistema.
+- Facilitar búsquedas mediante filtros combinados y paginación.
+- Gestionar solicitudes de participación y sus estados.
+- Permitir que los propietarios acepten o rechacen solicitudes.
+- Administrar las membresías activas de los equipos.
+- Convertir iniciativas en proyectos cuando se cumplan las condiciones establecidas.
+- Consultar proyectos y sus equipos asociados.
+- Integrar información de repositorios públicos mediante GitHub.
+- Mantener la integridad de los datos y aplicar los controles de acceso en el servidor.
 
-```bash
-cd cliente
-npm ci --cache /private/tmp/innovation-hub-npm-cache
-npm run dev
+### 1.3 Evolución del sistema
+
+El proyecto se desarrolla de forma incremental.
+
+| Etapa | Arquitectura | Alcance |
+|---|---|---|
+| Avance 1 | HTML, CSS, JavaScript, Bootstrap y Sass | Prototipo de navegación, catálogo y gestión local de iniciativas |
+| Avance 2 | React, Vite, Express y MongoDB | Aplicación cliente-servidor con autenticación, persistencia, API REST y reglas de negocio |
+| Entrega final | React y nueva API ASP.NET Core con base de datos relacional | Sustitución del backend conservando el contrato HTTP y ampliación del alcance correspondiente |
+
+El directorio `avance1/` conserva la implementación original como parte de la evolución del proyecto.
+
+La aplicación funcional del Avance 2 se encuentra en `cliente/` y `servidor/`.
+
+---
+
+## 2. Tecnologías y herramientas
+
+### 2.1 Stack tecnológico
+
+| Tecnología | Función |
+|---|---|
+| JavaScript (ES Modules) | Lenguaje principal del frontend y backend |
+| React 19 | Construcción de componentes e interfaces dinámicas |
+| React Router 8 | Navegación del cliente y rutas protegidas |
+| Vite 8 | Servidor de desarrollo y compilación del frontend |
+| Bootstrap 5 | Sistema responsive y componentes visuales |
+| Sass | Variables, estilos y personalización visual |
+| Node.js | Entorno de ejecución del servidor |
+| Express 5 | Framework HTTP para la API REST |
+| MongoDB 8 | Base de datos documental |
+| Mongoose 9 | Modelos, índices y operaciones de persistencia |
+| Docker Compose | Inicialización reproducible de MongoDB |
+| Vitest | Pruebas automatizadas del cliente |
+| React Testing Library | Pruebas de componentes React |
+| Node.js Test Runner | Pruebas unitarias del backend |
+| Supertest | Validación HTTP de endpoints Express |
+| ESLint | Análisis estático y calidad de código |
+| Postman | Ejecución de pruebas HTTP y validación del contrato |
+| Git y GitHub | Control de versiones y colaboración |
+| GitHub REST API | Consulta pública de metadatos de repositorios |
+
+Las dependencias se administran mediante npm y quedan registradas en los archivos `package.json` y `package-lock.json`.
+
+**No es necesario instalar globalmente React, Vite, Express, Mongoose, Bootstrap o Sass.**
+
+### 2.2 Herramientas para ejecutar el proyecto
+
+**Obligatorias:**
+
+- Git.
+- Node.js 22.12.0 o una versión posterior compatible.
+- npm.
+- MongoDB 8 ejecutándose como replica set.
+- Navegador web moderno.
+
+**Recomendadas:**
+
+- Visual Studio Code.
+- Docker Desktop con WSL 2 para Windows.
+- Postman para las pruebas de API.
+- MongoDB Compass para inspeccionar colecciones.
+
+Docker Desktop es una alternativa para ejecutar MongoDB. Si existe una instalación nativa correctamente configurada, no es obligatorio utilizar Docker.
+
+### 2.3 Consideraciones de versiones
+
+El cliente requiere Node.js compatible con la versión declarada en `cliente/package.json`. El archivo `cliente/.nvmrc` permite consultar la versión de referencia del equipo.
+
+Se recomienda utilizar una versión LTS compatible y ejecutar `npm ci` para instalar las dependencias conforme a los archivos de bloqueo.
+
+El proyecto no requiere actualizar manualmente todos los paquetes a sus últimas versiones para ejecutarse.
+
+---
+
+## 3. Arquitectura del sistema
+
+Innovation Hub implementa una arquitectura cliente-servidor con separación de responsabilidades.
+
+```text
+                 NAVEGADOR
+                     |
+                     v
+             +----------------+
+             | React + Vite   |
+             | React Router   |
+             | Bootstrap/Sass |
+             +----------------+
+                     |
+               HTTP / JSON
+                     |
+                     v
+             +----------------+
+             | API Express    |
+             | Rutas y CORS   |
+             | Autenticación  |
+             +----------------+
+                     |
+                     v
+             +----------------+
+             | Controladores  |
+             +----------------+
+                     |
+                     v
+             +----------------+
+             | Servicios      |
+             | Reglas negocio |
+             | Transacciones  |
+             +----------------+
+                     |
+                     v
+             +----------------+
+             | Repositorios   |
+             | Mongoose       |
+             +----------------+
+                     |
+                     v
+             +----------------+
+             | MongoDB        |
+             | Replica Set    |
+             +----------------+
+
+Integración externa independiente:
+
+React ---> GitHub REST API
 ```
 
-Abrir `http://localhost:5173`. Los comandos disponibles son `dev`, `build`, `preview`, `lint`, `test:unit`, `test:watch` y `test`. Desde UI03, `npm test` ejecuta Vitest, ESLint y el build de producción.
+### 3.1 Frontend
 
-Rutas base:
+El cliente está desarrollado con React y utiliza componentes reutilizables.
 
-| Área | Rutas |
-| --- | --- |
-| Inicio y acceso | `/`, `/ingresar`, `/registro`, ruta comodín 404 |
-| Iniciativas | `/iniciativas`, `/mis-iniciativas`, `/iniciativas/nueva`, `/iniciativas/:id`, `/iniciativas/:id/editar`, `/iniciativas/:id/participar`, `/iniciativas/:id/convertir` |
-| Personas | `/perfil`, `/usuarios`, `/usuarios/:id` |
-| Solicitudes | `/mis-solicitudes`, `/solicitudes/:id`, `/solicitudes/:id/editar`, `/solicitudes-recibidas` |
-| Proyectos | `/proyectos`, `/proyectos/:id` |
+Sus responsabilidades incluyen:
 
-Estas páginas son marcadores navegables. UI01 no afirma que autenticación, API, formularios o datos de dominio ya funcionen. La guía específica está en [`cliente/README.md`](cliente/README.md).
+- Presentación de información.
+- Navegación entre pantallas.
+- Formularios controlados.
+- Validaciones de entrada para mejorar la experiencia de usuario.
+- Gestión del estado de la interfaz.
+- Comunicación HTTP con la API.
+- Presentación de estados de carga, error, vacío y éxito.
+- Gestión de mensajes y confirmaciones.
+- Consulta de información pública de GitHub.
 
-#### Tema y componentes compartidos
+El cliente **no se conecta directamente a MongoDB**.
 
-`cliente/src/styles/app.scss` compila Bootstrap 5.3.8 con la identidad visual del prototipo: azul petróleo, verde, rojo, fondo claro, tipografía del sistema y bordes redondeados. Los parciales `_variables.scss`, `_layout.scss` y `_components.scss` separan configuración, composición y componentes. No se versiona CSS generado ni se importa el JavaScript de Bootstrap.
+### 3.2 Backend
 
-Los componentes disponibles son `AppLayout`, `Navbar`, `PageHeader`, `StatusPanel` y `ConfirmDialog`. El menú y el diálogo son controlados por React; el diálogo usa el elemento nativo `dialog` para modalidad y restauración del foco. Durante `npm run dev`, `/componentes` permite probar estados y confirmación; esa ruta se excluye del build de producción.
+Express expone los endpoints HTTP y organiza el procesamiento en capas.
 
-#### Cliente HTTP y mock local
+| Capa | Responsabilidad |
+|---|---|
+| Routes | Asociar métodos y rutas HTTP con controladores y middleware |
+| Controllers | Recibir solicitudes y generar respuestas según el contrato |
+| Services | Ejecutar reglas de negocio y coordinar operaciones |
+| Repositories | Acceder a la información persistida |
+| Models | Definir esquemas e índices de MongoDB |
+| Middleware | Gestionar autenticación, CORS, validaciones generales y errores |
+| DTO | Construir representaciones públicas seguras |
+| Database | Gestionar conexiones y transacciones |
 
-`cliente/src/api/` centraliza URL base, query, JSON, token Bearer, timeout, cancelación y errores uniformes. Los servicios de dominio reflejan los 27 endpoints de [`docs/api-contract.md`](docs/api-contract.md). `useApiQuery` separa carga, éxito, vacío y error, cancela consultas desmontadas e impide que una respuesta anterior reemplace una búsqueda más reciente.
+Esta separación permite modificar las reglas de negocio sin mezclar su implementación con componentes React o detalles de transporte HTTP.
 
-El modo normal consulta `http://localhost:3000/api`. Para desarrollar sin servidor, crear `cliente/.env.local` con `VITE_API_MODE=mock`; los datos se importan desde `pruebas/fixtures/`. El mock implementa autenticación desde UI04; las demás mutaciones fallan explícitamente con `501` hasta su tarea funcional y un build con modo mock se rechaza. La configuración, tokens sintéticos y recorrido de `/api-demo` están documentados en [`cliente/README.md`](cliente/README.md).
+### 3.3 Persistencia
 
-UI04 agrega registro, login, restauración mediante `/auth/me`, identidad visible, rutas protegidas y logout contra API03. El token opaco se conserva en `sessionStorage`; un `401` lo elimina, mientras que un fallo de red al cerrar mantiene la sesión y permite reintentar la revocación.
+MongoDB conserva usuarios, sesiones, iniciativas, solicitudes, membresías, eventos y proyectos.
 
-UI05 conecta `/perfil`, `/usuarios` y `/usuarios/:id` con API04. El perfil propio permite reemplazar sus campos editables y conserva el correo como dato de solo lectura. El directorio envía búsqueda, filtros, orden y página al servidor; las tarjetas y perfiles ajenos nunca presentan correo.
+La aplicación utiliza identificadores públicos UUID para mantener independencia respecto de los identificadores internos de MongoDB.
 
-Sass 1.107.0 informa cuatro deprecaciones por los `@import` de `app.scss`. Bootstrap 5.3 todavía distribuye su entrada Sass con el sistema heredado: `quietDeps` evita repetir cientos de avisos internos, pero conserva los avisos del código propio. Migrar mecánicamente a `@use` sin compatibilidad completa de Bootstrap no forma parte de este avance.
+Las relaciones del dominio se implementan mediante referencias y documentos embebidos según su naturaleza y ciclo de vida.
 
-### Servidor Express
+Las operaciones que afectan múltiples documentos relacionados utilizan transacciones, apoyadas por índices y verificaciones de concurrencia.
 
-La API vive en `servidor/`. API01 estableció Express por capas, API02 agregó MongoDB, API03 implementó registro y sesiones, API04 agregó perfiles/directorio/catálogos y API05 permite crear y editar iniciativas persistentes. API06 agrega catálogo, iniciativas propias y detalle con permisos, filtros y paginación en MongoDB. El correo propio se entrega solo en el perfil autenticado; los listados y perfiles ajenos usan una proyección pública. Las contraseñas usan `scrypt` con sal aleatoria y MongoDB conserva solo el hash de cada token.
+### 3.4 Contrato HTTP
 
-Si MongoDB ya está ejecutándose localmente en replica set, se omite `docker compose up -d`. Docker es una opción de arranque reproducible, no un requisito para usar una instancia nativa existente.
+La interfaz pública está definida en:
 
-```bash
+[`docs/api-contract.md`](docs/api-contract.md)
+
+El contrato establece:
+
+- Rutas y métodos HTTP.
+- Formatos de solicitudes y respuestas.
+- DTO públicos.
+- Identificadores y fechas.
+- Validaciones y valores controlados.
+- Estados HTTP.
+- Autenticación y autorización.
+- Filtros, ordenamiento y paginación.
+- Transiciones de estado.
+
+El objetivo es conservar este contrato durante la futura sustitución del backend por ASP.NET Core y una base de datos relacional.
+
+---
+
+## 4. Funcionalidades del Avance 2
+
+### 4.1 Autenticación y sesiones
+
+El módulo de autenticación permite:
+
+- Registro de usuarios.
+- Inicio de sesión.
+- Identificación del usuario autenticado.
+- Restauración de sesión.
+- Cierre de sesión.
+- Revocación de tokens.
+
+Las contraseñas se protegen mediante `scrypt` con sal aleatoria.
+
+Los tokens de acceso son opacos y el servidor conserva hashes de sesión.
+
+El cliente almacena el token de sesión en `sessionStorage`.
+
+Las operaciones protegidas requieren el encabezado:
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+### 4.2 Perfiles y directorio
+
+Los usuarios pueden consultar y actualizar sus datos editables.
+
+El correo electrónico funciona como identificador y no puede modificarse desde la actualización ordinaria del perfil.
+
+El directorio permite buscar colaboradores mediante criterios como nombre, carrera, competencias y disponibilidad.
+
+Los perfiles públicos y los listados aplican proyecciones de datos que evitan revelar información reservada.
+
+### 4.3 Competencias
+
+El sistema relaciona usuarios e iniciativas con competencias identificadas mediante UUID.
+
+Las competencias de cada usuario pueden incluir un nivel:
+
+- `basic`
+- `intermediate`
+- `advanced`
+
+Una solicitud de participación debe ofrecer una competencia activa que pertenezca al perfil del solicitante.
+
+### 4.4 Gestión de iniciativas
+
+Las iniciativas representan ideas, necesidades o retos.
+
+Sus funcionalidades incluyen:
+
+- Publicación.
+- Consulta individual.
+- Catálogo general.
+- Consulta de iniciativas propias.
+- Edición por el propietario.
+- Búsqueda y filtros combinados.
+- Paginación y ordenamiento.
+- Eliminación bajo condiciones específicas.
+- Archivado independiente.
+
+Los tipos disponibles son:
+
+| Valor | Significado |
+|---|---|
+| `idea` | Idea o propuesta |
+| `need` | Necesidad identificada |
+| `challenge` | Reto |
+
+Los estados del dominio son:
+
+- `draft`
+- `published`
+- `forming_team`
+- `converted`
+- `archived`
+
+Los cuatro niveles de visibilidad son:
+
+- `public`
+- `institutional`
+- `restricted`
+- `private`
+
+El servidor determina qué información puede consultar cada actor.
+
+**Eliminar y archivar son operaciones diferentes.**
+
+La eliminación física se permite únicamente cuando no existe historial adicional incompatible. Cuando una iniciativa tiene historial relacionado, debe conservarse mediante archivado.
+
+### 4.5 Búsqueda, filtros y paginación
+
+Los listados implementan filtros en el backend para evitar descargar colecciones completas y procesarlas únicamente en el navegador.
+
+El contrato contempla:
+
+- Página (`page`).
+- Tamaño (`size`).
+- Campo de ordenamiento (`sort`).
+- Dirección (`order`).
+- Parámetros de búsqueda propios de cada recurso.
+
+El tamaño de página permitido es de 1 a 50.
+
+Los conteos se calculan sobre los recursos accesibles al actor, respetando sus permisos.
+
+Los resultados usan ordenamiento estable, incorporando el identificador cuando corresponde para resolver empates.
+
+### 4.6 Solicitudes de participación
+
+Los usuarios autenticados pueden solicitar integrarse a iniciativas accesibles.
+
+El formulario registra:
+
+- Mensaje de presentación.
+- Competencia ofrecida.
+- Rol solicitado.
+- Disponibilidad.
+
+Los estados de una solicitud son:
+
+| Estado | Descripción |
+|---|---|
+| `pending` | Pendiente de revisión |
+| `accepted` | Aceptada por el propietario |
+| `rejected` | Rechazada |
+| `cancelled` | Cancelada por el solicitante |
+
+El módulo incluye:
+
+- Creación de solicitudes.
+- Consulta de solicitudes propias.
+- Consulta de solicitudes recibidas.
+- Edición de solicitudes pendientes.
+- Cancelación.
+- Aceptación o rechazo por el propietario.
+- Filtros por estado y otros criterios contractuales.
+- Conservación del historial.
+
+Una solicitud pendiente duplicada para el mismo usuario e iniciativa produce un conflicto.
+
+El envío de una solicitud **no incorpora automáticamente al usuario al equipo**.
+
+### 4.7 Administración de equipos
+
+Una solicitud aceptada permite incorporar automáticamente al solicitante como miembro activo.
+
+La aceptación coordina transaccionalmente:
+
+1. La actualización del estado de la solicitud.
+2. La creación de la membresía.
+3. El registro del evento de ingreso.
+4. Las modificaciones necesarias de la iniciativa.
+
+El sistema también permite consultar el equipo y retirar integrantes según los permisos del actor.
+
+Las membresías retiradas se conservan como historial.
+
+El propietario no puede retirarse a sí mismo del equipo.
+
+### 4.8 Conversión de iniciativas en proyectos
+
+El propietario puede convertir una iniciativa en proyecto cuando se cumplen las condiciones del dominio.
+
+La regla principal exige **al menos un miembro activo adicional al propietario**.
+
+El proyecto conserva una referencia a su iniciativa de origen.
+
+Los datos del proyecto incluyen:
+
+- Nombre.
+- Descripción.
+- Objetivo.
+- Tecnologías.
+- Fecha de inicio.
+- Fecha estimada de finalización, opcional.
+- Estado.
+- URL de repositorio, opcional.
+
+El estado inicial de un nuevo proyecto es `planning`.
+
+Una iniciativa solamente puede convertirse una vez, y la operación utiliza una transacción para evitar proyectos duplicados o estados parciales.
+
+El equipo del proyecto se obtiene mediante las membresías de la iniciativa de origen, evitando duplicar los mismos integrantes en otra colección.
+
+### 4.9 Integración con GitHub
+
+El detalle de proyecto puede consultar metadatos de un repositorio público de GitHub.
+
+Se presenta información como:
+
+- Nombre del repositorio.
+- Propietario.
+- Descripción.
+- Lenguaje principal.
+- Rama predeterminada.
+- Última actualización.
+- Número de asuntos abiertos.
+
+La consulta se realiza desde el cliente mediante la API pública de GitHub.
+
+Se contemplan respuestas de repositorios inexistentes o privados, limitaciones de solicitudes, problemas de red y respuestas incompletas.
+
+**La falta de disponibilidad de GitHub no debe impedir visualizar la información principal del proyecto.**
+
+El token de sesión de Innovation Hub no se envía a GitHub.
+
+---
+
+## 5. Estructura del repositorio
+
+```text
+innovation-hub/
+|
+|-- README.md
+|-- .gitignore
+|-- compose.yaml
+|
+|-- avance1/
+|   |-- index.html
+|   |-- paginas/
+|   |-- js/
+|   |-- scss/
+|   |-- css/
+|   |-- datos/
+|   |-- tests/
+|   |-- package.json
+|   `-- INTEGRACION.md
+|
+|-- cliente/
+|   |-- index.html
+|   |-- package.json
+|   |-- package-lock.json
+|   |-- vite.config.js
+|   |-- eslint.config.js
+|   |-- .env.example
+|   |-- .nvmrc
+|   `-- src/
+|       |-- api/
+|       |   |-- external/
+|       |   `-- services/
+|       |-- app/
+|       |-- auth/
+|       |-- components/
+|       |-- features/
+|       |   |-- users/
+|       |   |-- initiatives/
+|       |   |-- requests/
+|       |   |-- teams/
+|       |   `-- projects/
+|       |-- hooks/
+|       |-- styles/
+|       `-- dev/
+|
+|-- servidor/
+|   |-- package.json
+|   |-- package-lock.json
+|   |-- .env.example
+|   |-- .env.test.example
+|   |-- scripts/
+|   |-- test/
+|   `-- src/
+|       |-- config/
+|       |-- controllers/
+|       |-- database/
+|       |-- dto/
+|       |-- errors/
+|       |-- middleware/
+|       |-- models/
+|       |-- modules/
+|       |-- repositories/
+|       |-- routes/
+|       |-- security/
+|       |-- seeds/
+|       |-- services/
+|       `-- validation/
+|
+|-- pruebas/
+|   |-- fixtures/
+|   |-- fragmentos/
+|   `-- innovation-hub.postman_collection.json
+|
+`-- docs/
+    |-- alcance-avance2.md
+    |-- api-contract.md
+    |-- modelo-datos.md
+    |-- matriz-reglas.md
+    |-- matriz-pruebas.md
+    |-- iniciativas-api.md
+    |-- bitacora-avance2.md
+    |-- verificacion-contrato.md
+    |-- qa-cliente.md
+    |-- defensa.md
+    `-- cierre-avance2.md
+```
+
+**Organización funcional:** el cliente agrupa pantallas, formularios y servicios por dominio; el backend separa las rutas HTTP, la lógica de negocio y las operaciones de persistencia.
+
+Las carpetas `node_modules/`, los archivos privados `.env` y los resultados temporales de pruebas no forman parte del código versionado.
+
+---
+
+## 6. Instalación y configuración del entorno
+
+Las siguientes instrucciones están orientadas a Windows con PowerShell y Docker Desktop. También es posible utilizar terminales Bash realizando los cambios de sintaxis correspondientes.
+
+### 6.1 Requisitos previos
+
+Comprobar:
+
+```powershell
+node --version
+npm --version
+git --version
+docker --version
+docker compose version
+```
+
+Asegurarse de que:
+
+- Node.js cumple el requisito del proyecto.
+- Git está disponible.
+- Docker Desktop está iniciado, si se utiliza MongoDB en contenedor.
+- WSL 2 y virtualización están configurados correctamente, cuando corresponda.
+
+### 6.2 Obtener el repositorio
+
+Clonar utilizando la URL real del proyecto:
+
+```powershell
+git clone <URL_DEL_REPOSITORIO>
+cd innovation-hub
+```
+
+Si el repositorio ya está descargado, basta con abrir su carpeta principal en VS Code.
+
+### 6.3 Inicializar MongoDB
+
+Desde la raíz de `innovation-hub`:
+
+```powershell
 docker compose up -d
+docker compose ps
+```
+
+El archivo `compose.yaml` define MongoDB con replica set:
+
+```text
+Replica set: innovationHubRs
+Puerto:      27017
+Host local:  127.0.0.1
+```
+
+La configuración de Docker utiliza un volumen persistente para conservar la información entre reinicios del contenedor.
+
+Verificar el replica set:
+
+```powershell
+docker compose exec -T mongo mongosh --quiet --eval 'printjson({set: db.hello().setName, primary: db.hello().isWritablePrimary})'
+```
+
+El resultado esperado es el nombre `innovationHubRs` y un nodo primario disponible.
+
+Si MongoDB ya se encuentra iniciado y el replica set está configurado, no es necesario ejecutar nuevamente la inicialización.
+
+**Importante:** MongoDB debe funcionar como replica set porque el proyecto utiliza transacciones. Una instancia standalone no cumple este requisito.
+
+### 6.4 Instalar el backend Express
+
+Abrir una terminal en la raíz del repositorio:
+
+```powershell
 cd servidor
-cp .env.example .env
-npm ci --cache /private/tmp/innovation-hub-npm-cache
+npm ci
+```
+
+El comando `npm ci` instala las dependencias definidas en `package-lock.json`, incluidas Express, Mongoose, CORS y las herramientas de prueba.
+
+Crear el archivo de configuración solamente si todavía no existe:
+
+```powershell
+if (!(Test-Path .env)) {
+    Copy-Item .env.example .env
+}
+```
+
+Comprobar la configuración local:
+
+```dotenv
+NODE_ENV=development
+HOST=127.0.0.1
+PORT=3000
+CLIENT_ORIGIN=http://localhost:5173
+BODY_LIMIT=100kb
+MONGODB_URI=mongodb://127.0.0.1:27017/?replicaSet=innovationHubRs&directConnection=true
+MONGODB_DATABASE=innovation_hub
+MONGODB_CONNECT_TIMEOUT_MS=5000
+AUTH_SESSION_TTL_MINUTES=480
+DEMO_USER_PASSWORD=CONTRASENA_LOCAL_DE_DEMOSTRACION
+```
+
+`DEMO_USER_PASSWORD` debe contener el valor local que se utilizará al cargar las cuentas sintéticas.
+
+No publicar archivos `.env` ni credenciales reales.
+
+### 6.5 Validar y cargar datos iniciales
+
+Dentro de `servidor/`:
+
+```powershell
+npm run fixtures:validate
+```
+
+Este comando valida la estructura y las relaciones de los fixtures compartidos.
+
+Para cargar los datos de demostración en la base configurada:
+
+```powershell
 npm run seed
-npm run check
+```
+
+En una base limpia, el conjunto de fixtures contempla:
+
+| Entidad | Cantidad |
+|---|---:|
+| Categorías | 8 |
+| Competencias | 10 |
+| Usuarios | 5 |
+| Iniciativas | 8 |
+| Membresías | 12 |
+| Eventos de membresía | 13 |
+| Solicitudes | 5 |
+| Proyectos | 1 |
+
+El seed utiliza identificadores definidos y operaciones orientadas a evitar la duplicación de los registros iniciales.
+
+La carga de solicitudes y proyectos utiliza inserciones no destructivas para conservar los estados de documentos ya existentes.
+
+**Precaución:** antes de repetir el seed, revisar qué campos pueden actualizar los módulos que cargan usuarios e iniciativas. No ejecutar la carga sobre datos que necesiten preservarse sin comprobar su comportamiento.
+
+### 6.6 Iniciar el backend
+
+Desde `servidor/`:
+
+```powershell
 npm run dev
 ```
 
-Abrir `http://127.0.0.1:3000/api/health`. El proceso solo escucha después de conectar MongoDB; el healthcheck conserva su contrato de vida de Express. Variables, Docker, seed, reset protegido y pruebas de integración están en [`servidor/README.md`](servidor/README.md).
+La API se inicia normalmente en:
 
-### Modelo y fixtures compartidos
-
-CO01 define en [`docs/modelo-datos.md`](docs/modelo-datos.md) las colecciones, referencias, índices parciales, transacciones y equivalencia relacional. Conteos de miembros, espacios disponibles y capacidades se calculan; no se duplican en los documentos persistidos. La cobertura requisito → endpoint/pantalla → fixture → evidencia está en [`docs/matriz-pruebas.md`](docs/matriz-pruebas.md).
-
-`pruebas/fixtures/` contiene datos sintéticos: cinco actores, ocho iniciativas migradas, cuatro visibilidades, todos los estados de iniciativa/solicitud, membresías con historia y un proyecto. No contiene contraseñas, hashes ni tokens. Para validar JSON, UUID, referencias e invariantes:
-
-```bash
-node pruebas/fixtures/validate-fixtures.mjs
+```text
+http://127.0.0.1:3000/api
 ```
 
-Desde API06, `npm run seed` carga ocho categorías, diez competencias, cinco usuarios, ocho iniciativas, doce membresías y trece eventos de fixture. Los usuarios usan el valor local de `DEMO_USER_PASSWORD`, pero cada contraseña produce un hash distinto; repetir el seed conserva los hashes existentes y los IDs, sin eliminar registros creados por fuera del fixture. La carga de solicitudes/proyectos se completa con sus módulos y se verifica integralmente en API13.
+Verificar su disponibilidad:
 
-Las nuevas consultas son `GET /api/initiatives`, `GET /api/initiatives/mine` y `GET /api/initiatives/:id`. Catálogo y detalle admiten visitante con proyección por visibilidad; `/mine` exige sesión y solo lista propiedad. Con seed limpio, el catálogo devuelve 3 iniciativas al visitante, 5 a Carla y 6 a Ana; `/mine` de Ana devuelve las 8, incluidas borrador/archivada. UI06 implementa `/iniciativas` y `/mis-iniciativas`, con filtros/orden/paginación de servidor y query persistida en la URL. Las tarjetas respetan `access.canViewDetails`; una restringida ajena no ofrece enlaces a detalle ni muestra propietario. UI07 implementa el detalle por UUID, acceso por visibilidad y confirmación de borrado/archivo con resultado real de la API. UI08 agrega formulario compartido para publicar/editar con persistencia real, permisos, conservación de valores ante errores y confirmación de descarte. UI09 agrega competencias por ID con confirmación al quitar y etiquetas como chips, con duplicados/límites inmediatos. UI10 implementa validación al salir del campo y mientras se corrige, contadores normalizados y avisos consumidos del historial; Daniel confirmó la revisión manual y autorizó su publicación. Políticas, límites y pruebas están en [docs/iniciativas-api.md](docs/iniciativas-api.md).
+```text
+http://127.0.0.1:3000/api/health
+```
 
-Desde la separación solicitada por Daniel en UI07, `DELETE /api/initiatives/:id` solo elimina definitivamente: devuelve `204` sin historial adicional o `409 INITIATIVE_HAS_HISTORY` sin cambios cuando existe. `POST /api/initiatives/:id/archive` archiva explícitamente con `200`, con o sin historial, conservando todas las relaciones. Ambas requieren propietario y no reciben cuerpo ni query. Repetir archivo no cambia fecha/revisión; una archivada sin historial adicional también puede eliminarse. El commit original API07 conserva su evidencia histórica, pero el contrato vigente separa ambas acciones.
+Respuesta esperada:
 
-## Avance 1 — prototipo frontend
+```json
+{
+  "data": {
+    "status": "ok",
+    "service": "innovation-hub-api"
+  }
+}
+```
 
-Prototipo frontend para publicar ideas, necesidades y retos, descubrir iniciativas y simular solicitudes de participación dentro de la comunidad universitaria. Esta entrega utiliza HTML, Bootstrap, Sass y JavaScript modular; los datos se cargan desde JSON y los cambios se conservan en el navegador.
+Este endpoint verifica que el servidor HTTP responde; no sustituye una prueba de lectura y escritura de MongoDB.
 
-## Identificación
+Mantener abierta la terminal del servidor durante las pruebas.
 
-- **Universidad:** Universidad CENFOTEC, Escuela de Software.
-- **Curso:** Programación Web Avanzada — SOFT-12.
-- **Periodo:** III cuatrimestre de 2026.
-- **Sección:** SCV2.
-- **Docente:** ALVARO CORDERO PEÑA.
-- **Entrega:** Avance 1, 27 de septiembre de 2026.
+### 6.7 Instalar el frontend React
 
-| Integrante | Carné | Responsabilidad |
-| --- | --- | --- |
-| CAMPOS SANCHEZ DANIEL | P000011085 | Persona 1: página principal, navegación, catálogo, búsqueda, filtros, estados de carga e integración de Discovery. |
-| TORRES SANDOVAL FRANCISCO JOSE | P00006284 | Persona 2: infraestructura compartida, detalle, registro, edición, eliminación, validaciones, perfil y solicitudes. |
+Abrir otra terminal desde la raíz del repositorio:
 
-La configuración inicial de Sass y la capa de datos fueron construidas por Persona 2. Persona 1 reutiliza esas bases y amplía la presentación y la integración. La documentación final reúne ambos bloques.
+```powershell
+cd cliente
+npm ci
+```
 
-## Funcionalidades implementadas
+Crear el archivo de configuración local si no existe:
 
-- Página principal informativa y navegación común con encabezado sticky.
-- Catálogo dinámico con ocho iniciativas iniciales de los tipos idea, necesidad y reto.
-- Búsqueda parcial por título o resumen, sin distinguir mayúsculas ni tildes; en restringidas se consulta únicamente el resumen.
-- Filtros simultáneos por tipo, categoría y competencia. Todos los criterios activos deben coincidir.
-- Opciones de categoría y competencia obtenidas de la colección completa, sin duplicados ni metadatos restringidos.
-- Contador de resultados, limpieza de filtros y estados diferenciados de carga, error, catálogo vacío y ausencia de coincidencias.
-- Detalle, formulario compartido de creación y edición, competencias dinámicas y errores específicos por campo.
-- Edición y eliminación de iniciativas propias; eliminación mediante modal de confirmación.
-- Perfil de demostración con competencias, intereses e iniciativas donde el usuario figura como miembro.
-- Solicitud simulada sobre iniciativas ajenas no restringidas, sin incorporación automática al equipo.
-- Actualización del catálogo ante cambios en el documento actual y relectura de la persistencia cuando Atrás restaura la página desde la caché.
+```powershell
+if (!(Test-Path .env.local)) {
+    Copy-Item .env.example .env.local
+}
+```
 
-## Requisitos y ejecución
+Configurar la aplicación para utilizar la API real:
 
-Para visualizar el prototipo se necesita un navegador moderno y un servidor HTTP estático. No requiere una API ni una base de datos. El CSS compilado está versionado, pero el JavaScript de Bootstrap 5.3.3 se obtiene desde jsDelivr; el menú colapsable y los modales requieren acceso a ese recurso.
+```dotenv
+VITE_API_MODE=real
+VITE_API_BASE_URL=http://127.0.0.1:3000/api
+VITE_API_TIMEOUT_MS=15000
+VITE_GITHUB_API_BASE_URL=https://api.github.com
+VITE_GITHUB_API_VERSION=2022-11-28
+```
 
-Para instalar dependencias, compilar Sass y ejecutar pruebas se utiliza Node.js con npm. La compilación se verificó con Node 22. Node 21.7.1 produjo un error `ERR_REQUIRE_ESM` con Sass 1.105.0 y su dependencia Chokidar; utilizar Node 22 actualizado para reproducir la compilación.
+`VITE_API_MODE=real` permite consultar Express y MongoDB.
 
-Desde la raíz del repositorio:
+El modo `mock` se reserva para escenarios de desarrollo y no debe utilizarse para validar la persistencia real de la entrega.
 
-```bash
+Las variables con prefijo `VITE_` pueden incorporarse al código del navegador; por esta razón, no deben contener contraseñas ni claves privadas.
+
+### 6.8 Iniciar React
+
+Desde `cliente/`:
+
+```powershell
+npm run dev
+```
+
+Abrir en el navegador:
+
+```text
+http://localhost:5173/
+```
+
+**Esta es la dirección de acceso a la aplicación del Avance 2.**
+
+No abrir directamente `cliente/index.html` mediante `file://`, porque React necesita que Vite procese y sirva sus módulos.
+
+Si se modifica `.env.local`, reiniciar Vite para aplicar la nueva configuración.
+
+### 6.9 Servicios utilizados durante la ejecución
+
+| Servicio | Dirección | Responsabilidad |
+|---|---|---|
+| MongoDB | `127.0.0.1:27017` | Persistencia |
+| Express | `http://127.0.0.1:3000/api` | API y lógica del sistema |
+| React + Vite | `http://localhost:5173` | Interfaz web |
+| GitHub API | `https://api.github.com` | Metadatos públicos de repositorios |
+
+Para probar la aplicación completa deben estar activos MongoDB, Express y Vite.
+
+---
+
+## 7. Datos y usuarios de demostración
+
+Los datos sintéticos se encuentran en:
+
+[`pruebas/fixtures/`](pruebas/fixtures/)
+
+Los actores permiten comprobar distintos comportamientos de autorización y participación.
+
+| Usuario | Correo de demostración | Función |
+|---|---|---|
+| Ana Rojas | `ana.owner@example.test` | Propietaria de iniciativas |
+| Luis Mora | `luis.applicant@example.test` | Solicitante |
+| Carla Vega | `carla.outsider@example.test` | Usuario autenticado externo a determinados equipos |
+| Diego Núñez | `diego.inactive@example.test` | Usuario inactivo para pruebas |
+| Elena Solís | `elena.member@example.test` | Integrante aceptada |
+
+La contraseña de las cuentas activas cargadas mediante el seed corresponde al valor local de `DEMO_USER_PASSWORD`.
+
+El usuario inactivo se utiliza para validar restricciones y no debe tratarse como una cuenta habilitada.
+
+Estos datos son exclusivamente de demostración y no contienen información real de estudiantes o colaboradores.
+
+---
+
+## 8. Navegación de la aplicación
+
+El cliente utiliza React Router.
+
+### 8.1 Rutas principales
+
+| Ruta | Pantalla |
+|---|---|
+| `/` | Página principal |
+| `/ingresar` | Inicio de sesión |
+| `/registro` | Registro de usuarios |
+| `/perfil` | Perfil propio |
+| `/usuarios` | Directorio de colaboradores |
+| `/usuarios/:id` | Perfil de otro usuario |
+| `/iniciativas` | Catálogo |
+| `/mis-iniciativas` | Iniciativas propias |
+| `/iniciativas/nueva` | Publicar iniciativa |
+| `/iniciativas/:id` | Detalle de iniciativa |
+| `/iniciativas/:id/editar` | Editar iniciativa |
+| `/iniciativas/:id/participar` | Solicitar participación |
+| `/iniciativas/:id/convertir` | Convertir en proyecto |
+| `/mis-solicitudes` | Historial de solicitudes propias |
+| `/solicitudes/:id` | Detalle de solicitud |
+| `/solicitudes/:id/editar` | Editar solicitud pendiente |
+| `/solicitudes-recibidas` | Solicitudes de las iniciativas propias |
+| `/proyectos` | Listado de proyectos |
+| `/proyectos/:id` | Detalle de proyecto |
+| `*` | Página 404 |
+
+Las rutas que requieren identidad utilizan controles de autenticación del cliente.
+
+La autorización definitiva siempre se aplica en el servidor.
+
+---
+
+## 9. API REST
+
+La API utiliza la URL base:
+
+```text
+http://127.0.0.1:3000/api
+```
+
+El contrato contiene **27 operaciones funcionales** y un endpoint adicional de salud.
+
+### 9.1 Autenticación — 4 operaciones
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/auth/register` | Registrar usuario |
+| POST | `/auth/login` | Iniciar sesión |
+| POST | `/auth/logout` | Revocar sesión |
+| GET | `/auth/me` | Consultar identidad autenticada |
+
+### 9.2 Usuarios y catálogos — 5 operaciones
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/users` | Consultar directorio |
+| GET | `/users/:id` | Consultar perfil |
+| PUT | `/users/me` | Actualizar perfil propio |
+| GET | `/categories` | Consultar categorías |
+| GET | `/skills` | Consultar competencias |
+
+### 9.3 Iniciativas — 7 operaciones
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/initiatives` | Listar y filtrar iniciativas |
+| GET | `/initiatives/mine` | Consultar iniciativas propias |
+| GET | `/initiatives/:id` | Consultar detalle |
+| POST | `/initiatives` | Crear iniciativa |
+| PUT | `/initiatives/:id` | Editar iniciativa |
+| DELETE | `/initiatives/:id` | Eliminar cuando esté permitido |
+| POST | `/initiatives/:id/archive` | Archivar conservando historial |
+
+### 9.4 Solicitudes — 6 operaciones
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/initiatives/:id/requests` | Crear solicitud |
+| GET | `/requests` | Listar solicitudes por alcance |
+| GET | `/requests/:id` | Consultar solicitud |
+| PUT | `/requests/:id` | Editar solicitud pendiente |
+| POST | `/requests/:id/cancel` | Cancelar solicitud |
+| POST | `/requests/:id/decision` | Aceptar o rechazar |
+
+El listado de solicitudes utiliza `scope=mine` o `scope=received`, según el actor y la operación.
+
+### 9.5 Equipos — 2 operaciones
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/initiatives/:id/members` | Consultar integrantes |
+| DELETE | `/initiatives/:id/members/:userId` | Retirar miembro |
+
+### 9.6 Proyectos — 3 operaciones
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/initiatives/:id/project` | Convertir iniciativa |
+| GET | `/projects` | Consultar proyectos accesibles |
+| GET | `/projects/:id` | Consultar detalle de proyecto |
+
+### 9.7 Respuestas HTTP
+
+Las respuestas individuales utilizan:
+
+```json
+{
+  "data": {
+    "id": "uuid"
+  }
+}
+```
+
+Los listados paginados utilizan:
+
+```json
+{
+  "data": [],
+  "pagination": {
+    "page": 1,
+    "size": 12,
+    "total": 0,
+    "totalPages": 0
+  }
+}
+```
+
+Los errores mantienen un formato uniforme:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Revisa los campos indicados.",
+    "fields": {}
+  }
+}
+```
+
+### 9.8 Códigos HTTP contemplados
+
+| Código | Significado |
+|---|---|
+| `200` | Consulta u operación completada |
+| `201` | Recurso creado |
+| `204` | Operación completada sin contenido |
+| `400` | Datos o parámetros inválidos |
+| `401` | Autenticación requerida o inválida |
+| `403` | Operación no autorizada |
+| `404` | Recurso inexistente o no revelable |
+| `409` | Duplicado, estado incompatible o concurrencia |
+| `500` | Error interno controlado |
+
+Para los campos obligatorios, parámetros, DTO completos y reglas de cada endpoint, consultar [`docs/api-contract.md`](docs/api-contract.md).
+
+---
+
+## 10. Modelo de datos
+
+El diseño documental está descrito en:
+
+[`docs/modelo-datos.md`](docs/modelo-datos.md)
+
+### 10.1 Colecciones principales
+
+| Colección | Contenido |
+|---|---|
+| `users` | Usuarios, perfiles y competencias |
+| `sessions` | Sesiones autenticadas y tokens protegidos |
+| `categories` | Categorías de iniciativas |
+| `skills` | Catálogo de competencias |
+| `initiatives` | Iniciativas y datos de publicación |
+| `requests` | Solicitudes de participación |
+| `memberships` | Integrantes y periodos de pertenencia |
+| `membershipEvents` | Historial de ingreso y retiro |
+| `projects` | Proyectos y referencias a iniciativas |
+
+### 10.2 Decisiones de diseño
+
+Se utilizan datos embebidos cuando forman parte de un agregado pequeño y se consultan habitualmente junto con su entidad.
+
+Se utilizan referencias cuando los datos tienen ciclos de vida independientes, requieren consultas propias o deben conservarse como historial.
+
+Ejemplo de relación:
+
+```text
+User
+  |
+  +---- Request ---- Initiative
+  |                     |
+  +---- Membership ------+
+                          |
+                       Project
+                          |
+                   sourceInitiativeId
+```
+
+### 10.3 Integridad
+
+La implementación contempla:
+
+- UUID públicos.
+- Validación de referencias.
+- Índices únicos.
+- Índices parciales.
+- Historial de membresías.
+- Control de solicitudes pendientes duplicadas.
+- Control de conversión única por iniciativa.
+- Transacciones MongoDB.
+- Comprobaciones de revisión para operaciones concurrentes.
+
+Los conteos derivados, como miembros activos y espacios estimados, se calculan a partir de los datos relacionados.
+
+---
+
+## 11. Pruebas y aseguramiento de calidad
+
+El proyecto combina pruebas unitarias, de integración, validaciones estáticas, pruebas HTTP y recorridos manuales.
+
+### 11.1 Pruebas del backend
+
+Desde `servidor/`:
+
+```powershell
+npm run check
+```
+
+Este script ejecuta:
+
+1. ESLint.
+2. Validación de fixtures.
+3. Pruebas locales mediante Node.js Test Runner.
+
+También pueden ejecutarse:
+
+```powershell
+npm run lint
+npm test
+npm run fixtures:validate
+```
+
+### 11.2 Pruebas de integración con MongoDB
+
+El proyecto dispone de un entorno de prueba separado.
+
+Crear `servidor/.env.test` a partir de `.env.test.example`:
+
+```powershell
+if (!(Test-Path .env.test)) {
+    Copy-Item .env.test.example .env.test
+}
+```
+
+Verificar especialmente:
+
+```dotenv
+NODE_ENV=test
+MONGODB_TEST_URI=mongodb://127.0.0.1:27017/?replicaSet=innovationHubRs&directConnection=true
+MONGODB_TEST_DATABASE=innovation_hub_test
+```
+
+Después ejecutar desde `servidor/`:
+
+```powershell
+npm run test:integration
+```
+
+**Advertencia:** las pruebas de integración pueden eliminar o restablecer colecciones de la base de pruebas. Utilizar únicamente una base desechable.
+
+Nunca apuntar `MONGODB_TEST_DATABASE` a una base de producción o a datos importantes.
+
+### 11.3 Pruebas del frontend
+
+Desde `cliente/`:
+
+```powershell
+npm test
+```
+
+Este script ejecuta las pruebas Vitest, ESLint y el build de producción.
+
+También están disponibles:
+
+```powershell
+npm run test:unit
+npm run lint
+npm run build
+npm run test:watch
+```
+
+### 11.4 Pruebas API con Postman
+
+La colección se encuentra en:
+
+[`pruebas/innovation-hub.postman_collection.json`](pruebas/innovation-hub.postman_collection.json)
+
+Está organizada en ocho grupos:
+
+1. Autenticación.
+2. Usuarios.
+3. Catálogos.
+4. Iniciativas.
+5. Solicitudes.
+6. Equipos.
+7. Proyectos.
+8. Transiciones y cierre.
+
+Incluye 65 peticiones definidas para recorrer respuestas exitosas, validaciones negativas, errores de autenticación, autorizaciones, duplicados y cambios de estado.
+
+**Procedimiento:**
+
+1. Preparar una base de pruebas desechable.
+2. Iniciar MongoDB y Express contra esa base.
+3. Cargar los fixtures.
+4. Abrir Postman.
+5. Importar la colección.
+6. Verificar `baseUrl`.
+7. Configurar localmente `demoPassword`.
+8. Ejecutar las carpetas en el orden previsto.
+9. Revisar respuestas y aserciones.
+10. Registrar fallos y evidencia.
+
+La colección incluye operaciones que modifican datos; por lo tanto, no debe ejecutarse sobre una base con información que se quiera conservar.
+
+Las contraseñas y tokens obtenidos durante las pruebas no deben exportarse al repositorio.
+
+### 11.5 QA funcional y accesibilidad
+
+La matriz de revisión está definida en:
+
+[`docs/qa-cliente.md`](docs/qa-cliente.md)
+
+Los aspectos contemplados incluyen:
+
+- Navegación.
+- Formularios controlados.
+- Estados de carga y error.
+- Catálogos vacíos.
+- Persistencia en MongoDB.
+- Autenticación y cierre de sesión.
+- Visibilidad y autorización.
+- Solicitudes y equipos.
+- Conversión de proyectos.
+- Integración externa GitHub.
+- Navegación mediante teclado.
+- Foco en diálogos y formularios.
+- Diseño responsive.
+- Comportamiento ante fallos de red.
+
+Se contemplan revisiones de interfaz en anchos de 360 px, 768 px y 1440 px.
+
+### 11.6 Matriz de verificación contractual
+
+Consultar:
+
+[`docs/verificacion-contrato.md`](docs/verificacion-contrato.md)
+
+El documento relaciona el contrato HTTP con las pruebas estructurales, locales, integradas y manuales.
+
+Los resultados deben registrarse después de su ejecución. La existencia de una prueba no constituye por sí sola evidencia de que haya sido aprobada.
+
+---
+
+## 12. Recorrido recomendado para demostrar el proyecto
+
+Para comprobar el sistema completo se recomienda el siguiente flujo:
+
+### Escenario 1 — Inicio y usuarios
+
+1. Iniciar MongoDB.
+2. Iniciar Express.
+3. Iniciar React mediante Vite.
+4. Abrir `http://localhost:5173/`.
+5. Consultar el catálogo como visitante.
+6. Iniciar sesión con una cuenta de demostración.
+7. Consultar el perfil.
+8. Revisar el directorio de colaboradores.
+
+### Escenario 2 — Gestión de iniciativas
+
+1. Ingresar como propietario.
+2. Crear una iniciativa.
+3. Comprobar que aparece en el catálogo.
+4. Abrir el detalle.
+5. Editar los campos permitidos.
+6. Comprobar la persistencia tras recargar la página.
+7. Probar filtros y paginación.
+
+### Escenario 3 — Participación
+
+1. Cerrar sesión como propietario.
+2. Iniciar sesión con otro usuario.
+3. Abrir una iniciativa accesible.
+4. Enviar una solicitud válida.
+5. Abrir Mis solicitudes.
+6. Consultar el detalle.
+7. Editar una solicitud pendiente.
+8. Verificar el estado actualizado.
+
+### Escenario 4 — Administración del equipo
+
+1. Ingresar nuevamente como propietario.
+2. Abrir Solicitudes recibidas.
+3. Consultar las solicitudes de la iniciativa.
+4. Aceptar una solicitud.
+5. Comprobar que el solicitante pertenece al equipo.
+6. Verificar que una solicitud ya resuelta no puede aceptarse nuevamente.
+7. Comprobar las restricciones de retiro.
+
+### Escenario 5 — Conversión y GitHub
+
+1. Utilizar una iniciativa con otro miembro activo además del propietario.
+2. Abrir la opción de conversión.
+3. Completar los datos del proyecto.
+4. Confirmar la operación.
+5. Consultar la lista de proyectos.
+6. Abrir el detalle del nuevo proyecto.
+7. Verificar la referencia a la iniciativa de origen.
+8. Consultar su equipo.
+9. Revisar metadatos de GitHub si existe un repositorio público asociado.
+10. Comprobar que el detalle sigue accesible si GitHub falla.
+
+### Escenario 6 — Seguridad y restricciones
+
+Comprobar adicionalmente:
+
+- Que una persona ajena no modifica iniciativas de otro propietario.
+- Que los datos privados no se muestran mediante URLs directas.
+- Que no pueden generarse solicitudes pendientes duplicadas.
+- Que una solicitud resuelta no puede editarse como pendiente.
+- Que la conversión exige otro integrante activo.
+- Que la misma iniciativa no genera dos proyectos.
+- Que eliminar y archivar producen resultados distintos.
+- Que el cierre de sesión invalida las operaciones protegidas.
+
+---
+
+## 13. Solución de problemas frecuentes
+
+| Problema | Causa posible | Verificación |
+|---|---|---|
+| Docker no inicia | WSL 2 o virtualización | Revisar Docker Desktop y configuración de Windows |
+| MongoDB no conecta | Contenedor detenido, URI o puerto incorrecto | `docker compose ps` y `.env` |
+| Error de transacción | MongoDB sin replica set | Verificar `innovationHubRs` |
+| Express no arranca | Dependencias, variables o conexión | Ejecutar `npm ci` y revisar logs |
+| API responde 404 | Ruta incorrecta o recurso inexistente | Revisar `docs/api-contract.md` |
+| React muestra error de red | API apagada o URL incorrecta | Verificar puerto 3000 y `.env.local` |
+| Error CORS | Origen no permitido | Revisar `CLIENT_ORIGIN` |
+| Error 401 | Sesión ausente, vencida o revocada | Iniciar sesión nuevamente |
+| Error 403 | Permisos insuficientes | Revisar propietario, visibilidad y membresía |
+| Error 409 | Duplicado o estado incompatible | Consultar estado actual antes de repetir |
+| No aparecen datos | Base vacía o modo mock | Revisar seed, MongoDB y `VITE_API_MODE` |
+| GitHub no carga | Repositorio privado, inexistente, límite o red | Comprobar URL y respuesta externa |
+| Vite cambia de puerto | Puerto 5173 ocupado | Liberar puerto o ajustar configuración y CORS |
+| Pruebas integradas no inician | Variables de test ausentes | Revisar `.env.test` |
+
+**Nota:** el endpoint `/api/health` comprueba que Express responde, pero no reemplaza las pruebas funcionales contra MongoDB.
+
+---
+
+## 14. Calidad, seguridad y decisiones técnicas
+
+La solución aplica las siguientes prácticas de ingeniería:
+
+### 14.1 Organización
+
+- Componentes reutilizables.
+- Separación por dominios.
+- API independiente del frontend.
+- Controladores y servicios separados.
+- Repositorios para persistencia.
+- DTO para las respuestas públicas.
+- Código dividido en módulos ES.
+
+### 14.2 Frontend
+
+- Formularios controlados.
+- Actualización inmutable del estado.
+- Navegación con React Router.
+- Rutas protegidas.
+- Validación de campos.
+- Estados explícitos de consulta.
+- Cancelación de operaciones asíncronas.
+- Componentes responsive.
+- Manejo de errores HTTP.
+
+### 14.3 Backend
+
+- Validación de datos en el servidor.
+- Verificación de autenticación.
+- Autorización por actor y recurso.
+- Manejo centralizado de errores.
+- CORS configurado.
+- Respuestas HTTP consistentes.
+- Proyecciones de campos públicos.
+- Control de concurrencia.
+- Transacciones para cambios relacionados.
+
+### 14.4 Persistencia
+
+- Índices de búsqueda y unicidad.
+- UUID públicos.
+- Restricciones de estado.
+- Referencias entre documentos.
+- Conservación de historiales.
+- Operaciones transaccionales.
+
+### 14.5 Seguridad
+
+- Hash de contraseñas.
+- Tokens de sesión revocables.
+- Tokens almacenados mediante hash en MongoDB.
+- Exclusión de secretos del repositorio.
+- Validación de parámetros.
+- Restricción de acciones por propietario.
+- Separación de bases de desarrollo y prueba.
+- Ausencia de credenciales de Innovation Hub en las consultas públicas de GitHub.
+
+Estas decisiones se documentan con mayor detalle en las matrices, el modelo de datos y el contrato HTTP.
+
+---
+
+## 15. Historial de desarrollo y control de versiones
+
+El repositorio conserva la evolución desde el prototipo hasta la aplicación cliente-servidor.
+
+El desarrollo se realizó mediante commits incrementales, separando la construcción de la interfaz, la API, la persistencia, las funcionalidades de colaboración y las verificaciones finales.
+
+### 15.1 Resumen de participación
+
+| Etapa | Daniel Campos Sánchez | Francisco José Torres Sandoval |
+|---|---|---|
+| Avance 1 | Inicio, navegación, catálogo, filtros, búsqueda e integración visual | Base compartida, Sass, detalle, formularios, gestión de iniciativas, perfil y solicitudes simuladas |
+| Avance 2 | Base React, HTTP, Express, MongoDB, autenticación, perfiles, directorio e iniciativas | Solicitudes, equipos, proyectos, GitHub, paginación, seguridad, pruebas, seed integral y cierre |
+
+### 15.2 Historial del Avance 2
+
+La siguiente cronología incorpora los cambios registrados entre el 29 de octubre y el 8 de noviembre de 2026.
+
+Los identificadores de autor mostrados corresponden a los utilizados en GitHub.
+
+#### Desarrollo del 29 de octubre al 3 de noviembre
+
+| Fecha | Autor | Cambio |
+|---|---|---|
+| 29/10/2026 | FlashArrow2000 | Definir contrato HTTP y alcance del Avance 2 |
+| 29/10/2026 | FlashArrow2000 | Iniciar React con Vite y rutas del sistema |
+| 29/10/2026 | FlashArrow2000 | Conservar Bootstrap y tema Sass del prototipo |
+| 29/10/2026 | FlashArrow2000 | Modelar MongoDB y acordar fixtures de integración |
+| 30/10/2026 | FlashArrow2000 | Organizar la coordinación de la integración final |
+| 30/10/2026 | FlashArrow2000 | Integrar cliente HTTP y mocks de desarrollo |
+| 30/10/2026 | FlashArrow2000 | Iniciar Express por capas y errores uniformes |
+| 30/10/2026 | FlashArrow2000 | Modelar MongoDB e inicializar datos de prueba |
+| 30/10/2026 | FlashArrow2000 | Autenticar usuarios y revocar sesiones |
+| 31/10/2026 | FlashArrow2000 | Integrar autenticación y navegación del cliente |
+| 02/11/2026 | FlashArrow2000 | Gestionar perfiles y buscar colaboradores |
+| 03/11/2026 | FlashArrow2000 | Consultar perfiles y filtrar colaboradores |
+| 03/11/2026 | FlashArrow2000 | Crear y modificar iniciativas con validación propia |
+| 03/11/2026 | FlashArrow2000 | Filtrar iniciativas y aplicar visibilidad por actor |
+| 03/11/2026 | FlashArrow2000 | Archivar iniciativas con historial relacionado |
+| 03/11/2026 | FlashArrow2000 | Consumir catálogo paginado y mostrar permisos |
+| 03/11/2026 | FlashArrow2000 | Detallar iniciativas y separar eliminación y archivo |
+| 03/11/2026 | FlashArrow2000 | Crear y editar iniciativas con formularios controlados |
+| 03/11/2026 | FlashArrow2000 | Controlar competencias y representar etiquetas como chips |
+| 03/11/2026 | FlashArrow2000 | Validar campos al corregir y confirmar guardados |
+| 03/11/2026 | FlashArrow2000 | Refactorizar la estructura del código para mejorar legibilidad y mantenimiento |
+
+#### Desarrollo del 5 al 8 de noviembre
+
+| Fecha | Autor | Cambio |
+|---|---|---|
+| 05/11/2026 | FranciscoTorresSandov | Implementar ciclo de solicitudes propias |
+| 05/11/2026 | FranciscoTorresSandov | Gestionar participación y solicitudes propias |
+| 05/11/2026 | FranciscoTorresSandov | Resolver solicitudes y mantener membresías |
+| 06/11/2026 | FranciscoTorresSandov | Gestionar solicitudes recibidas y equipos |
+| 06/11/2026 | FranciscoTorresSandov | Convertir iniciativas y consultar proyectos accesibles |
+| 06/11/2026 | FranciscoTorresSandov | Convertir iniciativas y mostrar repositorios de GitHub |
+| 07/11/2026 | FranciscoTorresSandov | Mantener paginación y conteos coherentes por recurso |
+| 07/11/2026 | FranciscoTorresSandov | Cubrir autorización y operaciones concurrentes |
+| 07/11/2026 | FranciscoTorresSandov | Completar seed de solicitudes y proyectos |
+| 08/11/2026 | FranciscoTorresSandov | Completar colección Postman y verificar contrato HTTP |
+| 08/11/2026 | FranciscoTorresSandov | Consolidar QA y documentar ejecución integral |
+| 08/11/2026 | FranciscoTorresSandov | Preparar defensa y cierre de entrega |
+
+**Resumen del historial aportado del Avance 2:**
+
+| Integrante | Commits identificados |
+|---|---:|
+| Daniel Campos Sánchez | 21 |
+| Francisco José Torres Sandoval | 12 |
+| **Total** | **33** |
+
+Los commits del 5 al 8 de noviembre se organizaron en cuatro bloques diarios, cubriendo funcionalidades, integridad, pruebas y documentación.
+
+La cantidad anterior corresponde a la cronología consignada para el Avance 2; el total definitivo y los hashes deben contrastarse con el historial real del repositorio.
+
+### 15.3 Historial del Avance 1
+
+El Avance 1 conserva 21 commits históricos, realizados entre el 24 y el 27 de septiembre de 2026.
+
+| Hash | Autor | Cambio |
+|---|---|---|
+| `7e0b8a9` | dcampossCenfotec | Initial commit |
+| `45f54d1` | Francisco | Estructura navegable del proyecto |
+| `97a8537` | Francisco | Tema Sass y Bootstrap |
+| `626527a` | Francisco | Datos JSON y gestión local |
+| `8173e7f` | Francisco | Detalle y visibilidad |
+| `b4e9523` | Francisco | Formulario de iniciativas |
+| `ff2c95f` | Francisco | Validación y publicación |
+| `fac37ba` | Francisco | Edición de iniciativas |
+| `c297845` | Francisco | Eliminación con confirmación |
+| `06b2aed` | Francisco | Perfil de demostración |
+| `b4aff06` | Francisco | Solicitudes simuladas |
+| `56d6449` | Daniel | Navegación global |
+| `0080342` | Daniel | Página principal |
+| `27bff69` | Daniel | Tarjetas del catálogo |
+| `585f79e` | Daniel | Estados de carga y errores |
+| `ab1a495` | Daniel | Búsqueda textual |
+| `f52e9f8` | Daniel | Filtro por tipo |
+| `731e2dd` | Daniel | Filtros de categoría y competencia |
+| `624bab3` | Daniel | Filtros combinados |
+| `6802fb6` | Daniel | Integración del catálogo |
+| `033361c` | Daniel | Documentación del Avance 1 |
+
+### 15.4 Verificación mediante Git
+
+Para consultar el historial real, ejecutar:
+
+```powershell
+git log --reverse --format="%h | %as | %an | %s"
+```
+
+Para conocer el número total de commits alcanzables desde la rama actual:
+
+```powershell
+git rev-list --count HEAD
+```
+
+Para conocer el commit actual:
+
+```powershell
+git rev-parse HEAD
+```
+
+El historial de Git constituye la fuente definitiva de hashes, autores y fechas.
+
+No se modifican autores ni fechas históricas para alterar artificialmente la distribución de contribuciones.
+
+---
+
+## 16. Preparación de defensa académica
+
+La evaluación del Avance 2 contempla tanto la calidad del producto como el conocimiento individual de la solución.
+
+Cada integrante debe estar preparado para explicar:
+
+- La composición de componentes React.
+- El uso de props y estado.
+- Formularios controlados.
+- Navegación y rutas protegidas.
+- Consumo HTTP y errores.
+- Rutas y controladores Express.
+- Servicios y repositorios.
+- Autenticación y sesiones.
+- Autorización y visibilidad.
+- Modelo MongoDB.
+- Índices y transacciones.
+- Solicitudes y equipos.
+- Conversión de proyectos.
+- Integración GitHub.
+- Estrategia de pruebas.
+- Decisiones de arquitectura.
+- Compatibilidad del contrato con el backend futuro.
+
+La guía de preparación se encuentra en:
+
+[`docs/defensa.md`](docs/defensa.md)
+
+La defensa requiere comprender también módulos desarrollados por el otro integrante.
+
+Las prácticas de defensa deben realizarse respetando las restricciones académicas sobre herramientas de asistencia y generación automática de código.
+
+---
+
+## 17. Alcance de la entrega y trabajo posterior
+
+### Incluido en el Avance 2
+
+- Cliente React con Vite.
+- Diseño visual mediante Bootstrap y Sass.
+- API REST con Express.
+- MongoDB y Mongoose.
+- Autenticación y perfiles.
+- Directorio de colaboradores.
+- Gestión de iniciativas.
+- Solicitudes de participación.
+- Gestión de equipos.
+- Conversión en proyectos.
+- Listado y detalle de proyectos.
+- Consulta pública de GitHub.
+- Scripts de seed.
+- Pruebas unitarias y de integración.
+- Colección Postman.
+- Documentación del modelo y contrato.
+
+### Fuera del alcance del Avance 2
+
+La consigna reserva para la entrega final determinadas operaciones adicionales, entre ellas la edición, búsqueda y archivado de proyectos, así como la implementación del backend en otro lenguaje y con persistencia relacional.
+
+El Avance 2 no requiere despliegue público de la aplicación.
+
+La demostración se realiza localmente.
+
+---
+
+## 18. Entrega y versionado
+
+La etiqueta establecida para el Avance 2 es:
+
+```text
+entrega-2
+```
+
+La etiqueta debe apuntar al commit aprobado para la entrega.
+
+Antes de publicarla se requiere verificar:
+
+- Estado limpio del repositorio.
+- Dependencias instalables desde los archivos de bloqueo.
+- Arranque de MongoDB, Express y React.
+- Pruebas automatizadas.
+- Integración contra MongoDB.
+- Colección Postman.
+- QA de interfaz.
+- Consistencia del contrato HTTP.
+- Ausencia de secretos.
+- Documentación actualizada.
+
+El procedimiento detallado se encuentra en:
+
+[`docs/cierre-avance2.md`](docs/cierre-avance2.md)
+
+La preparación del código y de la documentación no equivale a confirmar que la etiqueta se publicó o que Moodle recibió la entrega.
+
+Una vez aprobada la versión, el contrato HTTP correspondiente quedará congelado para asegurar la compatibilidad requerida por la entrega final.
+
+---
+
+## 19. Ejecución del prototipo del Avance 1
+
+El código original se conserva en `avance1/`.
+
+Puede ejecutarse de forma independiente y no requiere Express ni MongoDB.
+
+### Instalar dependencias
+
+Desde la raíz:
+
+```powershell
 cd avance1
-npm ci --cache /private/tmp/innovation-hub-npm-cache
+npm ci
 npm run build:css
 npm test
 ```
 
-`npm ci --cache /private/tmp/innovation-hub-npm-cache` instala las versiones fijadas en `package-lock.json` usando el caché temporal del proyecto. Bootstrap es 5.3.3 y Sass es 1.105.0. No se debe editar manualmente `css/app.css`.
+### Iniciar servidor estático
 
-Para servir la aplicación, desde la **raíz del repositorio**:
-
-```bash
-python3 -m http.server 8000 --bind 127.0.0.1
-```
-
-En Windows, si Python está disponible mediante su lanzador:
+Regresar a la raíz de `innovation-hub`:
 
 ```powershell
 py -m http.server 8000 --bind 127.0.0.1
 ```
 
-Abrir [Innovation Hub local](http://127.0.0.1:8000/avance1/index.html). Detener el servidor con `Ctrl+C`. Si se inicia el servidor dentro de `avance1`, la dirección es `http://127.0.0.1:8000/index.html`.
-
-También puede abrirse `avance1/index.html` mediante Live Server. No abrirlo mediante `file://`: la aplicación utiliza módulos ES y `fetch`. Mantener el mismo host y puerto durante una demostración; cambiar de origen implica otro almacenamiento local.
-
-## Estructura
+Abrir:
 
 ```text
-README.md
-avance1/
-├── index.html                   # Página principal y único catálogo
-├── INTEGRACION.md               # Contratos entre ambos bloques
-├── package.json
-├── package-lock.json
-├── datos/iniciativas.json       # Fuente inicial utilizada por la API local
-├── iniciativas.json             # Copia existente no consumida por la aplicación
-├── paginas/
-│   ├── detalle.html
-│   ├── formulario.html          # Crear o editar según ?id=
-│   ├── perfil.html
-│   └── participar.html
-├── js/
-│   ├── iniciativas.js           # Carga, memoria, persistencia y CRUD
-│   ├── inicio.js                # Catálogo, controles, estados y modal
-│   ├── tarjetas.js              # Construcción segura de tarjetas
-│   ├── filtros.js               # Búsqueda y opciones de filtrado
-│   ├── dom.js                   # Utilidades DOM y mensajes
-│   ├── detalle.js
-│   ├── formulario.js
-│   ├── validacion.js
-│   ├── perfil.js
-│   └── participar.js
-├── scss/
-│   ├── app.scss                # Variables → Bootstrap → componentes
-│   ├── _variables.scss
-│   └── _componentes.scss
-├── css/app.css                  # Generado por npm run build:css
-└── tests/
-    ├── gestion.test.mjs
-    ├── tarjetas.test.mjs
-    ├── carga.test.mjs
-    ├── catalogo.test.mjs
-    └── flujos.test.mjs
+http://127.0.0.1:8000/avance1/index.html
 ```
 
-## Arquitectura y decisiones
+El prototipo original utiliza módulos JavaScript y carga datos mediante `fetch`, por lo que no debe abrirse directamente desde `file://`.
 
-`js/iniciativas.js` es la fuente de verdad compartida. `cargarIniciativas()` consulta primero `localStorage`; si no hay datos persistidos, utiliza `fetch` sobre `datos/iniciativas.json`. Las siguientes llamadas reutilizan la memoria. La opción `{ recargar: true }` relee la persistencia al restaurar el catálogo desde la caché de navegación. Los errores no borran automáticamente los datos guardados.
+### Diferencia respecto del Avance 2
 
-La API entrega copias mediante `structuredClone`. El catálogo conserva una copia de lectura y deriva resultados con funciones puras, sin modificar el arreglo original ni ejecutar otro `fetch` al filtrar. El CRUD persiste los cambios y emite `iniciativas:actualizadas`; `alCambiarIniciativas()` permite actualizar la vista con una única suscripción. Este evento no sincroniza pestañas diferentes en tiempo real.
+| Aspecto | Avance 1 | Avance 2 |
+|---|---|---|
+| Interfaz | HTML y JavaScript | React |
+| Navegación | Páginas HTML | React Router |
+| Persistencia | JSON y localStorage | MongoDB |
+| Backend | No disponible | Express |
+| Autenticación | Identidad simulada | Sesiones reales |
+| Solicitudes | Simulación | Persistencia y estados |
+| Equipos | Datos de demostración | Membresías persistentes |
+| Proyectos | No implementados como entidad independiente | Entidad y conversión |
+| Pruebas | Node Test Runner | Vitest, Node Test Runner, Supertest y Postman |
 
-Las rutas de detalle, edición y participación utilizan `?id=` con identificadores codificados mediante `encodeURIComponent`. La identidad de demostración es `Usuario de prueba`; no hay inicio de sesión real. Las iniciativas nuevas pertenecen a ese usuario y lo incluyen como miembro.
+La conservación del prototipo permite consultar la evolución funcional y arquitectónica del sistema.
 
-Los datos del usuario se incorporan mediante `textContent` y creación de nodos, sin interpretar HTML. Se reutilizan la grilla y los componentes de Bootstrap. Sass define la identidad visual: azul petróleo `#255f75`, verde `#276b54`, rojo `#ab3940`, fondo `#f5f8f9`, texto `#193039`, tipografía del sistema y bordes redondeados.
+---
 
-Se utilizan HTML semántico, etiquetas visibles, enlace para saltar al contenido, regiones `aria-live`, indicadores `aria-busy` y manejo del foco. El catálogo diferencia una colección vacía de una consulta sin coincidencias. Una opción seleccionada que desaparece de los datos se conserva como «sin disponibles» hasta que el usuario cambie o limpie los filtros.
+## 20. Documentación complementaria
 
-## Datos de demostración y restablecimiento
+| Documento | Contenido |
+|---|---|
+| [`docs/alcance-avance2.md`](docs/alcance-avance2.md) | Alcance y decisiones generales |
+| [`docs/api-contract.md`](docs/api-contract.md) | Contrato HTTP y DTO |
+| [`docs/modelo-datos.md`](docs/modelo-datos.md) | Modelo MongoDB y relaciones |
+| [`docs/matriz-reglas.md`](docs/matriz-reglas.md) | Reglas de negocio y equivalencias |
+| [`docs/matriz-pruebas.md`](docs/matriz-pruebas.md) | Escenarios y cobertura |
+| [`docs/iniciativas-api.md`](docs/iniciativas-api.md) | Operaciones y permisos de iniciativas |
+| [`docs/bitacora-avance2.md`](docs/bitacora-avance2.md) | Registro técnico de verificaciones |
+| [`docs/verificacion-contrato.md`](docs/verificacion-contrato.md) | Validación de la API |
+| [`docs/qa-cliente.md`](docs/qa-cliente.md) | QA funcional y accesibilidad |
+| [`docs/defensa.md`](docs/defensa.md) | Preparación de defensa |
+| [`docs/cierre-avance2.md`](docs/cierre-avance2.md) | Procedimiento de cierre y publicación |
+| [`cliente/README.md`](cliente/README.md) | Documentación específica del frontend |
+| [`servidor/README.md`](servidor/README.md) | Documentación específica del backend |
+| [`pruebas/fixtures/README.md`](pruebas/fixtures/README.md) | Datos sintéticos y escenarios |
 
-| Clave de localStorage | Contenido |
-| --- | --- |
-| `innovation-hub-iniciativas-v1` | Colección completa después de crear, editar o eliminar. |
-| `innovation-hub-solicitudes-v1` | Solicitudes simuladas registradas en ese navegador. |
+---
 
-Para volver a los ocho registros iniciales, abrir DevTools → Application/Almacenamiento → Local Storage del origen actual, eliminar **solo** `innovation-hub-iniciativas-v1` y recargar la página. Esto descarta las modificaciones locales de iniciativas. Eliminar también `innovation-hub-solicitudes-v1` únicamente si se desean descartar las solicitudes de prueba. No es necesario borrar todo el almacenamiento del navegador.
+## 21. Integrantes
 
-Modificar el JSON inicial no reemplaza los datos ya persistidos. La copia `avance1/iniciativas.json` no es la fuente utilizada: editarla no cambia el catálogo.
+| Integrante | Identificación |
+|---|---|
+| Daniel Campos Sánchez | P000011085 |
+| Francisco José Torres Sandoval | P00006284 |
 
-## Pruebas y revisión
+**Universidad CENFOTEC — SOFT-12, Programación Web Avanzada — III cuatrimestre de 2026.**
 
-Desde `avance1`, ejecutar `npm test`. Se utiliza el runner de Node y simulaciones mínimas de DOM, almacenamiento, eventos y respuestas de red, sin dependencias adicionales de pruebas.
-
-La última ejecución previa al commit documental aprobó **31 pruebas**, incluidos subtests. Cubren carga, errores y reintento, copias de datos, propiedad, CRUD, validación, tarjetas restringidas, texto seguro, filtros combinados, opciones dinámicas, limpieza, foco simulado, cancelación del modal, restauración desde caché, detalle y solicitud sin ingreso automático al equipo.
-
-También se comprobaron rutas, anclas, IDs únicos y referencias de accesibilidad en las cinco páginas. La compilación Sass fue verificada con Node 22; emite advertencias de deprecación de `@import` y funciones utilizadas por Bootstrap/Sass.
-
-**Pendiente de revisión manual:** apariencia en móvil, tablet y escritorio; navegación completa con teclado; comportamiento visual del encabezado sticky y el modal real de Bootstrap. Las pruebas con DOM simulado no sustituyen esas comprobaciones.
-
-Recorrido sugerido: explorar y combinar filtros → limpiar → publicar una iniciativa válida → abrir detalle → editar → volver al catálogo → cancelar una eliminación → confirmar otra. Para participación, abrir una iniciativa ajena no restringida, enviar una solicitud válida y comprobar que no agrega al usuario al equipo.
-
-## Alcance y diferencias documentales
-
-Este repositorio implementa el prototipo del Avance 1 conforme al reparto de trabajo y al documento de transferencia técnica. `SOFT_12_Proyecto_Descripcion_General.docx` describe las tres entregas y remite a una consigna independiente para cada avance. El detalle de esa consigna del Avance 1 debe contrastarse antes de afirmar cumplimiento integral.
-
-Existen diferencias concretas entre el contrato heredado y el documento general:
-
-| Aspecto | Implementación actual | Documento general |
-| --- | --- | --- |
-| Visibilidad | `publica`, `comunidad`, `equipo`, `restringida`; sin autenticación real. | Pública, institucional, restringida y privada, con permisos por actor. |
-| Restringidas | Resumen y aviso genérico; no participan en filtros de metadatos ni permiten solicitudes. El propietario conserva edición y eliminación desde la tarjeta. | Permite título, tipo, resumen, categoría y competencias; autor y miembros aceptados acceden a información completa. |
-| Categorías | Ambiente, Comunidad, Cultura, Educación y Tecnología. | Ocho categorías mínimas, incluidas Sostenibilidad, Impacto social, Negocios y emprendimiento, Salud y bienestar, Cultura y creatividad y Otro. |
-| Estados | Los datos usan Abierta y En evaluación; las nuevas iniciativas nacen Abiertas. | Borrador, Publicada, En formación de equipo, Convertida en proyecto y Archivada. |
-| Eliminación | Borrado local de iniciativas propias tras confirmación. | Eliminar solo sin historial; Archivar es una acción independiente con o sin relaciones. |
-| Búsqueda y filtros | Título/resumen y filtros por tipo, categoría y competencia. | También contempla etiquetas, estado, espacios, propietario y visibilidad permitida. |
-
-No hay backend, autenticación, autorización de servidor, aprobación de solicitudes ni conversión a proyectos. Las solicitudes no tienen gestión de estados ni control de duplicados. La sección de «proyectos» del perfil lista iniciativas donde figura el usuario; no implementa una entidad de proyecto independiente.
-
-Las restricciones de visibilidad son presentación del prototipo, no protección de secretos: los datos iniciales y persistidos son accesibles desde el navegador. La evolución a React, Express y MongoDB, y posteriormente a ASP.NET Core con base de datos relacional, pertenece a entregas posteriores.
-
-## Historial de commits
-
-Tabla extraída del historial real hasta `033361c`. Los autores se conservan tal como aparecen en Git. `Daniel` y `dcampossCenfotec` corresponden a CAMPOS SANCHEZ DANIEL.
-
-| Commit | Fecha de autor | Autor en Git | Descripción |
-| --- | --- | --- | --- |
-| 7e0b8a9 | 2026-09-24 | dcampossCenfotec | Initial commit |
-| 45f54d1 | 2026-09-24 | Francisco Jose Torres Sandoval | Iniciar estructura navegable de Innovation Hub |
-| 97a8537 | 2026-09-24 | Francisco Jose Torres Sandoval | Compilar Bootstrap con tema Sass |
-| 626527a | 2026-09-24 | Francisco Jose Torres Sandoval | Cargar iniciativas JSON y centralizar cambios locales |
-| 8173e7f | 2026-09-25 | Francisco Jose Torres Sandoval | Mostrar iniciativas y detalle con visibilidad restringida |
-| b4e9523 | 2026-09-25 | Francisco Jose Torres Sandoval | Crear formulario completo con competencias dinámicas |
-| ff2c95f | 2026-09-25 | Francisco Jose Torres Sandoval | Validar campos y registrar iniciativas en el navegador |
-| fac37ba | 2026-09-25 | Francisco Jose Torres Sandoval | Reutilizar formulario para editar iniciativas propias |
-| c297845 | 2026-09-25 | Francisco Jose Torres Sandoval | Confirmar eliminacion y actualizar listado al instante |
-| 06b2aed | 2026-09-25 | Francisco Jose Torres Sandoval | Presentar perfil y proyectos del usuario de prueba |
-| b4aff06 | 2026-09-25 | Francisco Jose Torres Sandoval | Simular solicitudes y documentar el bloque de gestion |
-| 56d6449 | 2026-09-27 | Daniel | Integrar navegación global y acceso al catálogo |
-| 0080342 | 2026-09-27 | Daniel | Construir la página principal de Innovation Hub |
-| 27bff69 | 2026-09-27 | Daniel | Completar tarjetas del catálogo y respetar la visibilidad |
-| 585f79e | 2026-09-27 | Daniel | Gestionar carga, errores y catálogo vacío |
-| ab1a495 | 2026-09-27 | Daniel | Implementar búsqueda textual de iniciativas |
-| f52e9f8 | 2026-09-27 | Daniel | Agregar filtro por tipo al catálogo |
-| 731e2dd | 2026-09-27 | Daniel | Agregar filtros por categoría y competencia |
-| 624bab3 | 2026-09-27 | Daniel | Completar filtros combinados y mensajes de resultados |
-| 6802fb6 | 2026-09-27 | Daniel | Integrar actualización del catálogo y verificar flujos completos |
-| 033361c | 2026-09-27 | Daniel | Documentar ejecución, arquitectura y entrega del Avance 1 |
-
-El historial del Avance 1 contiene 21 commits distribuidos en **tres fechas**: 24, 25 y 27 de septiembre de 2026. Por tanto, no alcanza el requisito de seis días distintos indicado en las instrucciones de trabajo. No se han alterado fechas para aparentar esa distribución.
-
-Para contrastar el historial:
-
-```bash
-git log --reverse --format="%h | %as | %an | %s"
-```
-
-El documento general solicita una etiqueta por entrega. Después de revisar y registrar los cambios, los responsables pueden crear y publicar `entrega-1`. Esa operación no forma parte de la preparación de este README y no se ha ejecutado aquí.
+Innovation Hub integra desarrollo frontend, backend, persistencia documental, seguridad, pruebas y control de versiones en una aplicación web orientada a la colaboración universitaria.
