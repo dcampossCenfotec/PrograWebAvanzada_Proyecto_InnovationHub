@@ -1,0 +1,109 @@
+PS C:\Users\rnwo\Downloads\innovation-hub\servidor> Get-ChildItem -Force -Name .env*
+.env.example
+.env.test.example
+PS C:\Users\rnwo\Downloads\innovation-hub\servidor> Copy-Item .env.example .env
+PS C:\Users\rnwo\Downloads\innovation-hub\servidor> Get-Content .env
+NODE_ENV=development
+HOST=127.0.0.1
+PORT=3000
+CLIENT_ORIGIN=http://localhost:5173
+BODY_LIMIT=100kb
+MONGODB_URI=mongodb://127.0.0.1:27017/?replicaSet=innovationHubRs&directConnection=true
+MONGODB_DATABASE=innovation_hub
+MONGODB_CONNECT_TIMEOUT_MS=5000
+AUTH_SESSION_TTL_MINUTES=480
+DEMO_USER_PASSWORD=DemoSegura2026
+PS C:\Users\rnwo\Downloads\innovation-hub\servidor> git check-ignore .env
+.env
+PS C:\Users\rnwo\Downloads\innovation-hub\servidor> npm.cmd run fixtures:validate
+
+> innovation-hub-servidor@0.0.0 fixtures:validate
+> node ../pruebas/fixtures/validate-fixtures.mjs
+
+Fixtures CO01 válidos
+{
+  "users": 5,
+  "categories": 8,
+  "skills": 10,
+  "initiatives": 8,
+  "requests": 5,
+  "memberships": 12,
+  "membershipEvents": 13,
+  "projects": 1,
+  "visibilities": [
+    "institutional",
+    "private",
+    "public",
+    "restricted"
+  ],
+  "initiativeStates": [
+    "archived",
+    "converted",
+    "draft",
+    "forming_team",
+    "published"
+  ],
+  "requestStates": [
+    "accepted",
+    "cancelled",
+    "pending",
+    "rejected"
+  ],
+  "overEstimate": {
+    "estimatedMembers": 2,
+    "activeMembers": 3
+  }
+}
+PS C:\Users\rnwo\Downloads\innovation-hub\servidor> npm.cmd run seed
+
+> innovation-hub-servidor@0.0.0 seed
+> npm run fixtures:validate && node --env-file-if-exists=.env scripts/seed.js
+
+
+> innovation-hub-servidor@0.0.0 fixtures:validate
+> node ../pruebas/fixtures/validate-fixtures.mjs
+
+Fixtures CO01 válidos
+{
+  "users": 5,
+  "categories": 8,
+  "skills": 10,
+  "initiatives": 8,
+  "requests": 5,
+  "memberships": 12,
+  "membershipEvents": 13,
+  "projects": 1,
+  "visibilities": [
+    "institutional",
+    "private",
+    "public",
+    "restricted"
+  ],
+  "initiativeStates": [
+    "archived",
+    "converted",
+    "draft",
+    "forming_team",
+    "published"
+  ],
+  "requestStates": [
+    "accepted",
+    "cancelled",
+    "pending",
+    "rejected"
+  ],
+  "overEstimate": {
+    "estimatedMembers": 2,
+    "activeMembers": 3
+  }
+}
+MongoDB conectado a la base innovation_hub.
+Fixtures verificados: 8 categorías, 10 competencias, 5 usuarios, 8 iniciativas, 12 membresías, 13 eventos, 5 solicitudes y 1 proyectos. Nuevas inserciones del bloque participación: 5 solicitudes y 1 proyectos.
+Conexión MongoDB cerrada.
+PS C:\Users\rnwo\Downloads\innovation-hub\servidor> npm.cmd run dev
+
+> innovation-hub-servidor@0.0.0 dev
+> node --watch --env-file-if-exists=.env src/server.js
+
+MongoDB conectado a la base innovation_hub.
+Innovation Hub API disponible en http://127.0.0.1:3000.
