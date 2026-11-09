@@ -1351,27 +1351,27 @@ Los identificadores de autor mostrados corresponden a los utilizados en GitHub.
 
 | Fecha | Autor | Cambio |
 |---|---|---|
-| 29/10/2026 | FlashArrow2000 | Definir contrato HTTP y alcance del Avance 2 |
-| 29/10/2026 | FlashArrow2000 | Iniciar React con Vite y rutas del sistema |
-| 29/10/2026 | FlashArrow2000 | Conservar Bootstrap y tema Sass del prototipo |
-| 29/10/2026 | FlashArrow2000 | Modelar MongoDB y acordar fixtures de integración |
-| 30/10/2026 | FlashArrow2000 | Organizar la coordinación de la integración final |
-| 30/10/2026 | FlashArrow2000 | Integrar cliente HTTP y mocks de desarrollo |
-| 30/10/2026 | FlashArrow2000 | Iniciar Express por capas y errores uniformes |
-| 30/10/2026 | FlashArrow2000 | Modelar MongoDB e inicializar datos de prueba |
-| 30/10/2026 | FlashArrow2000 | Autenticar usuarios y revocar sesiones |
-| 31/10/2026 | FlashArrow2000 | Integrar autenticación y navegación del cliente |
-| 02/11/2026 | FlashArrow2000 | Gestionar perfiles y buscar colaboradores |
-| 03/11/2026 | FlashArrow2000 | Consultar perfiles y filtrar colaboradores |
-| 03/11/2026 | FlashArrow2000 | Crear y modificar iniciativas con validación propia |
-| 03/11/2026 | FlashArrow2000 | Filtrar iniciativas y aplicar visibilidad por actor |
-| 03/11/2026 | FlashArrow2000 | Archivar iniciativas con historial relacionado |
-| 03/11/2026 | FlashArrow2000 | Consumir catálogo paginado y mostrar permisos |
-| 03/11/2026 | FlashArrow2000 | Detallar iniciativas y separar eliminación y archivo |
-| 03/11/2026 | FlashArrow2000 | Crear y editar iniciativas con formularios controlados |
-| 03/11/2026 | FlashArrow2000 | Controlar competencias y representar etiquetas como chips |
-| 03/11/2026 | FlashArrow2000 | Validar campos al corregir y confirmar guardados |
-| 03/11/2026 | FlashArrow2000 | Refactorizar la estructura del código para mejorar legibilidad y mantenimiento |
+| 29/10/2026 | Daniel Campos Sánchez | Definir contrato HTTP y alcance del Avance 2 |
+| 29/10/2026 | Daniel Campos Sánchez | Iniciar React con Vite y rutas del sistema |
+| 29/10/2026 | Daniel Campos Sánchez | Conservar Bootstrap y tema Sass del prototipo |
+| 29/10/2026 | Daniel Campos Sánchez | Modelar MongoDB y acordar fixtures de integración |
+| 30/10/2026 | Daniel Campos Sánchez | Organizar la coordinación de la integración final |
+| 30/10/2026 | Daniel Campos Sánchez| Integrar cliente HTTP y mocks de desarrollo |
+| 30/10/2026 | Daniel Campos Sánchez | Iniciar Express por capas y errores uniformes |
+| 30/10/2026 | Daniel Campos Sánchez | Modelar MongoDB e inicializar datos de prueba |
+| 30/10/2026 | Daniel Campos Sánchez | Autenticar usuarios y revocar sesiones |
+| 31/10/2026 | Daniel Campos Sánchez | Integrar autenticación y navegación del cliente |
+| 02/11/2026 | Daniel Campos Sánchez | Gestionar perfiles y buscar colaboradores |
+| 03/11/2026 | Daniel Campos Sánchez | Consultar perfiles y filtrar colaboradores |
+| 03/11/2026 | Daniel Campos Sánchez | Crear y modificar iniciativas con validación propia |
+| 03/11/2026 | Daniel Campos Sánchez| Filtrar iniciativas y aplicar visibilidad por actor |
+| 03/11/2026 | Daniel Campos Sánchez | Archivar iniciativas con historial relacionado |
+| 03/11/2026 | Daniel Campos Sánchez | Consumir catálogo paginado y mostrar permisos |
+| 03/11/2026 | Daniel Campos Sánchez | Detallar iniciativas y separar eliminación y archivo |
+| 03/11/2026 | Daniel Campos Sánchez | Crear y editar iniciativas con formularios controlados |
+| 03/11/2026 | Daniel Campos Sánchez | Controlar competencias y representar etiquetas como chips |
+| 03/11/2026 | Daniel Campos Sánchez | Validar campos al corregir y confirmar guardados |
+| 03/11/2026 | Daniel Campos Sánchez | Refactorizar la estructura del código para mejorar legibilidad y mantenimiento |
 
 #### Desarrollo del 5 al 8 de noviembre
 
