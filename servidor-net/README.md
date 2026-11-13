@@ -1,50 +1,111 @@
 # Innovation Hub — servidor .NET de Tarea 3, parte B
 
-Estado de T3B-01: host y configuración; todavía sin entidades, migraciones ni rutas GET. El contexto vacío es temporal. Este proyecto no sustituye el servidor Express durante Tarea 3.
+Estado: **T3B-02, núcleo relacional y primera migración**. Implementa usuarios, sesiones, catálogos e iniciativas con sus relaciones y HasData. Solicitudes/equipos/proyectos se incorporarán en T3B-03 y los dos GET en T3B-04. Esta API parcial no sustituye Express ni cambia el cliente React. No incluye Swagger porque la consigna no lo exige.
 
-## Requisitos y restauración
+## Versiones y compilación
 
-Ejecutar dentro de `servidor-net`. Instalar el SDK **10.0.404**, fijado por `global.json` (no basta instalar el runtime). EF Core y la herramienta local `dotnet-ef` usan **10.0.15**. No hace falta instalar `dotnet-ef` globalmente.
+Ejecutar dentro de `servidor-net`. Instalar el SDK **10.0.404**, fijado por `global.json` (el runtime solo no basta). Paquetes EF Core y herramienta local `dotnet-ef`: **10.0.15**. No instalar/actualizar EF globalmente ni cambiar a EF 11.
 
 ```sh
 dotnet --version
 dotnet tool restore
 dotnet restore --locked-mode
-dotnet build --no-restore
+dotnet build --no-restore --warnaserror
 dotnet ef --version
 ```
 
-Esperado: SDK `10.0.404`, herramienta `10.0.15`, compilación sin errores. La restauración necesita acceso a NuGet la primera vez. `packages.lock.json` fija también las dependencias transitivas.
+Esperado: SDK 10.0.404, herramienta 10.0.15, restauración y compilación sin errores/advertencias. NuGet requiere conexión la primera vez; `packages.lock.json` fija también las dependencias transitivas.
 
-## Configuración local de SQL Server
+## Configurar SQL Server local y user-secrets
 
-La clave es **`ConnectionStrings:InnovationHub`**, dentro del almacén local de user-secrets del proyecto (`UserSecretsId` público: `innovation-hub-servidor-net-tarea3`). En Development, ASP.NET Core la carga automáticamente. Nunca agregar el valor a `appsettings.json`, `.env`, código, capturas, comandos documentados con credenciales reales ni archivos versionados.
+La clave es **`ConnectionStrings:InnovationHub`**. El proyecto tiene el identificador público `UserSecretsId=innovation-hub-servidor-net-tarea3`; ASP.NET Core carga el almacén local automáticamente en **Development**. El valor no pertenece a appsettings, código, .env ni Git.
 
-Plantilla para configurar en la terminal local; sustituir el marcador en privado:
+En el equipo de Daniel existe el contenedor Docker **sqlserver** con puerto `1433:1433`. Antes de conectar:
 
 ```sh
-dotnet user-secrets set "ConnectionStrings:InnovationHub" "<CADENA_LOCAL_PARA_UNA_BASE_EXCLUSIVA_DE_TAREA3>"
+docker start sqlserver
+docker ps --filter name=sqlserver
 ```
 
-No compartir la salida de `dotnet user-secrets list`. Usar una base exclusiva para esta tarea y otra para pruebas destructivas. Las migraciones y reconstrucción se documentarán al existir (T3B-02/03/05); en T3B-01 no se debe ejecutar `database drop` ni afirmar que existe un modelo SQL implementado.
+Esperado: el contenedor aparece en ejecución, con el puerto publicado. No crear otro ni borrar volúmenes para levantarlo. En otro equipo se necesita una instancia propia accesible; el nombre del contenedor no garantiza que exista.
 
-## Ejecutar el incremento actual
+Opción asistida (Python 3, terminal interactiva):
+
+```sh
+python3 scripts/configure-local-connection.py
+```
+
+Pide usuario (Enter usa `sa`) y contraseña oculta, y guarda la conexión a `127.0.0.1,1433`, base **InnovationHub_Tarea3_Dev**, en user-secrets mediante JSON por stdin. No deja la contraseña en argumentos ni historial de la terminal y no crea/modifica la base. `TrustServerCertificate=True` corresponde solo a esta configuración local de desarrollo.
+
+Si ya tienes una cadena configurada en privado, también puedes usar `dotnet user-secrets set "ConnectionStrings:InnovationHub" "<CADENA_LOCAL>"`. Debe apuntar a una base exclusiva de Tarea 3; no pegar su valor en documentación, capturas ni conversación. Para verla localmente existe `dotnet user-secrets list`, que muestra la contraseña: no compartir esa salida.
+
+Antes de ejecutar migraciones, comprobar el destino sin abrir la conexión:
+
+```sh
+dotnet run --no-build --launch-profile http -- --check-sql-target=true
+```
+
+Esperado: `Destino permitido: InnovationHub_Tarea3_Dev. No se ha ejecutado ninguna consulta.` También se permite `InnovationHub_Tarea3_Test` para pruebas. Cualquier otro destino se rechaza en este modo; no continuar con una migración si falla. Los comandos EF estándar no incorporan esa protección: comprobar siempre primero el destino.
+
+## Aplicar y verificar la primera migración
+
+Migración versionada: **InicialUsuariosIniciativas**. Crea el núcleo con FK, índices únicos, CHECK y HasData estático; no usa `EnsureCreated`. El arranque HTTP no aplica migraciones automáticamente.
+
+Dentro de servidor-net, después de confirmar el destino exclusivo:
+
+```sh
+dotnet ef database update InicialUsuariosIniciativas -- --environment Development
+dotnet ef migrations list -- --environment Development
+dotnet ef migrations has-pending-model-changes -- --environment Development
+```
+
+Esperado: actualización finaliza con `Done.`, la lista muestra la primera migración aplicada (sin Pending) y no hay cambios de modelo pendientes. Repetir `database update` no duplica la siembra. El prefijo de fecha del archivo de migración lo genera EF en UTC; el nombre lógico es el mostrado arriba.
+
+La base tiene nueve tablas de dominio más `__EFMigrationsHistory`:
+
+| Tabla | Filas HasData |
+| --- | ---: |
+| Users | 5 |
+| Categories | 8 |
+| Skills | 10 |
+| Initiatives | 8 |
+| UserSkills | 7 |
+| UserInterests | 7 |
+| InitiativeSkills | 16 |
+| InitiativeTags | 13 |
+| Sessions | 0 |
+
+Son **74 filas sintéticas** sin contraseñas ni sesiones. Las membresías/proyectos de las iniciativas aún no están implementados en este estado intermedio; se completan en 03 antes de los GET. La descripción de columnas, índices, CHECK, cardinalidades y borrado está en la [sección Modelo relacional](../docs/modelo-datos.md#modelo-relacional).
+
+Verificación ejecutable, sin iniciar HTTP:
+
+```sh
+dotnet run --no-build --launch-profile http -- --verify-core=true
+```
+
+Esperado: comprobaciones PASS de totales, competencias M:N, nivel/orden, **15 rechazos SQL esperados** (duplicados, FK, enums, tamaños, posiciones, borrado y fechas), límite UTF-16 y Cascade en listas propias. Finaliza con `OK T3B-02`. Cada escritura se revierte y se comprueba que no queda alterada la siembra. Ejecutar solo sobre una base exclusiva sin datos añadidos: los totales exactos corresponden a seed limpio.
+
+Esta prueba del núcleo no sustituye `sql/consultas.sql` de Francisco, la segunda migración, los dos GET ni la reconstrucción completa de T3B-05. La reconstrucción destructiva `database drop --force` se incorporará/verificará en 05, sobre base de prueba confirmada; no ejecutarla sobre bases existentes o compartidas.
+
+## Ejecutar el host HTTP actual
 
 ```sh
 dotnet run --no-build --launch-profile http
 ```
 
-Escucha en `http://127.0.0.1:5080`. Por ahora toda URL, incluida `/api/categories`, responde **404**: aún no hay endpoints. Iniciar el host no abre SQL Server ni aplica migraciones. Detener con Ctrl+C.
+Esperado: escucha en **http://127.0.0.1:5080**. Por ahora todas las rutas, incluidas `/api/categories` y `/swagger`, devuelven **404**, porque los dos endpoints se incorporan en 04. No se abre la conexión ni se aplica una migración por arrancar el host. Detener con Ctrl+C.
 
-## Organización y siguientes incrementos
+## Organización
 
-- `Program.cs`: host, configuración e inyección del contexto.
-- `Datos/InnovationHubContext.cs`: contexto; modelo y HasData pendientes.
-- `.config/dotnet-tools.json`: herramienta EF local con versión fija.
-- `Properties/launchSettings.json`: perfil de desarrollo, puerto y entorno; sin secretos.
-- `global.json`, `.csproj`, `packages.lock.json`: SDK y dependencias reproducibles.
-- Próximos directorios: `Modelos/`, `Migrations/`, `sql/`; archivo `requests.http`.
+- `Program.cs`: host, DI y modos de terminal; todavía sin GET.
+- `Modelos/`: nueve entidades; navegaciones y claves públicas.
+- `Datos/Configuraciones/`: límites, índices, CHECK, M:N y delete behaviors explícitos.
+- `Datos/CoreSeed.cs`: HasData fijo, independiente de JSON/rutas externas en ejecución.
+- `Datos/InnovationHubContext.cs`: DbSet y aplicación de configuración/seed.
+- `Migrations/`: migración inicial, metadatos y snapshot generados por EF.
+- `Verificacion/CoreVerification.cs`: pruebas SQL del núcleo y comprobación de destino.
+- `scripts/configure-local-connection.py`: configuración privada asistida de la conexión.
+- `.config/dotnet-tools.json`, `global.json`, csproj y lockfile: versiones reproducibles.
+- Próximos: segunda migración (03), `requests.http`/GET (04), `sql/consultas.sql` y experimentos de Francisco (06–07).
 
-Responsables, checklist, criterios y pruebas de cada commit: [`../docs/tarea3-parte-b.md`](../docs/tarea3-parte-b.md). Las instrucciones manuales específicas se entregan también en la conversación antes de pedir aprobación de cada incremento.
-
-Incorporación del compañero: [guía de Francisco — Tarea 3](../docs/handoff-francisco-tarea3.md).
+Plan/criterios/checklists: [Tarea 3, parte B](../docs/tarea3-parte-b.md). Incorporación del compañero: [guía de Francisco](../docs/handoff-francisco-tarea3.md). La fuente PDF ya está [extraída y cacheada](../docs/fuentes/consigna-tarea3.md); no reconvertirla para retomar.

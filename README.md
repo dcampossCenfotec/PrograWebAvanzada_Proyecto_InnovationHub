@@ -1641,8 +1641,8 @@ Innovation Hub integra desarrollo frontend, backend, persistencia documental, se
 
 El trabajo se incorpora progresivamente en [`servidor-net/`](servidor-net/README.md). El [plan por commits](docs/tarea3-parte-b.md) fija alcance, reparto Daniel/Francisco, criterios de evaluación, entregables y pruebas. La [consigna extraída](docs/fuentes/consigna-tarea3.md) conserva la referencia sin reconvertir el PDF.
 
-Estado inicial T3B-01: base .NET 10 compilable y configuración; modelo, migraciones y GET pendientes. Esta API parcial no sustituye Express ni requiere modificar el cliente React.
+Estado T3B-02: núcleo relacional de usuarios, sesiones, catálogos e iniciativas, con HasData, primera migración y verificador por terminal. Equipos/proyectos y GET pendientes. Esta API parcial no sustituye Express ni requiere modificar el cliente React.
 
-Dentro de `servidor-net`: `dotnet tool restore`, `dotnet restore --locked-mode` y `dotnet build --no-restore`. Se usa SDK **10.0.404** y EF Core **10.0.15**. La clave **`ConnectionStrings:InnovationHub`** se configura con user-secrets, nunca se versiona su valor. El README específico explica cómo. La reconstrucción de la base se incorporará y verificará al implementar las migraciones; no hay una entrega final etiquetada todavía.
+Dentro de `servidor-net`: `dotnet tool restore`, `dotnet restore --locked-mode` y `dotnet build --no-restore`. Se usa SDK **10.0.404** y EF Core **10.0.15**. La clave **`ConnectionStrings:InnovationHub`** se configura con user-secrets, nunca se versiona su valor. El README específico explica cómo. El README de .NET explica cómo comprobar el destino exclusivo, aplicar la primera migración y ejecutar `--verify-core=true`. La reconstrucción destructiva completa se verificará en T3B-05; todavía no hay etiqueta final de entrega.
 
 La [guía de Francisco para Tarea 3](docs/handoff-francisco-tarea3.md) reúne preparación, documentos, sus tres tareas, prompts y revisión de entrega. Es independiente del handoff histórico del Avance 2.

@@ -7,7 +7,7 @@ Fecha de planificación: 11 de noviembre de 2026. Entrega: **domingo 22 de novie
 - Parte B en este repositorio, bajo `servidor-net/`. Parte A es individual, en otro repositorio; no se implementa aquí ni se afirma completada.
 - .NET 10, EF Core 10, SQL Server, modelo completo del dominio, dos migraciones evolutivas reales, HasData, cuatro consultas SQL, dos GET públicos y una investigación de hasta dos páginas.
 - No migrar todo Express, conectar React a esta API parcial ni añadir autenticación/CRUD completo. La implementación final de esos módulos corresponde a la entrega final.
-- Daniel dispone del contenedor Docker `sqlserver`, con puerto configurado `1433:1433`; estaba detenido al verificarlo el 11 de noviembre. Credenciales y base exclusiva pendientes de configurar localmente. No instalar otro servidor ni modificar una base existente para adivinar la configuración.
+- Daniel dispone del contenedor Docker `sqlserver`, puerto `1433:1433`. Se inició el 12 de noviembre para las pruebas y la conexión quedó configurada privadamente en user-secrets hacia `InnovationHub_Tarea3_Dev`. No se versionaron credenciales ni se modificó otra base.
 - SDK `10.0.404`, paquetes EF y herramienta local `10.0.15`; dependencias transitivas en lockfile. Son versiones comprobadas al iniciar este trabajo. Ambos usarán las mismas versiones.
 - Secreto `ConnectionStrings:InnovationHub` en user-secrets. Base exclusiva para Tarea 3 y base de prueba independiente para reconstrucciones destructivas. Nunca publicar el valor ni volcar los secretos en evidencias.
 - GET elegidos: `/api/categories` y `/api/initiatives/{id}` para visitantes. El detalle público incluye competencias (M:N), propietario, etiquetas, conteo activo y capacidades de visitante; se cotejará con Express. Visibilidad privada/borrador/archivada no se expone. No se implementa una identidad simulada para permitir lecturas privadas.
@@ -73,13 +73,13 @@ Documentación: iniciar sección «Modelo relacional» en `docs/modelo-datos.md`
 
 Checklist y pruebas:
 
-- [ ] ER y entidades/configuración coinciden; nivel y visibilidad tienen CHECK; nombres/correos normalizados tienen unicidad.
-- [ ] Generar migración con EF, revisar Up/Down y SQL; comprobar ausencia de cadenas/secretos.
-- [ ] Aplicar **solo migración 1** a una base exclusiva vacía; verificar tablas, PK, FK e índices en SQL Server real.
-- [ ] Leer HasData: al menos 3 usuarios, 5 competencias, 3 iniciativas de distintas visibilidades y vínculos M:N presentes.
-- [ ] Intentar en transacciones revertidas: correo duplicado, FK inexistente, nivel/visibilidad inválidos y longitud fuera de límite; esperar rechazo sin alterar la siembra.
-- [ ] Comprobar orden estable de listas y que colecciones no se duplican en columnas de texto.
-- [ ] Restaurar/compilar, revisar diff y ausencia de cambios pendientes de modelo después de la migración.
+- [x] ER y entidades/configuración coinciden; nivel y visibilidad tienen CHECK; nombres/correos normalizados tienen unicidad.
+- [x] Generar migración con EF, revisar Up/Down y SQL; comprobar ausencia de cadenas/secretos.
+- [x] Aplicar **solo migración 1** a una base exclusiva vacía; verificar tablas, PK, FK e índices en SQL Server real.
+- [x] Leer HasData: al menos 3 usuarios, 5 competencias, 3 iniciativas de distintas visibilidades y vínculos M:N presentes.
+- [x] Intentar en transacciones revertidas: correo duplicado, FK inexistente, nivel/visibilidad inválidos y longitud fuera de límite; esperar rechazo sin alterar la siembra.
+- [x] Comprobar orden estable de listas y que colecciones no se duplican en columnas de texto.
+- [x] Restaurar/compilar, revisar diff y ausencia de cambios pendientes de modelo después de la migración.
 
 Entregable: primer esquema aplicable de forma independiente, documentado y comprobado. La siguiente migración añadirá funcionalidad real, no renombrados artificiales.
 
@@ -164,7 +164,7 @@ Entregable a Daniel: archivo SQL, resultado real verificable y commit propio de 
 
 Mensaje propuesto: `docs(efcore): comparar proyeccion relaciones y paginacion con evidencia`
 
-Cambios: implementar en `servidor-net/` un modo de experimento o herramienta ejecutable que no añada rutas públicas a la API. Para una misma consulta del proyecto comparar Select e Include, ejecutar y capturar SQL real; explicar AsNoTracking y medir/inspeccionar entidades rastreadas cuando corresponda. Mostrar UsuarioCompetencia con nivel (entidad intermedia con datos propios) y contrastar con asociación sin datos. Ejecutar Skip/Take con orden estable y desempate por ID; registrar SQL que pagina en SQL Server. Escribir `docs/investigacion-efcore.md`, máximo dos páginas, con SQL relevante, captura auténtica y fuentes oficiales EF Core por respuesta.
+Cambios: implementar en `servidor-net/` un modo de experimento o herramienta ejecutable que no añada rutas públicas a la API. Para una misma consulta del proyecto comparar Select e Include, ejecutar y capturar SQL real; explicar AsNoTracking y medir/inspeccionar entidades rastreadas cuando corresponda. Mostrar UserSkill con nivel (entidad intermedia con datos propios) y contrastar con asociación sin datos. Ejecutar Skip/Take con orden estable y desempate por ID; registrar SQL que pagina en SQL Server. Escribir `docs/investigacion-efcore.md`, máximo dos páginas, con SQL relevante, captura auténtica y fuentes oficiales EF Core por respuesta.
 
 README: comando del experimento, base utilizada y ubicación de captura sin secretos. No habilitar logging de datos sensibles. Evidencia voluminosa puede adjuntarse como log/captura enlazada; las tres respuestas deben caber en el documento sin esconderlas fuera para eludir el límite.
 
@@ -205,7 +205,7 @@ La [guía de Francisco para Tarea 3](handoff-francisco-tarea3.md) explica el ent
 
 ## Estado real y protocolo de continuación
 
-T3B-01 implementado y verificado automáticamente el 11 de noviembre de 2026, **pendiente de revisión de Daniel y del commit/push**. T3B-02–08 pendientes. No hay migraciones, tablas ni GET de .NET implementados. Las casillas se marcan solo tras comprobar cada resultado y se registran los bloqueos que existan. No se ha iniciado ni modificado SQL Server.
+T3B-01 registrado como `3731609`, sin push. **T3B-02 implementado y verificado contra SQL Server real el 12 de noviembre de 2026; pendiente de revisión de Daniel y commit/push**. T3B-03–08 pendientes. Existe una migración aplicada con el núcleo; todavía no hay GET, equipos/proyectos ni segunda migración. Las casillas se marcan solo tras comprobar cada resultado. Las notas de T3B-01 siguientes son evidencia histórica de ese incremento, no el estado operativo de T3B-02.
 
 Verificación ejecutada de T3B-01:
 
@@ -215,5 +215,15 @@ Verificación ejecutada de T3B-01:
 - Host temporal en Development, puerto 5080: inició sin configurar una conexión SQL en este incremento; GET `/api/categories` devolvió HTTP 404; host detenido limpiamente al terminar. No se ejecutaron migraciones ni comandos sobre bases de datos.
 - Enlaces locales revisados; `git diff --check` aprobado; bin/obj ignorados. No se añadieron valores de conexión ni secretos a los cambios.
 - Inspección limitada de Docker: contenedor `sqlserver` detenido, puerto configurado 1433:1433. No se consultaron variables de entorno/credenciales.
+
+Verificación ejecutada de T3B-02 (12 de noviembre, hora de Costa Rica):
+
+- Build estricto aprobado con 0 errores/advertencias. Durante el desarrollo el analizador señaló SQL interpolado y nombres de tupla inconsistentes en el verificador; se sustituyeron por conteos LINQ y tuplas uniformes, sin desactivar analizadores.
+- Primera migración generada por EF: `20261113021734_InicialUsuariosIniciativas` (prefijo UTC); Up/Down/snapshot revisados. Contiene 9 tablas, 9 FK, 37 CHECK y 16 índices secundarios, además de sus PK.
+- Destino exclusivo confirmado mediante `--check-sql-target=true`; EF creó `InnovationHub_Tarea3_Dev` y aplicó la migración con HasData: 74 filas sintéticas; sin contraseñas/sesiones sembradas. No se usó EnsureCreated ni se ejecutó drop.
+- `--verify-core=true`: seed exacto, competencias M:N, nivel/orden, 15 rechazos SQL esperados, título con carácter fuera del BMP y cascada limitada aprobados. Todas las escrituras revertidas; datos originales conservados.
+- `migrations has-pending-model-changes`: sin cambios pendientes. Actualización repetida sin migraciones pendientes; historial consultado. Restore locked y verificador repetidos después: siguen las 74 filas, sin duplicados ni cambios persistentes.
+- Arranque HTTP probado después de incorporar los modos de terminal: escucha en 5080 y `/api/categories` responde 404 esperado; host temporal detenido. Base SQL y contenedor quedan disponibles para la revisión local.
+- Se actualizó la sección Modelo relacional con ER, columnas, unicidad/CHECK, las nueve FK con borrado y mapa documental. Tablas restantes explícitamente pendientes de 03. Guía de Francisco y README enlazados al estado real.
 
 Antes de cada commit/push: resumir cambios, indicar pasos de prueba con **resultado esperado en cada paso** y distinguir pruebas ejecutadas de pendientes. El mensaje de commit se ajustará al cambio final. No continuar acumulando otros incrementos sin el punto de revisión acordado con Daniel. Para retomar: leer este documento, el README de servidor-net y el estado Git; usar la extracción cacheada, sin reconvertir el PDF.

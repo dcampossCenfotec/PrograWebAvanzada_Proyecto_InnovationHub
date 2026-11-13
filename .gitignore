@@ -14,3 +14,7 @@ coverage/
 .vs/
 *.user
 *.suo
+
+# Caché del asistente local de configuración (Python)
+__pycache__/
+*.pyc
