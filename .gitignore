@@ -6,3 +6,11 @@ coverage/
 .env.*
 !.env.example
 !.env.test.example
+
+# .NET: salidas generadas y archivos locales
+**/bin/
+**/obj/
+**/TestResults/
+.vs/
+*.user
+*.suo
