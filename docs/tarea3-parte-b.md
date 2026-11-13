@@ -87,19 +87,19 @@ Entregable: primer esquema aplicable de forma independiente, documentado y compr
 
 Mensaje propuesto: `feat(servidor-net): incorporar equipos y proyectos con segunda migracion`
 
-Cambios: solicitudes, membresías por periodo, eventos de membresía, proyectos y tecnologías. FK al dueño/solicitante/actor y competencia ofrecida; vínculo único proyecto–iniciativa; equipo del proyecto obtenido a través de su iniciativa, sin duplicar miembros. Índices filtrados para pendiente y miembro activo. CHECK de estados/fechas/estimado; no imponer cupo duro. HasData completa con ≥2 solicitudes y ≥1 proyecto, historial coherente y sin contraseñas. Crear migración **AgregarSolicitudesEquiposProyectos** después de implementar esta etapa.
+Cambios: solicitudes, membresías por periodo, eventos de membresía, proyectos y tecnologías. FK al solicitante/actor y competencia ofrecida; dueño del proyecto derivado de su iniciativa, cuyo OwnerId ya tiene FK a Users; vínculo único proyecto–iniciativa y equipo obtenido a través de esa iniciativa, sin duplicar dueño ni miembros. Índices filtrados para pendiente y miembro activo. CHECK de estados/fechas/estimado; no imponer cupo duro. HasData completa con ≥2 solicitudes y ≥1 proyecto, historial coherente y sin contraseñas. Crear migración **AgregarSolicitudesEquiposProyectos** después de implementar esta etapa.
 
 Documentación: completar ER con todas las tablas, PK/FK, tipos/nulabilidad/índices/CHECK por tabla; cardinalidades requeridas; tabla «Del documento a la tabla» para cada colección y array de Avance 2; comportamiento justificado de **cada FK**. Documentar que TTL de MongoDB no se convierte en TTL SQL y qué reglas entre filas requieren lógica transaccional futura en vez de CHECK imposibles. README: orden de migraciones y totales reales de siembra.
 
 Checklist y pruebas:
 
-- [ ] Aplicar segunda migración sobre la base de 02; los datos anteriores se conservan y aparece el nuevo esquema/seed.
-- [ ] En otra base vacía aplicar ambas desde cero y comparar esquema y siembra con la actualización incremental.
-- [ ] Detectar con SQL duplicados activos/pendientes y referencias huérfanas: cero resultados.
-- [ ] En transacciones revertidas probar duplicado pendiente, duplicado activo, solicitud histórica repetida permitida, estado inválido y FK/borrado protegido.
-- [ ] Iniciativa convertida y proyecto comparten el equipo; historial retirado no se cuenta como activo; estimado superado no provoca CHECK de cupo.
-- [ ] El diccionario y mapa cubren users, sessions, categories, skills, initiatives, requests, memberships, membershipEvents, projects y todos sus arrays.
-- [ ] `dotnet ef migrations list` presenta las dos etapas; `dotnet ef migrations has-pending-model-changes` no detecta diferencias; compila.
+- [x] Aplicar segunda migración sobre la base de 02; los datos anteriores se conservan y aparece el nuevo esquema/seed.
+- [x] En otra base vacía aplicar ambas desde cero y comparar esquema y siembra con la actualización incremental.
+- [x] Detectar con SQL duplicados activos/pendientes y referencias huérfanas: cero resultados.
+- [x] En transacciones revertidas probar duplicado pendiente, duplicado activo, solicitud histórica repetida permitida, estado inválido y FK/borrado protegido.
+- [x] Iniciativa convertida y proyecto comparten el equipo; historial retirado no se cuenta como activo; estimado superado no provoca CHECK de cupo.
+- [x] El diccionario y mapa cubren users, sessions, categories, skills, initiatives, requests, memberships, membershipEvents, projects y todos sus arrays.
+- [x] `dotnet ef migrations list` presenta las dos etapas; `dotnet ef migrations has-pending-model-changes` no detecta diferencias; compila.
 
 Entregable: esquema y datos definitivos de la parte B, con las dos migraciones reales en el historial.
 
@@ -205,7 +205,7 @@ La [guía de Francisco para Tarea 3](handoff-francisco-tarea3.md) explica el ent
 
 ## Estado real y protocolo de continuación
 
-T3B-01 registrado como `3731609`, sin push. **T3B-02 implementado y verificado contra SQL Server real el 12 de noviembre de 2026; pendiente de revisión de Daniel y commit/push**. T3B-03–08 pendientes. Existe una migración aplicada con el núcleo; todavía no hay GET, equipos/proyectos ni segunda migración. Las casillas se marcan solo tras comprobar cada resultado. Las notas de T3B-01 siguientes son evidencia histórica de ese incremento, no el estado operativo de T3B-02.
+T3B-01 registrado como `3731609` y T3B-02 como `08d6431`. **T3B-03 implementado y verificado contra SQL Server real el 12 de noviembre de 2026; pendiente de revisión de Daniel y commit/push**. T3B-04–08 pendientes. Las dos migraciones están aplicadas en Dev y Test; el modelo completo tiene 14 tablas y 107 filas de dominio. Todavía no hay GET ni autenticación/CRUD .NET. Las notas de 01/02 siguientes son evidencia histórica, no el estado actual. Las casillas se marcan solo tras comprobar cada resultado.
 
 Verificación ejecutada de T3B-01:
 
@@ -225,5 +225,17 @@ Verificación ejecutada de T3B-02 (12 de noviembre, hora de Costa Rica):
 - `migrations has-pending-model-changes`: sin cambios pendientes. Actualización repetida sin migraciones pendientes; historial consultado. Restore locked y verificador repetidos después: siguen las 74 filas, sin duplicados ni cambios persistentes.
 - Arranque HTTP probado después de incorporar los modos de terminal: escucha en 5080 y `/api/categories` responde 404 esperado; host temporal detenido. Base SQL y contenedor quedan disponibles para la revisión local.
 - Se actualizó la sección Modelo relacional con ER, columnas, unicidad/CHECK, las nueve FK con borrado y mapa documental. Tablas restantes explícitamente pendientes de 03. Guía de Francisco y README enlazados al estado real.
+
+Verificación ejecutada de T3B-03 (12 de noviembre, Costa Rica):
+
+- T3B-02 estaba registrado y el árbol limpio al empezar; la primera migración no se reescribió. Segunda migración real: `20261113035919_AgregarSolicitudesEquiposProyectos`, generada con EF. Delta: 5 tablas, 11 FK, 23 CHECK, 15 índices secundarios y 33 filas nuevas, sin AlterColumn/UpdateData/DeleteData del núcleo. Total: 14 tablas, 20 FK, 60 CHECK y 107 filas de dominio.
+- Build estricto aprobado con 0 errores/advertencias; modelo/snapshot sin cambios pendientes. Historial Dev confirma las dos migraciones aplicadas.
+- Se verificó el destino Dev y se aplicó la segunda migración sobre la primera. `--verify-domain=true` aprobó las pruebas anteriores y las nuevas: 15+17 rechazos esperados, sin duplicados activos/pendientes, referencias, seed, historial, fechas calendario y oferta de competencia del perfil que no es requisito de la iniciativa.
+- La primera corrida se detuvo porque el estado inválido violaba tanto CHECK de estado como CHECK de decisión; el verificador esperaba uno concreto. Se corrigió para reconocer ambos nombres válidos, sin debilitar/modificar las restricciones ni la migración. La repetición pasó y se conservaron los datos.
+- Se comprobó Test por nombre; EF **creó InnovationHub_Tarea3_Test desde cero** y aplicó ambas migraciones. No se borró ninguna base ni se cambió el secreto de Dev. Verificación completa de Test aprobada con 107 filas y rollback de pruebas.
+- Comparación de Dev incremental contra Test limpio aprobada: columnas/tipos/nullabilidad, FK/reglas de borrado, CHECK, índices, todos los valores de las 14 tablas e historial de migraciones idénticos. No se imprimieron secretos ni datos de usuario.
+- Caso positivo de reincorporación: nueva solicitud aceptada, nuevo periodo/ID y evento; equipo del proyecto pasa de 3 a 4 activos a través de la iniciativa, conserva converted y el periodo retirado/los dos eventos anteriores. Después del rollback quedan 5 solicitudes, 12 periodos y 13 eventos originales.
+- Documentación actualizada: ER/diccionario de 14 tablas, las 20 FK con borrado, mapa de colecciones/arrays/campos derivados y relaciones requeridas. Dueño/equipo del proyecto y referencias de iniciativa/persona del evento no se duplican.
+- Dev/Test y contenedor SQL quedan disponibles para revisión. La reconstrucción destructiva de 05, los GET de 04, SQL/investigación de Francisco y la etiqueta final siguen pendientes.
 
 Antes de cada commit/push: resumir cambios, indicar pasos de prueba con **resultado esperado en cada paso** y distinguir pruebas ejecutadas de pendientes. El mensaje de commit se ajustará al cambio final. No continuar acumulando otros incrementos sin el punto de revisión acordado con Daniel. Para retomar: leer este documento, el README de servidor-net y el estado Git; usar la extracción cacheada, sin reconvertir el PDF.

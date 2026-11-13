@@ -147,8 +147,8 @@ internal static class CoreVerification
         Console.WriteLine("OK T3B-02: siembra, M:N, 15 rechazos esperados, Unicode y borrado; cambios revertidos.");
     }
 
-    private static async Task RejectAsync(InnovationHubContext context, string label, string sql,
-        int[] numbers, string? constraint = null)
+    internal static async Task RejectAsync(InnovationHubContext context, string label, string sql,
+        int[] numbers, params string[] constraints)
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
         try
@@ -157,7 +157,7 @@ internal static class CoreVerification
             throw new InvalidOperationException($"No se rechazó: {label}.");
         }
         catch (SqlException error) when (numbers.Contains(error.Number)
-            && (constraint is null || error.Message.Contains(constraint, StringComparison.Ordinal)))
+            && (constraints.Length == 0 || constraints.Any(constraint => error.Message.Contains(constraint, StringComparison.Ordinal))))
         {
             Console.WriteLine($"PASS: {label} rechazado por SQL Server ({error.Number}).");
         }
@@ -167,7 +167,7 @@ internal static class CoreVerification
         }
     }
 
-    private static void Require(bool condition, string message)
+    internal static void Require(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);
     }

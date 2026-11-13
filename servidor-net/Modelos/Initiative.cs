@@ -22,4 +22,7 @@ public sealed class Initiative
     public ICollection<Skill> Skills { get; set; } = [];
     public ICollection<InitiativeSkill> InitiativeSkills { get; set; } = [];
     public ICollection<InitiativeTag> Tags { get; set; } = [];
+    public ICollection<ParticipationRequest> Requests { get; set; } = [];
+    public ICollection<Membership> Memberships { get; set; } = [];
+    public Project? Project { get; set; }
 }

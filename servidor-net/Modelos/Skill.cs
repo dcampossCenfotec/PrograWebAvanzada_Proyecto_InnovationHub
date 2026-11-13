@@ -10,4 +10,5 @@ public sealed class Skill
     public ICollection<UserSkill> UserSkills { get; set; } = [];
     public ICollection<Initiative> Initiatives { get; set; } = [];
     public ICollection<InitiativeSkill> InitiativeSkills { get; set; } = [];
+    public ICollection<ParticipationRequest> OfferedRequests { get; set; } = [];
 }

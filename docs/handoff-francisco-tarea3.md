@@ -4,7 +4,7 @@
 
 Esta guía es específica de **Tarea 3**. El anterior `handoff-francisco.md` trata del Avance 2: sirve como historia, no como lista de tareas pendientes de esta entrega.
 
-**Estado actualizado (12 de noviembre de 2026):** T3B-01 registrado como `3731609` (sin push); Daniel implementó y probó T3B-02 con el núcleo relacional y una migración aplicada en SQL Server real, pendiente de su revisión/commit. El modelo completo, segunda migración y GET todavía no están entregados. Las tareas de implementación de Francisco empiezan después de recibir y verificar T3B-05. No ejecutar comandos de migraciones inexistentes ni presentar los resultados previstos como evidencia obtenida.
+**Estado actualizado (12 de noviembre de 2026):** T3B-01 registrado como `3731609` y T3B-02 como `08d6431`. Daniel implementó y probó T3B-03: modelo completo de 14 tablas/107 filas con dos migraciones aplicadas en Dev y en Test creado desde cero; pendientes su revisión y commit de 03. Los GET y el handoff T3B-05 todavía no están entregados. Las tareas de implementación de Francisco empiezan después de recibir y verificar T3B-05. No ejecutar comandos de migraciones inexistentes ni presentar los resultados previstos como evidencia obtenida.
 
 La consigna pide un modelo SQL del dominio completo, dos migraciones reales, HasData, cuatro consultas SQL, dos GET de lectura e investigación. No pide terminar toda la API .NET ni migrar React. La fecha es **22 de noviembre, 23:55**. Parte A es individual en otro repositorio: cada uno la termina y etiqueta por su cuenta.
 
@@ -20,7 +20,7 @@ Daniel implementa T3B-01 a 05. Tú eres responsable de **T3B-06, 07 y 08**, con 
 | `docs/modelo-datos.md` | Modelo MongoDB y futura sección «Modelo relacional»: tablas, PK/FK, restricciones y borrados |
 | `docs/api-contract.md` | JSON, campos y reglas de las rutas del Avance 2 |
 | `servidor/src/dto/initiative.dto.js` y `services/initiative-access.js` | Referencia ejecutable de DTO y permisos; cuidado con la identidad por defecto del DTO |
-| `servidor-net/Modelos`, `Datos`, `Migrations` | Entidades, configuración/seed y evolución SQL; núcleo implementado en 02; resto en 03 |
+| `servidor-net/Modelos`, `Datos`, `Migrations` | Entidades, configuración/seed y evolución SQL; modelo completo implementado en 02–03 |
 | `servidor-net/requests.http` | Pruebas de los dos GET; se incorpora en 04 |
 | `servidor-net/sql/consultas.sql` | Tu entrega de 06, todavía por escribir |
 | `docs/investigacion-efcore.md` | Tu entrega de 07, todavía por escribir |
@@ -50,6 +50,19 @@ Esperado: restauración y compilación sin errores; herramienta EF **10.0.15**. 
 7. Si falla restauración, migración o GET, entrega a Daniel el comando, mensaje de error **redactado sin secretos** y estado de la base. No cambies nombres de tablas o resultados esperados para ocultar el fallo.
 
 Si necesitas levantar el proyecto JavaScript para comparar, sigue su README; en cualquier instalación npm usa `npm ci --cache /private/tmp/innovation-hub-npm-cache`. No es necesario modificar React para tus experimentos.
+
+## Esquema recibido: decisiones que debes respetar
+
+- `ParticipationRequests` conserva intentos y permite una sola pending por pareja mediante índice filtrado.
+- `Memberships` representa periodos: otra incorporación tiene otro ID. Solo una active por pareja; FK compuesta de SourceRequestId/InitiativeId/UserId asegura el origen correcto y una solicitud origina como máximo un periodo.
+- `MembershipEvents` guarda MembershipId, ActorId y RequestId opcional; iniciativa/persona se obtienen del periodo. No existen columnas InitiativeId/UserId duplicadas en el evento.
+- `Projects` tiene SourceInitiativeId único; **no tiene OwnerId ni una tabla de equipo copiada**. Dueño: Projects → Initiatives → Users. Equipo: Projects → Initiatives → Memberships → Users; contar solo State='active'.
+- `ProjectTechnologies` conserva orden por Position y clave normalizada única. StartDate es date obligatorio, EstimatedEndDate nullable y no anterior al inicio, como Express.
+- Las cuatro consultas SQL y el experimento de investigación siguen siendo tu responsabilidad: no están implementados por el verificador de Daniel.
+
+Siembra actual: 5 usuarios, 8 categorías, 10 competencias, 8 iniciativas, 7 UserSkills, 7 UserInterests, 16 InitiativeSkills, 13 InitiativeTags, 0 sesiones, **5 solicitudes, 12 periodos, 13 eventos, 1 proyecto y 2 tecnologías**. Total107; miembros activos11/retirados1. El proyecto de Orientación laboral usa tres activos y estimado2 (espacios0); los retirados no se cuentan como actuales.
+
+Antes de tus consultas, ejecuta `dotnet run --no-build --launch-profile http -- --verify-domain=true`; esperado: `OK T3B-03` tras 32 rechazos esperados y casos positivos con rollback. `--compare-databases=true` compara Dev incremental con Test de siembra limpia sin imprimir valores. Ambos destinos se configuraron en el equipo de Daniel, **no se transfieren tus secretos por Git**. `--use-test-database=true` apunta solo a InnovationHub_Tarea3_Test y no cambia el secreto; consulta el README antes de crearla en tu equipo.
 
 ## Tu primer commit: T3B-06, consultas SQL
 

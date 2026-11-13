@@ -619,6 +619,625 @@ namespace InnovationHub.ServidorNet.Migrations
                         });
                 });
 
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.Membership", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("InitiativeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("JoinedAt")
+                        .HasPrecision(3)
+                        .HasColumnType("datetimeoffset(3)");
+
+                    b.Property<DateTimeOffset?>("RetiredAt")
+                        .HasPrecision(3)
+                        .HasColumnType("datetimeoffset(3)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<Guid?>("SourceRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InitiativeId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Memberships_Active")
+                        .HasFilter("[State] = N'active'");
+
+                    b.HasIndex("SourceRequestId", "InitiativeId", "UserId")
+                        .IsUnique()
+                        .HasFilter("[SourceRequestId] IS NOT NULL");
+
+                    b.HasIndex("UserId", "State", "Id");
+
+                    b.HasIndex("InitiativeId", "State", "JoinedAt", "Id");
+
+                    b.ToTable("Memberships", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Memberships_Dates", "DATEPART(TZOFFSET, [JoinedAt]) = 0 AND ([RetiredAt] IS NULL OR ([RetiredAt] >= [JoinedAt] AND DATEPART(TZOFFSET, [RetiredAt]) = 0))");
+
+                            t.HasCheckConstraint("CK_Memberships_Retirement", "([State] = 'active' AND [RetiredAt] IS NULL) OR ([State] = 'retired' AND [RetiredAt] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_Memberships_Role", "DATALENGTH(LTRIM(RTRIM([Role])))/2 BETWEEN 2 AND 150");
+
+                            t.HasCheckConstraint("CK_Memberships_State", "[State] IN ('active','retired')");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000001"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000001"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 20, 14, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Propietaria",
+                            State = "active",
+                            UserId = new Guid("11111111-1111-4111-8111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000002"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000002"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 20, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Propietaria",
+                            State = "active",
+                            UserId = new Guid("11111111-1111-4111-8111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000003"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000003"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 20, 16, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Propietaria",
+                            State = "active",
+                            UserId = new Guid("11111111-1111-4111-8111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000004"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000004"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 21, 14, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Propietaria",
+                            State = "active",
+                            UserId = new Guid("11111111-1111-4111-8111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000005"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000005"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 21, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Propietaria",
+                            State = "active",
+                            UserId = new Guid("11111111-1111-4111-8111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000006"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000006"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 22, 14, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Propietaria",
+                            State = "active",
+                            UserId = new Guid("11111111-1111-4111-8111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000007"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000007"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 22, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Propietaria",
+                            State = "active",
+                            UserId = new Guid("11111111-1111-4111-8111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000008"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000008"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 23, 14, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Propietaria",
+                            State = "active",
+                            UserId = new Guid("11111111-1111-4111-8111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000009"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000002"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 22, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Coordinación logística",
+                            SourceRequestId = new Guid("20000000-0000-4000-8000-000000000001"),
+                            State = "active",
+                            UserId = new Guid("55555555-5555-4555-8555-555555555555")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000010"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000008"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 24, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Coordinación de talleres",
+                            State = "active",
+                            UserId = new Guid("55555555-5555-4555-8555-555555555555")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000011"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000008"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 11, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Mentoría de entrevistas",
+                            SourceRequestId = new Guid("20000000-0000-4000-8000-000000000005"),
+                            State = "active",
+                            UserId = new Guid("33333333-3333-4333-8333-333333333333")
+                        },
+                        new
+                        {
+                            Id = new Guid("30000000-0000-4000-8000-000000000012"),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000008"),
+                            JoinedAt = new DateTimeOffset(new DateTime(2026, 10, 24, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            RetiredAt = new DateTimeOffset(new DateTime(2026, 10, 27, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Role = "Investigación laboral",
+                            State = "retired",
+                            UserId = new Guid("22222222-2222-4222-8222-222222222222")
+                        });
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.MembershipEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("MembershipId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasPrecision(3)
+                        .HasColumnType("datetimeoffset(3)");
+
+                    b.Property<Guid?>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("MembershipId", "Type")
+                        .IsUnique();
+
+                    b.HasIndex("ActorId", "OccurredAt", "Id");
+
+                    b.HasIndex("MembershipId", "OccurredAt", "Id");
+
+                    b.ToTable("MembershipEvents", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MembershipEvents_Type", "[Type] IN ('joined','retired')");
+
+                            t.HasCheckConstraint("CK_MembershipEvents_Utc", "DATEPART(TZOFFSET, [OccurredAt]) = 0");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000001"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000001"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 20, 14, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000002"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000002"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 20, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000003"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000003"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 20, 16, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000004"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000004"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 21, 14, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000005"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000005"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 21, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000006"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000006"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 22, 14, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000007"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000007"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 22, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000008"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000008"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 23, 14, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000009"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000009"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 22, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            RequestId = new Guid("20000000-0000-4000-8000-000000000001"),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000010"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000010"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 24, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000011"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000011"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 26, 11, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            RequestId = new Guid("20000000-0000-4000-8000-000000000005"),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000012"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000012"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 24, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "joined"
+                        },
+                        new
+                        {
+                            Id = new Guid("40000000-0000-4000-8000-000000000013"),
+                            ActorId = new Guid("11111111-1111-4111-8111-111111111111"),
+                            MembershipId = new Guid("30000000-0000-4000-8000-000000000012"),
+                            OccurredAt = new DateTimeOffset(new DateTime(2026, 10, 27, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Type = "retired"
+                        });
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.ParticipationRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ApplicantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Availability")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasPrecision(3)
+                        .HasColumnType("datetimeoffset(3)");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasPrecision(3)
+                        .HasColumnType("datetimeoffset(3)");
+
+                    b.Property<string>("DecisionComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("InitiativeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("OfferedSkillId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasPrecision(3)
+                        .HasColumnType("datetimeoffset(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("Id", "InitiativeId", "ApplicantId")
+                        .HasName("AK_Requests_Id_Initiative_Applicant");
+
+                    b.HasIndex("InitiativeId", "ApplicantId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Requests_Pending")
+                        .HasFilter("[State] = N'pending'");
+
+                    b.HasIndex("ApplicantId", "CreatedAt", "Id");
+
+                    b.HasIndex("OfferedSkillId", "State", "Id");
+
+                    b.HasIndex("InitiativeId", "State", "CreatedAt", "Id");
+
+                    b.ToTable("ParticipationRequests", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Requests_Availability", "[Availability] IN ('low','medium','high')");
+
+                            t.HasCheckConstraint("CK_Requests_Dates", "[UpdatedAt] >= [CreatedAt] AND DATEPART(TZOFFSET, [CreatedAt]) = 0 AND DATEPART(TZOFFSET, [UpdatedAt]) = 0 AND ([DecidedAt] IS NULL OR ([DecidedAt] BETWEEN [CreatedAt] AND [UpdatedAt] AND DATEPART(TZOFFSET, [DecidedAt]) = 0))");
+
+                            t.HasCheckConstraint("CK_Requests_Decision", "([State] IN ('accepted','rejected') AND [DecidedAt] IS NOT NULL) OR ([State] IN ('pending','cancelled') AND [DecidedAt] IS NULL)");
+
+                            t.HasCheckConstraint("CK_Requests_DecisionComment", "[DecisionComment] IS NULL OR DATALENGTH(LTRIM(RTRIM([DecisionComment])))/2 BETWEEN 1 AND 500");
+
+                            t.HasCheckConstraint("CK_Requests_Message", "DATALENGTH(LTRIM(RTRIM([Message])))/2 BETWEEN 15 AND 500");
+
+                            t.HasCheckConstraint("CK_Requests_Role", "DATALENGTH(LTRIM(RTRIM([Role])))/2 BETWEEN 3 AND 100");
+
+                            t.HasCheckConstraint("CK_Requests_State", "[State] IN ('pending','accepted','rejected','cancelled')");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("20000000-0000-4000-8000-000000000001"),
+                            ApplicantId = new Guid("55555555-5555-4555-8555-555555555555"),
+                            Availability = "high",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 21, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            DecidedAt = new DateTimeOffset(new DateTime(2026, 10, 22, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            DecisionComment = "Bienvenida al equipo de accesibilidad.",
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000002"),
+                            Message = "Puedo coordinar los levantamientos y organizar las visitas semanales.",
+                            OfferedSkillId = new Guid("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa5"),
+                            Role = "Coordinación logística",
+                            State = "accepted",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 10, 22, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-4000-8000-000000000002"),
+                            ApplicantId = new Guid("22222222-2222-4222-8222-222222222222"),
+                            Availability = "medium",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 22, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000005"),
+                            Message = "Puedo apoyar la comunicación con organizaciones y posibles donantes.",
+                            OfferedSkillId = new Guid("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4"),
+                            Role = "Comunicación con donantes",
+                            State = "cancelled",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 10, 23, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-4000-8000-000000000003"),
+                            ApplicantId = new Guid("22222222-2222-4222-8222-222222222222"),
+                            Availability = "medium",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 23, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            DecidedAt = new DateTimeOffset(new DateTime(2026, 10, 24, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            DecisionComment = "El primer ciclo ya tenía cubierta esta función.",
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000004"),
+                            Message = "Quiero preparar materiales para las sesiones de mentoría tecnológica.",
+                            OfferedSkillId = new Guid("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4"),
+                            Role = "Preparación de materiales",
+                            State = "rejected",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 10, 24, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-4000-8000-000000000004"),
+                            ApplicantId = new Guid("22222222-2222-4222-8222-222222222222"),
+                            Availability = "medium",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000004"),
+                            Message = "Ahora puedo apoyar la investigación y seguimiento de cada mentoría.",
+                            OfferedSkillId = new Guid("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3"),
+                            Role = "Seguimiento de mentorías",
+                            State = "pending",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-4000-8000-000000000005"),
+                            ApplicantId = new Guid("33333333-3333-4333-8333-333333333333"),
+                            Availability = "low",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 25, 11, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            DecidedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 11, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            InitiativeId = new Guid("10000000-0000-4000-8000-000000000008"),
+                            Message = "Puedo revisar materiales y realizar entrevistas de práctica con participantes.",
+                            OfferedSkillId = new Guid("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3"),
+                            Role = "Mentoría de entrevistas",
+                            State = "accepted",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 11, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.Project", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasPrecision(3)
+                        .HasColumnType("datetimeoffset(3)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateOnly?>("EstimatedEndDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Objective")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RepositoryUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<Guid>("SourceInitiativeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("nvarchar(14)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasPrecision(3)
+                        .HasColumnType("datetimeoffset(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceInitiativeId")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedAt", "Id");
+
+                    b.ToTable("Projects", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Projects_Calendar", "[EstimatedEndDate] IS NULL OR [EstimatedEndDate] >= [StartDate]");
+
+                            t.HasCheckConstraint("CK_Projects_Dates", "[UpdatedAt] >= [CreatedAt] AND DATEPART(TZOFFSET, [CreatedAt]) = 0 AND DATEPART(TZOFFSET, [UpdatedAt]) = 0");
+
+                            t.HasCheckConstraint("CK_Projects_Description", "DATALENGTH(LTRIM(RTRIM([Description])))/2 BETWEEN 20 AND 2000");
+
+                            t.HasCheckConstraint("CK_Projects_Name", "DATALENGTH(LTRIM(RTRIM([Name])))/2 BETWEEN 5 AND 120");
+
+                            t.HasCheckConstraint("CK_Projects_Objective", "DATALENGTH(LTRIM(RTRIM([Objective])))/2 BETWEEN 10 AND 500");
+
+                            t.HasCheckConstraint("CK_Projects_RepositoryUrl", "[RepositoryUrl] IS NULL OR DATALENGTH(LTRIM(RTRIM([RepositoryUrl])))/2 BETWEEN 1 AND 2048");
+
+                            t.HasCheckConstraint("CK_Projects_State", "[State] IN ('planning','in_development','paused','finished','archived')");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("50000000-0000-4000-8000-000000000001"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 25, 16, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Implementación de talleres y recursos para preparar postulaciones y entrevistas.",
+                            EstimatedEndDate = new DateOnly(2027, 2, 28),
+                            Name = "Programa de orientación laboral",
+                            Objective = "Acompañar a participantes durante la preparación de su búsqueda laboral.",
+                            SourceInitiativeId = new Guid("10000000-0000-4000-8000-000000000008"),
+                            StartDate = new DateOnly(2026, 11, 1),
+                            State = "planning",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 10, 25, 16, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.ProjectTechnology", b =>
+                {
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NormalizedValue")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("ProjectId", "Position");
+
+                    b.HasIndex("ProjectId", "NormalizedValue")
+                        .IsUnique();
+
+                    b.ToTable("ProjectTechnologies", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ProjectTechnologies_NormalizedValue", "DATALENGTH(LTRIM(RTRIM([NormalizedValue])))/2 BETWEEN 1 AND 50");
+
+                            t.HasCheckConstraint("CK_ProjectTechnologies_Position", "[Position] BETWEEN 0 AND 19");
+
+                            t.HasCheckConstraint("CK_ProjectTechnologies_Value", "DATALENGTH(LTRIM(RTRIM([Value])))/2 BETWEEN 1 AND 50");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            ProjectId = new Guid("50000000-0000-4000-8000-000000000001"),
+                            Position = 0,
+                            NormalizedValue = "react",
+                            Value = "React"
+                        },
+                        new
+                        {
+                            ProjectId = new Guid("50000000-0000-4000-8000-000000000001"),
+                            Position = 1,
+                            NormalizedValue = "node.js",
+                            Value = "Node.js"
+                        });
+                });
+
             modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.Session", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1155,6 +1774,108 @@ namespace InnovationHub.ServidorNet.Migrations
                     b.Navigation("Initiative");
                 });
 
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.Membership", b =>
+                {
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.Initiative", "Initiative")
+                        .WithMany("Memberships")
+                        .HasForeignKey("InitiativeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.User", "User")
+                        .WithMany("Memberships")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.ParticipationRequest", "SourceRequest")
+                        .WithOne("Membership")
+                        .HasForeignKey("InnovationHub.ServidorNet.Modelos.Membership", "SourceRequestId", "InitiativeId", "UserId")
+                        .HasPrincipalKey("InnovationHub.ServidorNet.Modelos.ParticipationRequest", "Id", "InitiativeId", "ApplicantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Initiative");
+
+                    b.Navigation("SourceRequest");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.MembershipEvent", b =>
+                {
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.User", "Actor")
+                        .WithMany("ActedEvents")
+                        .HasForeignKey("ActorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.Membership", "Membership")
+                        .WithMany("Events")
+                        .HasForeignKey("MembershipId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.ParticipationRequest", "Request")
+                        .WithMany("Events")
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Actor");
+
+                    b.Navigation("Membership");
+
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.ParticipationRequest", b =>
+                {
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.User", "Applicant")
+                        .WithMany("Requests")
+                        .HasForeignKey("ApplicantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.Initiative", "Initiative")
+                        .WithMany("Requests")
+                        .HasForeignKey("InitiativeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.Skill", "OfferedSkill")
+                        .WithMany("OfferedRequests")
+                        .HasForeignKey("OfferedSkillId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Applicant");
+
+                    b.Navigation("Initiative");
+
+                    b.Navigation("OfferedSkill");
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.Project", b =>
+                {
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.Initiative", "SourceInitiative")
+                        .WithOne("Project")
+                        .HasForeignKey("InnovationHub.ServidorNet.Modelos.Project", "SourceInitiativeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SourceInitiative");
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.ProjectTechnology", b =>
+                {
+                    b.HasOne("InnovationHub.ServidorNet.Modelos.Project", "Project")
+                        .WithMany("Technologies")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.Session", b =>
                 {
                     b.HasOne("InnovationHub.ServidorNet.Modelos.User", "User")
@@ -1205,21 +1926,52 @@ namespace InnovationHub.ServidorNet.Migrations
                 {
                     b.Navigation("InitiativeSkills");
 
+                    b.Navigation("Memberships");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Requests");
+
                     b.Navigation("Tags");
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.Membership", b =>
+                {
+                    b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.ParticipationRequest", b =>
+                {
+                    b.Navigation("Events");
+
+                    b.Navigation("Membership");
+                });
+
+            modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.Project", b =>
+                {
+                    b.Navigation("Technologies");
                 });
 
             modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.Skill", b =>
                 {
                     b.Navigation("InitiativeSkills");
 
+                    b.Navigation("OfferedRequests");
+
                     b.Navigation("UserSkills");
                 });
 
             modelBuilder.Entity("InnovationHub.ServidorNet.Modelos.User", b =>
                 {
+                    b.Navigation("ActedEvents");
+
                     b.Navigation("Interests");
 
+                    b.Navigation("Memberships");
+
                     b.Navigation("OwnedInitiatives");
+
+                    b.Navigation("Requests");
 
                     b.Navigation("Sessions");
 

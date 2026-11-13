@@ -1,6 +1,6 @@
 # Innovation Hub — servidor .NET de Tarea 3, parte B
 
-Estado: **T3B-02, núcleo relacional y primera migración**. Implementa usuarios, sesiones, catálogos e iniciativas con sus relaciones y HasData. Solicitudes/equipos/proyectos se incorporarán en T3B-03 y los dos GET en T3B-04. Esta API parcial no sustituye Express ni cambia el cliente React. No incluye Swagger porque la consigna no lo exige.
+Estado: **T3B-03, modelo relacional completo y dos migraciones**. Implementa usuarios, sesiones, catálogos, iniciativas, solicitudes, membresías, eventos y proyectos con sus relaciones y HasData. Los dos GET se incorporarán en T3B-04. Esta API parcial no sustituye Express ni cambia el cliente React. No incluye Swagger porque la consigna no lo exige.
 
 ## Versiones y compilación
 
@@ -47,21 +47,21 @@ dotnet run --no-build --launch-profile http -- --check-sql-target=true
 
 Esperado: `Destino permitido: InnovationHub_Tarea3_Dev. No se ha ejecutado ninguna consulta.` También se permite `InnovationHub_Tarea3_Test` para pruebas. Cualquier otro destino se rechaza en este modo; no continuar con una migración si falla. Los comandos EF estándar no incorporan esa protección: comprobar siempre primero el destino.
 
-## Aplicar y verificar la primera migración
+## Aplicar y verificar las dos migraciones
 
-Migración versionada: **InicialUsuariosIniciativas**. Crea el núcleo con FK, índices únicos, CHECK y HasData estático; no usa `EnsureCreated`. El arranque HTTP no aplica migraciones automáticamente.
+Migraciones versionadas: **InicialUsuariosIniciativas** (núcleo) y **AgregarSolicitudesEquiposProyectos** (solicitudes, equipos, historia y proyectos). Añaden FK, índices únicos/filtrados, CHECK y HasData estático, sin `EnsureCreated`. La segunda agrega cinco tablas y no modifica ni elimina las filas del núcleo. El arranque HTTP no aplica migraciones automáticamente.
 
 Dentro de servidor-net, después de confirmar el destino exclusivo:
 
 ```sh
-dotnet ef database update InicialUsuariosIniciativas -- --environment Development
+dotnet ef database update -- --environment Development
 dotnet ef migrations list -- --environment Development
 dotnet ef migrations has-pending-model-changes -- --environment Development
 ```
 
-Esperado: actualización finaliza con `Done.`, la lista muestra la primera migración aplicada (sin Pending) y no hay cambios de modelo pendientes. Repetir `database update` no duplica la siembra. El prefijo de fecha del archivo de migración lo genera EF en UTC; el nombre lógico es el mostrado arriba.
+Esperado: actualización finaliza con `Done.`, la lista muestra las dos migraciones aplicadas (sin Pending) y no hay cambios de modelo pendientes. Repetir `database update` no duplica la siembra. El prefijo de fecha del archivo de migración lo genera EF en UTC; el nombre lógico es el mostrado arriba.
 
-La base tiene nueve tablas de dominio más `__EFMigrationsHistory`:
+La base tiene **14 tablas de dominio**, más `__EFMigrationsHistory`:
 
 | Tabla | Filas HasData |
 | --- | ---: |
@@ -74,10 +74,15 @@ La base tiene nueve tablas de dominio más `__EFMigrationsHistory`:
 | InitiativeSkills | 16 |
 | InitiativeTags | 13 |
 | Sessions | 0 |
+| ParticipationRequests | 5 |
+| Memberships | 12 |
+| MembershipEvents | 13 |
+| Projects | 1 |
+| ProjectTechnologies | 2 |
 
-Son **74 filas sintéticas** sin contraseñas ni sesiones. Las membresías/proyectos de las iniciativas aún no están implementados en este estado intermedio; se completan en 03 antes de los GET. La descripción de columnas, índices, CHECK, cardinalidades y borrado está en la [sección Modelo relacional](../docs/modelo-datos.md#modelo-relacional).
+Son **107 filas sintéticas** sin contraseñas ni sesiones. El núcleo aporta 74 y la segunda etapa 33. Hay 11 membresías activas y una retirada; el proyecto conserva tres activos, un periodo retirado y estimado 2 (espacios calculados cero). El equipo y dueño del proyecto se obtienen de su iniciativa, sin duplicarlos. La descripción de columnas, índices, CHECK, cardinalidades y borrado está en la [sección Modelo relacional](../docs/modelo-datos.md#modelo-relacional).
 
-Verificación ejecutable, sin iniciar HTTP:
+Verificación del núcleo, sin iniciar HTTP:
 
 ```sh
 dotnet run --no-build --launch-profile http -- --verify-core=true
@@ -85,7 +90,30 @@ dotnet run --no-build --launch-profile http -- --verify-core=true
 
 Esperado: comprobaciones PASS de totales, competencias M:N, nivel/orden, **15 rechazos SQL esperados** (duplicados, FK, enums, tamaños, posiciones, borrado y fechas), límite UTF-16 y Cascade en listas propias. Finaliza con `OK T3B-02`. Cada escritura se revierte y se comprueba que no queda alterada la siembra. Ejecutar solo sobre una base exclusiva sin datos añadidos: los totales exactos corresponden a seed limpio.
 
-Esta prueba del núcleo no sustituye `sql/consultas.sql` de Francisco, la segunda migración, los dos GET ni la reconstrucción completa de T3B-05. La reconstrucción destructiva `database drop --force` se incorporará/verificará en 05, sobre base de prueba confirmada; no ejecutarla sobre bases existentes o compartidas.
+Esta prueba del núcleo sigue cubriendo las nueve tablas originales (74 filas). Para el modelo completo, ejecutar además:
+
+```sh
+dotnet run --no-build --launch-profile http -- --verify-domain=true
+```
+
+Esperado: pasa primero el núcleo y después el dominio completo (107 filas), **17 rechazos adicionales**, intentos históricos permitidos y reincorporación con otro ID tras conversión. Finaliza con `OK T3B-03`. Cada escritura se revierte. La prueba demuestra el modelo SQL; no significa que existan ya endpoints .NET para aceptar solicitudes o convertir proyectos.
+
+Estas pruebas no sustituyen `sql/consultas.sql` de Francisco, los dos GET ni la reconstrucción completa de T3B-05. La reconstrucción destructiva `database drop --force` se incorporará/verificará en 05, sobre base de prueba confirmada; no ejecutarla sobre bases existentes o compartidas.
+
+## Comparar actualización incremental y construcción desde cero
+
+La base Dev contiene la evolución desde el núcleo. Para aplicar ambas migraciones a una base de prueba independiente sin cambiar el secreto, se permite el argumento **`--use-test-database=true`** solo en Development. Cambia únicamente el nombre a **InnovationHub_Tarea3_Test**, conservando el servidor/autenticación privados. Confirmar el destino antes de migrar:
+
+```sh
+dotnet run --no-build --launch-profile http -- --check-sql-target=true --use-test-database=true
+dotnet ef database update -- --environment Development --use-test-database=true
+dotnet run --no-build --launch-profile http -- --verify-domain=true --use-test-database=true
+dotnet run --no-build --launch-profile http -- --compare-databases=true
+```
+
+Esperado por paso: destino Test permitido; migraciones aplicadas y siembra cargada; `OK T3B-03` sobre Test; comparación con columnas/tipos/nullabilidad, FK/borrado, CHECK, índices, **todos los valores de las 14 tablas y el historial** iguales entre Dev/Test. La comparación es de lectura y no imprime datos ni cadenas. Debe ejecutarse desde la configuración Dev, sin el argumento use-test-database.
+
+Si Test ya existe, update solo aplica lo pendiente: eso **no demuestra por sí solo** que se creó desde cero. No borrar su contenido para forzar una evidencia; comprobar primero su uso. Para comparar la siembra, ambas bases deben estar sin datos añadidos por el usuario. La prueba de reconstrucción destructiva queda para T3B-05 en una base de prueba confirmada.
 
 ## Ejecutar el host HTTP actual
 
@@ -100,12 +128,12 @@ Esperado: escucha en **http://127.0.0.1:5080**. Por ahora todas las rutas, inclu
 - `Program.cs`: host, DI y modos de terminal; todavía sin GET.
 - `Modelos/`: nueve entidades; navegaciones y claves públicas.
 - `Datos/Configuraciones/`: límites, índices, CHECK, M:N y delete behaviors explícitos.
-- `Datos/CoreSeed.cs`: HasData fijo, independiente de JSON/rutas externas en ejecución.
+- `Datos/CoreSeed.cs` y `DomainSeed.cs`: HasData fijo, independiente de JSON/rutas externas en ejecución.
 - `Datos/InnovationHubContext.cs`: DbSet y aplicación de configuración/seed.
-- `Migrations/`: migración inicial, metadatos y snapshot generados por EF.
-- `Verificacion/CoreVerification.cs`: pruebas SQL del núcleo y comprobación de destino.
+- `Migrations/`: dos migraciones evolutivas reales, metadatos y snapshot generados por EF.
+- `Verificacion/`: pruebas SQL del núcleo/dominio, comprobación de destino y comparación incremental/limpia.
 - `scripts/configure-local-connection.py`: configuración privada asistida de la conexión.
 - `.config/dotnet-tools.json`, `global.json`, csproj y lockfile: versiones reproducibles.
-- Próximos: segunda migración (03), `requests.http`/GET (04), `sql/consultas.sql` y experimentos de Francisco (06–07).
+- Próximos: `requests.http`/GET (04), `sql/consultas.sql` y experimentos de Francisco (06–07).
 
 Plan/criterios/checklists: [Tarea 3, parte B](../docs/tarea3-parte-b.md). Incorporación del compañero: [guía de Francisco](../docs/handoff-francisco-tarea3.md). La fuente PDF ya está [extraída y cacheada](../docs/fuentes/consigna-tarea3.md); no reconvertirla para retomar.

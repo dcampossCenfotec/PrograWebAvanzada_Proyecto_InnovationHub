@@ -21,4 +21,7 @@ public sealed class User
     public ICollection<UserInterest> Interests { get; set; } = [];
     public ICollection<Initiative> OwnedInitiatives { get; set; } = [];
     public ICollection<Session> Sessions { get; set; } = [];
+    public ICollection<ParticipationRequest> Requests { get; set; } = [];
+    public ICollection<Membership> Memberships { get; set; } = [];
+    public ICollection<MembershipEvent> ActedEvents { get; set; } = [];
 }

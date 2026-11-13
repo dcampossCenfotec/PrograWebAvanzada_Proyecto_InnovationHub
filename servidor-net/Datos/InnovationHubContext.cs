@@ -16,9 +16,16 @@ public sealed class InnovationHubContext(DbContextOptions<InnovationHubContext> 
     public DbSet<InitiativeSkill> InitiativeSkills => Set<InitiativeSkill>();
     public DbSet<InitiativeTag> InitiativeTags => Set<InitiativeTag>();
 
+    public DbSet<ParticipationRequest> ParticipationRequests => Set<ParticipationRequest>();
+    public DbSet<Membership> Memberships => Set<Membership>();
+    public DbSet<MembershipEvent> MembershipEvents => Set<MembershipEvent>();
+    public DbSet<Project> Projects => Set<Project>();
+    public DbSet<ProjectTechnology> ProjectTechnologies => Set<ProjectTechnology>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(InnovationHubContext).Assembly);
         CoreSeed.Configure(modelBuilder);
+        DomainSeed.Configure(modelBuilder);
     }
 }

@@ -161,7 +161,7 @@ Los archivos JSON son datos compartidos de mocks/seed, no volcados de MongoDB. E
 
 ## Modelo relacional
 
-Estado: **T3B-02, núcleo inicial**. Implementado en `servidor-net/Modelos`, `Datos/Configuraciones` y `Datos/CoreSeed.cs`, con migración `InicialUsuariosIniciativas`. Esta sección es la especificación del esquema SQL implementado; el apartado «Equivalente relacional» anterior era una propuesta del Avance 2. Solicitudes, membresías, eventos y proyectos se incorporarán en la segunda migración (T3B-03). No se presenta este núcleo como el modelo completo de Tarea 3.
+Estado: **T3B-03, modelo relacional completo**. Implementado en `servidor-net/Modelos`, `Datos/Configuraciones`, `CoreSeed.cs` y `DomainSeed.cs`, con dos migraciones reales: núcleo inicial y evolución a solicitudes/equipos/proyectos. Esta sección describe las 14 tablas implementadas; el apartado «Equivalente relacional» anterior era una propuesta del Avance 2. Las dos rutas GET corresponden al siguiente incremento T3B-04.
 
 ### Convenciones del núcleo
 
@@ -170,7 +170,7 @@ Estado: **T3B-02, núcleo inicial**. Implementado en `servidor-net/Modelos`, `Da
 - Instantes en `datetimeoffset(3)`, offset UTC cero comprobado por CHECK. Se conserva precisión de milisegundos; la serialización contractual con `Z` se añadirá en los GET. No se usan fechas locales ni valores aleatorios en HasData.
 - Los valores fijos y las claves normalizadas usan collation **Latin1_General_100_BIN2**: `PUBLIC` no equivale a `public` y el índice compara exactamente la clave ya normalizada. No se depende de la collation predeterminada del servidor.
 - `Position` empieza en cero y conserva el orden de los arrays del Avance 2. Su unicidad por propietario y su rango limitan el máximo de elementos sin contar filas desde un CHECK. No se exige continuidad en SQL; el futuro servicio ordenará/reindexará listas al escribir.
-- Las normalizaciones deben calcularse en el servicio de escritura futuro y guardarse junto con el texto presentado. Intereses: minúsculas españolas conservando acentos. Etiquetas/catálogos: NFD, quitar diacríticos y minúsculas. La siembra ya entrega esas claves. El CHECK de correo normalizado exige minúsculas del correo recortado; la validación completa de correo/URL/trim Unicode pertenece a la API final. No se afirma que un índice calcule la normalización por sí mismo.
+- Las normalizaciones deben calcularse en el servicio de escritura futuro y guardarse junto con el texto presentado. Intereses: minúsculas españolas conservando acentos. Etiquetas/catálogos: NFD, quitar diacríticos y minúsculas. Tecnologías: minúsculas conservando acentos, como valida Express. La siembra ya entrega esas claves. El CHECK de correo normalizado exige minúsculas del correo recortado; la validación completa de correo/URL/trim Unicode pertenece a la API final. No se afirma que un índice calcule la normalización por sí mismo.
 - Las entidades intermedias tienen identidad compuesta, no un UUID artificial adicional. `UserSkill` conserva nivel y posición; `InitiativeSkill` conserva posición. EF configura también las navegaciones M:N mediante `UsingEntity`, sin crear tablas sombra ni copiar usuarios/competencias.
 
 ### Diagrama implementado
@@ -262,9 +262,71 @@ erDiagram
         nvarchar Value
         nvarchar NormalizedValue
     }
+    Initiatives ||--o{ ParticipationRequests : recibe
+    Users ||--o{ ParticipationRequests : solicita
+    Skills ||--o{ ParticipationRequests : ofrece
+    Initiatives ||--o{ Memberships : equipo
+    Users ||--o{ Memberships : participa
+    ParticipationRequests |o--o| Memberships : origina_periodo
+    Memberships ||--o{ MembershipEvents : historia
+    Users ||--o{ MembershipEvents : actor
+    ParticipationRequests |o--o{ MembershipEvents : referencia
+    Initiatives ||--o| Projects : origen
+    Projects ||--o{ ProjectTechnologies : tecnologias
+    ParticipationRequests {
+        uniqueidentifier Id PK
+        uniqueidentifier InitiativeId FK
+        uniqueidentifier ApplicantId FK
+        uniqueidentifier OfferedSkillId FK
+        nvarchar Message
+        nvarchar Role
+        nvarchar Availability
+        nvarchar State
+        nvarchar DecisionComment "nullable"
+        datetimeoffset CreatedAt
+        datetimeoffset UpdatedAt
+        datetimeoffset DecidedAt "nullable"
+    }
+    Memberships {
+        uniqueidentifier Id PK
+        uniqueidentifier InitiativeId FK
+        uniqueidentifier UserId FK
+        uniqueidentifier SourceRequestId FK "nullable, FK compuesta"
+        nvarchar Role
+        nvarchar State
+        datetimeoffset JoinedAt
+        datetimeoffset RetiredAt "nullable"
+    }
+    MembershipEvents {
+        uniqueidentifier Id PK
+        uniqueidentifier MembershipId FK
+        uniqueidentifier ActorId FK
+        uniqueidentifier RequestId FK "nullable"
+        nvarchar Type
+        datetimeoffset OccurredAt
+    }
+    Projects {
+        uniqueidentifier Id PK
+        uniqueidentifier SourceInitiativeId FK, UK
+        nvarchar Name
+        nvarchar Description
+        nvarchar Objective
+        nvarchar State
+        date StartDate
+        date EstimatedEndDate "nullable"
+        nvarchar RepositoryUrl "nullable"
+        datetimeoffset CreatedAt
+        datetimeoffset UpdatedAt
+    }
+    ProjectTechnologies {
+        uniqueidentifier ProjectId PK, FK
+        int Position PK
+        nvarchar Value
+        nvarchar NormalizedValue
+    }
 ```
 
-Las patas `o{` expresan el mínimo garantizado por las FK en SQL. En el dominio, una iniciativa necesita entre 1 y 10 competencias y un propietario miembro activo; el mínimo y la creación de membresía son reglas transaccionales entre filas. T3B-03 añadirá las tablas del equipo; no se inventa un CHECK que consulte otras tablas para garantizarlo.
+Las patas `o{` expresan el mínimo garantizado por las FK en SQL. En el dominio, una iniciativa necesita entre 1 y 10 competencias y un propietario miembro activo; el mínimo y la creación de membresía son reglas transaccionales entre filas. Memberships representa el equipo y la siembra incluye al propietario activo; no se inventa un CHECK que consulte otras tablas para garantizar ese mínimo en toda escritura.
 
 ### Diccionario de columnas, índices y CHECK
 
@@ -386,6 +448,90 @@ Unicidad: PK `(InitiativeId, SkillId)` y `(InitiativeId, Position)`. Índice ord
 
 Unicidad: PK `(InitiativeId, Position)` y `(InitiativeId, NormalizedValue)`. No se copian competencias en etiquetas: son conceptos distintos.
 
+### Solicitudes, equipos, historial y proyectos (T3B-03)
+
+Las siguientes tablas completan el modelo. Se agregan en la segunda migración `AgregarSolicitudesEquiposProyectos`; no sustituyen ni reescriben la migración inicial.
+
+#### ParticipationRequests
+
+| Columna | Tipo SQL | Null | Regla |
+| --- | --- | --- | --- |
+| Id | uniqueidentifier | N | PK; otro intento conserva otro ID. |
+| InitiativeId | uniqueidentifier | N | FK Initiatives.Id. |
+| ApplicantId | uniqueidentifier | N | FK Users.Id. |
+| OfferedSkillId | uniqueidentifier | N | FK Skills.Id; no FK al perfil editable. |
+| Message | nvarchar(500) | N | CHECK longitud 15–500. |
+| Role | nvarchar(100) | N | CHECK longitud 3–100. |
+| Availability | nvarchar(6) | N | CHECK low/medium/high. |
+| State | nvarchar(9) | N | CHECK pending/accepted/rejected/cancelled. |
+| DecisionComment | nvarchar(500) | S | CHECK NULL o longitud 1–500. |
+| CreatedAt, UpdatedAt | datetimeoffset(3), cada una | N | CHECK UTC y UpdatedAt ≥ CreatedAt. |
+| DecidedAt | datetimeoffset(3) | S | CHECK UTC, entre CreatedAt/UpdatedAt si existe. Requerida para accepted/rejected; NULL para pending/cancelled. |
+
+Unicidad: PK `Id`; clave alternativa `(Id, InitiativeId, ApplicantId)` para que la FK de origen de membresía compruebe **solicitud, iniciativa y solicitante juntos**; `UX_Requests_Pending` único en `(InitiativeId, ApplicantId)` **WHERE State = N'pending'**. Los intentos cancelados/rechazados/aceptados no bloquean nuevas filas históricas.
+
+Índices de consulta: `(ApplicantId, CreatedAt, Id)`, `(InitiativeId, State, CreatedAt, Id)`, `(OfferedSkillId, State, Id)`. La oferta debe pertenecer al perfil al solicitar, pero no necesariamente a las competencias requeridas por la iniciativa. Mantener la FK a Skills conserva historia aunque el usuario quite esa competencia de su perfil; comprobar pertenencia en el momento de solicitar corresponde al servicio final.
+
+#### Memberships
+
+| Columna | Tipo SQL | Null | Regla |
+| --- | --- | --- | --- |
+| Id | uniqueidentifier | N | PK del **periodo**, no de la pareja usuario/iniciativa. |
+| InitiativeId | uniqueidentifier | N | FK Initiatives.Id; también integra FK de origen. |
+| UserId | uniqueidentifier | N | FK Users.Id; también integra FK de origen. |
+| SourceRequestId | uniqueidentifier | S | Con InitiativeId/UserId, FK a ParticipationRequests.(Id, InitiativeId, ApplicantId). NULL para propietario o incorporación histórica sin solicitud registrada. |
+| Role | nvarchar(150) | N | CHECK longitud 2–150. |
+| State | nvarchar(7) | N | CHECK active/retired. |
+| JoinedAt | datetimeoffset(3) | N | CHECK UTC. |
+| RetiredAt | datetimeoffset(3) | S | CHECK UTC y ≥ JoinedAt. NULL si active, obligatoria si retired. |
+
+Unicidad: PK `Id`; `UX_Memberships_Active` en `(InitiativeId, UserId)` **WHERE State = N'active'**; índice único de origen `(SourceRequestId, InitiativeId, UserId)` filtrado por `SourceRequestId IS NOT NULL`. Una solicitud genera como máximo un periodo. La FK compuesta opcional admite varias membresías sin solicitud y rechaza vincular una solicitud de otra persona/iniciativa.
+
+Índices de consulta: `(InitiativeId, State, JoinedAt, Id)`, `(UserId, State, Id)`. Resuelve usuario M:N iniciativa con datos propios (rol, estado, fechas, solicitud). Se permiten varias filas históricas de la misma pareja; no se usa una navegación M:N que confunda periodos repetidos con una sola asociación. Al reincorporarse se crea otro ID, no se reactiva el periodo retirado.
+
+#### MembershipEvents
+
+| Columna | Tipo SQL | Null | Regla |
+| --- | --- | --- | --- |
+| Id | uniqueidentifier | N | PK del evento. |
+| MembershipId | uniqueidentifier | N | FK Memberships.Id. |
+| ActorId | uniqueidentifier | N | FK Users.Id, quien produjo el evento. |
+| RequestId | uniqueidentifier | S | FK ParticipationRequests.Id, referencia histórica opcional. |
+| Type | nvarchar(7) | N | CHECK joined/retired. |
+| OccurredAt | datetimeoffset(3) | N | CHECK UTC. |
+
+Unicidad: PK e índice `(MembershipId, Type)` para un ingreso y como máximo un retiro por periodo. Índices de consulta: `(MembershipId, OccurredAt, Id)`, `(ActorId, OccurredAt, Id)`, `RequestId`.
+
+`initiativeId` y `userId` de Mongo se obtienen mediante MembershipId: no se duplican columnas que pudieran apuntar a otra iniciativa/persona. RequestId se conserva porque es información propia del evento y puede ser NULL, independientemente del origen del periodo. La correspondencia semántica con el periodo y la cronología entre tablas se validarán en la escritura final. El esquema protege referencias; la regla de historial sin edición no equivale a permisos SQL ni a un trigger de append-only. En esta tarea solo hay siembra, verificación y lecturas.
+
+#### Projects
+
+| Columna | Tipo SQL | Null | Regla |
+| --- | --- | --- | --- |
+| Id | uniqueidentifier | N | PK. |
+| SourceInitiativeId | uniqueidentifier | N | FK única Initiatives.Id. |
+| Name | nvarchar(120) | N | CHECK longitud 5–120. |
+| Description | nvarchar(2000) | N | CHECK longitud 20–2000. |
+| Objective | nvarchar(500) | N | CHECK longitud 10–500. |
+| State | nvarchar(14) | N | CHECK planning/in_development/paused/finished/archived. |
+| StartDate | date | N | Fecha calendario real; obligatoria, como valida Express actualmente. |
+| EstimatedEndDate | date | S | CHECK NULL o ≥ StartDate. |
+| RepositoryUrl | nvarchar(2048) | S | CHECK NULL o longitud 1–2048; validación de URL HTTP(S) en servicio final. |
+| CreatedAt, UpdatedAt | datetimeoffset(3), cada una | N | CHECK UTC y UpdatedAt ≥ CreatedAt. |
+
+Unicidad: PK y `SourceInitiativeId` (una iniciativa origina como máximo un proyecto). Índice `(CreatedAt, Id)`. `ownerId` se obtiene de `SourceInitiative.OwnerId`; **no hay otra columna de dueño ni otro equipo copiado**. El equipo vigente se consulta por `SourceInitiative.Memberships WHERE State='active'`. Nuevas aceptaciones tras convertir afectan al equipo vinculado, sin duplicar escrituras en una tabla ProjectMembers.
+
+#### ProjectTechnologies
+
+| Columna | Tipo SQL | Null | Regla |
+| --- | --- | --- | --- |
+| ProjectId | uniqueidentifier | N | PK compuesta y FK Projects.Id. |
+| Position | int | N | PK compuesta, CHECK 0–19: máximo 20 elementos. |
+| Value | nvarchar(50) | N | Texto presentado, CHECK longitud 1–50. |
+| NormalizedValue | nvarchar(50) | N | Minúsculas conservando acentos, CHECK longitud 1–50. |
+
+Unicidad: PK `(ProjectId, Position)` y `(ProjectId, NormalizedValue)`. La lista conserva orden y rechaza claves normalizadas repetidas. El mínimo de una tecnología se valida transaccionalmente en el servicio final, no con un CHECK entre filas.
+
 ### Cardinalidades y comportamiento al borrar por FK
 
 | FK dependiente → principal | Cardinalidad | DeleteBehavior | Justificación |
@@ -399,10 +545,21 @@ Unicidad: PK `(InitiativeId, Position)` y `(InitiativeId, NormalizedValue)`. No 
 | InitiativeSkills.InitiativeId → Initiatives.Id | Iniciativa 1:N vínculos | Cascade | Se limpian solo los vínculos si la iniciativa puede borrarse según su historial. |
 | InitiativeSkills.SkillId → Skills.Id | Competencia 1:N vínculos; conjunto resuelve iniciativa M:N competencia | Restrict | No eliminar competencia utilizada por una iniciativa. |
 | InitiativeTags.InitiativeId → Initiatives.Id | Iniciativa 1:N etiquetas | Cascade | Valores propios sin historia independiente. |
+| ParticipationRequests.InitiativeId → Initiatives.Id | Iniciativa 1:N solicitudes | Restrict | Conservar historia e impedir borrar la iniciativa de una solicitud. |
+| ParticipationRequests.ApplicantId → Users.Id | Usuario 1:N solicitudes | Restrict | Conservar autoría histórica. |
+| ParticipationRequests.OfferedSkillId → Skills.Id | Competencia 1:N ofertas | Restrict | Conservar referencia del catálogo aunque cambie el perfil. |
+| Memberships.InitiativeId → Initiatives.Id | Iniciativa 1:N periodos | Restrict | No eliminar el equipo/historia por cascada. |
+| Memberships.UserId → Users.Id | Usuario 1:N periodos | Restrict | No perder historial al eliminar usuario. |
+| Memberships.(SourceRequestId, InitiativeId, UserId) → ParticipationRequests.(Id, InitiativeId, ApplicantId) | 0..1:0..1 por solicitud/periodo | Restrict | No borrar la solicitud que originó el periodo ni asociar otra persona/iniciativa. |
+| MembershipEvents.MembershipId → Memberships.Id | Periodo 1:N eventos | Restrict | Impedir borrar un periodo con historia. |
+| MembershipEvents.ActorId → Users.Id | Usuario 1:N eventos como actor | Restrict | Conservar quién realizó cada acción. |
+| MembershipEvents.RequestId → ParticipationRequests.Id | Solicitud opcional 1:N eventos | Restrict | Conservar referencia histórica opcional; no hacer SetNull silencioso. |
+| Projects.SourceInitiativeId → Initiatives.Id | Iniciativa 1:0..1 proyecto | Restrict | El proyecto exige su iniciativa; borrar/archivar no debe borrar proyecto. |
+| ProjectTechnologies.ProjectId → Projects.Id | Proyecto 1:N valores | Cascade | Solo lista propia de tecnologías, sin historia independiente. |
 
-`Restrict` se materializa como FK sin cascada (`NO ACTION`) en SQL Server; **ninguna FK de este núcleo usa SetNull**. No hay rutas múltiples de cascada hacia las mismas tablas porque las relaciones a usuarios/catálogos compartidos restringen el borrado. La cascada de listas **no autoriza** borrar una iniciativa con historia: las FK de historial/proyecto de T3B-03 y el servicio final completarán esa política.
+`Restrict` se materializa como FK sin cascada (`NO ACTION`) en SQL Server; **ninguna FK del modelo usa SetNull**. No hay rutas múltiples de cascada hacia las mismas tablas porque las relaciones a usuarios/catálogos compartidos restringen el borrado. La cascada de listas **no autoriza** borrar una iniciativa con historia: las FK de historial/proyecto ya restringen el borrado y el servicio final deberá validar la política completa.
 
-Usuario–iniciativa se representa aquí por **propiedad 1:N**; la participación M:N por periodos se agregará con Memberships en 03. Iniciativa–solicitud 1:N, proyecto–iniciativa 0..1:1 y proyecto–usuario (equipo a través de la iniciativa) están pendientes de esa segunda etapa, no omitidas del alcance final.
+Usuario–iniciativa incluye **propiedad 1:N y participación M:N por periodos**. Proyecto–usuario se obtiene recorriendo la iniciativa y sus membresías; la tabla de cardinalidades requerida más abajo detalla las seis relaciones del enunciado, sin una lista duplicada de equipo.
 
 ### Del documento a la tabla
 
@@ -418,20 +575,54 @@ Usuario–iniciativa se representa aquí por **propiedad 1:N**; la participació
 | initiatives.skillIds[] | InitiativeSkills | M:N real con orden; sin array JSON ni columnas numeradas. Implementado. |
 | initiatives.tags[] | InitiativeTags | Valores propios, unicidad normalizada y orden. Implementado. |
 | initiatives.searchText/publicSearchText/titleNormalized | Sin columnas en esta fase | Índices/derivados de búsqueda Mongo, no datos de dominio. Las dos lecturas elegidas no buscan por texto; estrategia SQL de búsqueda/orden se definirá para la API final sin cambiar DTO. |
-| requests | ParticipationRequests | Pendiente 03: ciclo propio, historia e índice único filtrado de pendientes. |
-| memberships | Memberships | Pendiente 03: cada periodo es una fila nueva, no reactivar historia. |
-| membershipEvents | MembershipEvents | Pendiente 03: historia con FK y borrado protegido. |
-| projects, campos escalares | Projects | Pendiente 03: una iniciativa de origen por proyecto y vínculo único. |
-| projects.technologies[] | ProjectTechnologies | Pendiente 03: lista de valores ordenada, sin JSON. |
-| Equipo de projects | Sin segunda lista copiada | Pendiente 03: recorrido Projects → Initiatives → Memberships → Users. |
+| requests | ParticipationRequests | Ciclo propio, historia e índice único filtrado de pendientes. Implementado. |
+| memberships | Memberships | Cada periodo es una fila nueva, unicidad filtrada de activos y origen comprobado con FK compuesta. Implementado. |
+| membershipEvents | MembershipEvents | Historia con actor, periodo y solicitud opcional, referencias protegidas. Implementado. |
+| membershipEvents.initiativeId/userId | Derivados de Memberships | Se obtienen desde MembershipId, sin duplicar referencias que pudieran contradecir el periodo. |
+| projects, campos escalares | Projects | Una iniciativa de origen por proyecto y vínculo único; fecha de inicio obligatoria como Express. Implementado. |
+| projects.ownerId | Derivado de Initiatives.OwnerId | Dueño único a través de SourceInitiativeId; no crear dos propietarios independientes. |
+| projects.technologies[] | ProjectTechnologies | Lista ordenada, con clave normalizada única y máximo 20; sin JSON. Implementado. |
+| Equipo de projects | Sin segunda lista copiada | Recorrido Projects → Initiatives → Memberships → Users; miembros activos o historia según la consulta. Implementado. |
 | Mongo _id, __v y TTL | Sin identidad ni mecanismo equivalentes expuestos | UUID público es PK; __v no integra contrato; expiración SQL requiere proceso, no un índice TTL. |
 
-### HasData y comprobación de esta etapa
+### HasData del núcleo y su evolución
 
 `Datos/CoreSeed.cs` contiene datos sintéticos estáticos copiados de `pruebas/fixtures`: **5 usuarios, 8 categorías, 10 competencias, 8 iniciativas, 7 UserSkills, 7 UserInterests, 16 InitiativeSkills y 13 InitiativeTags; 0 sesiones**. Total: 74 filas de dominio. No lee los JSON en ejecución, no depende de rutas de trabajo, no genera fechas/IDs aleatorios y no incluye contraseñas ni hashes.
 
-Las iniciativas cubren las cuatro visibilidades y estados públicos/de equipo/borrador/archivo/convertido. La fila convertida y los dueños aún no tienen proyecto/membresías en este núcleo intermedio: se completarán con los fixtures relacionados en 03, antes de exponer GET. No afirmar coherencia del flujo completo hasta aplicar la segunda migración.
+Las iniciativas cubren las cuatro visibilidades y estados públicos/de equipo/borrador/archivo/convertido. La primera migración dejó esos vínculos para la evolución siguiente. DomainSeed y la segunda migración agregan ahora proyecto, membresías, solicitudes y eventos; la iniciativa convertida comparte un equipo de tres activos y conserva un periodo retirado.
 
 El modo de terminal `--verify-core=true` comprueba semilla, M:N, nivel/orden, rechazos por restricciones, UTF-16 y cascada limitada. Solo admite bases exclusivas `InnovationHub_Tarea3_Dev` o `InnovationHub_Tarea3_Test`; cada escritura se revierte. Esta verificación no sustituye las cuatro consultas SQL de Francisco (T3B-06), que siguen pendientes.
 
 Referencias de implementación: [relaciones M:N y datos de asociación](https://learn.microsoft.com/ef/core/modeling/relationships/many-to-many), [índices y CHECK](https://learn.microsoft.com/ef/core/modeling/indexes), [HasData](https://learn.microsoft.com/ef/core/modeling/data-seeding). La consigna exige HasData aunque la documentación también presente otras opciones de siembra.
+
+### Relaciones requeridas y reglas entre filas
+
+| Relación requerida | Cardinalidad y resolución |
+| --- | --- |
+| Usuario–competencia | M:N mediante UserSkills con nivel y posición. |
+| Usuario–iniciativa (propiedad) | Usuario 1:N Initiatives, FK OwnerId; cada iniciativa tiene un dueño. |
+| Usuario–iniciativa (participación) | M:N mediante Memberships, una fila por periodo; índice filtrado garantiza una activa por pareja. |
+| Iniciativa–competencia | M:N mediante InitiativeSkills, posición propia. |
+| Iniciativa–solicitud | 1:N mediante ParticipationRequests.InitiativeId. |
+| Proyecto–iniciativa | Cada proyecto tiene exactamente una iniciativa; cada iniciativa tiene 0..1 proyecto, FK única SourceInitiativeId. |
+| Proyecto–usuario (dueño) | Usuario 1:N proyectos por Projects → Initiatives.OwnerId; dueño derivado, sin columna redundante. |
+| Proyecto–usuario (equipo) | M:N derivada por Projects → Initiatives → Memberships → Users; activo/histórico se distingue por periodo y estado. No se crea un segundo equipo. |
+
+No se introduce un cupo duro: EstimatedMembers sigue en 1–100, pero no se compara contra el número de miembros. La siembra incluye una iniciativa convertida con estimado 2 y tres activos: es válida y la disponibilidad calculada es cero.
+
+Las FK/índices/CHECK garantizan referencias, unicidad filtrada y coherencia de cada fila. La API final requerirá transacciones para aceptar/cancelar, comprobar permisos, no solicitar siendo miembro activo o propietario, impedir retiro del dueño, validar competencia ofrecida en el momento de solicitar, convertir solo si corresponde, escribir eventos y conservar converted al aceptar después. No se afirma que los CHECK implementen por sí solos esas operaciones o transiciones.
+
+La política de borrado se conserva: eliminar físicamente solo si nunca hubo relaciones adicionales al dueño. Las FK evitan eliminar de forma aislada iniciativas o periodos con relaciones. En el caso eliminable, el servicio deberá comprobar toda la historia y retirar explícitamente el único evento/membresía inicial del dueño en una misma transacción antes de borrar la iniciativa; las listas propias se limpian por Cascade. Las demás iniciativas se archivan mediante una acción independiente. No hay todavía endpoints .NET de escritura/borrado.
+
+### Migraciones y comprobación final del modelo
+
+- Etapa 1: `InicialUsuariosIniciativas`, nueve tablas del núcleo y 74 filas de dominio.
+- Etapa 2: `AgregarSolicitudesEquiposProyectos`, cinco tablas nuevas, FK/restricciones e inserción HasData de 5 solicitudes, 12 periodos de membresía, 13 eventos, 1 proyecto y 2 tecnologías.
+- Modelo completo: **14 tablas de dominio y 107 filas sintéticas** (más __EFMigrationsHistory). Hay 11 membresías activas y una retirada; el proyecto usa tres activos y conserva un periodo retirado.
+- `--verify-domain=true` ejecuta las comprobaciones del núcleo y las del dominio completo con rollback; prueba duplicados, reincorporación con otro ID, historia, equipo después de conversión y fechas calendario.
+- `--use-test-database=true` selecciona solo InnovationHub_Tarea3_Test en Development sin cambiar el secreto de Dev; permite aplicar ambas migraciones a una base de prueba independiente.
+- `--compare-databases=true` compara columnas, nulabilidad, FK/borrado, CHECK, índices, valores completos de las 14 tablas e historial entre Dev actualizado y Test construido desde cero. No crea ni elimina bases, no imprime datos o secretos; los dos destinos deben contener la misma siembra sin cambios de usuario.
+
+El modo de comparación no sustituye la reconstrucción destructiva `drop --force` + `update` de T3B-05. No se ha adelantado la entrega SQL ni la investigación de Francisco.
+
+Referencias para esta etapa: [claves principales/alternativas y FK compuestas](https://learn.microsoft.com/ef/core/modeling/relationships/foreign-and-principal-keys), [índices únicos y filtrados](https://learn.microsoft.com/ef/core/modeling/indexes). Los resultados de pruebas ejecutadas y pendientes se registran en el [plan de Tarea 3](tarea3-parte-b.md).
