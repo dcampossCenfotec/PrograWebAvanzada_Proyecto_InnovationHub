@@ -1,6 +1,6 @@
 # Innovation Hub — servidor .NET de Tarea 3, parte B
 
-Estado: **T3B-04, modelo completo y dos GET públicos compatibles con Express**. Implementa el modelo relacional, dos migraciones/HasData y las lecturas de categorías y detalle de iniciativa para visitantes. La verificación de cierre/handoff corresponde a T3B-05. Esta API parcial no sustituye Express ni cambia el cliente React. No incluye Swagger porque la consigna no lo exige.
+Estado: **T3B-05 verificado en el equipo de Daniel; bloque listo para revisión y commit**. Modelo relacional completo, dos migraciones/HasData, dos GET públicos y reconstrucción comprobada en SQL Server. La recepción en el equipo de Francisco y sus tareas 06–08 siguen pendientes. Esta API parcial no sustituye Express ni cambia el cliente React. No incluye Swagger porque la consigna no lo exige.
 
 ## Versiones y compilación
 
@@ -98,7 +98,7 @@ dotnet run --no-build --launch-profile http -- --verify-domain=true
 
 Esperado: pasa primero el núcleo y después el dominio completo (107 filas), **17 rechazos adicionales**, intentos históricos permitidos y reincorporación con otro ID tras conversión. Finaliza con `OK T3B-03`. Cada escritura se revierte. La prueba demuestra el modelo SQL; no significa que existan ya endpoints .NET para aceptar solicitudes o convertir proyectos.
 
-Estas pruebas no sustituyen `sql/consultas.sql` de Francisco, los dos GET ni la reconstrucción completa de T3B-05. La reconstrucción destructiva `database drop --force` se incorporará/verificará en 05, sobre base de prueba confirmada; no ejecutarla sobre bases existentes o compartidas.
+Estas pruebas no sustituyen `sql/consultas.sql` de Francisco ni las comparaciones de los GET. El procedimiento de reconstrucción completa aparece más abajo; su ejecución SQL de cierre fue aprobada el 13 de noviembre de 2026.
 
 ## Comparar actualización incremental y construcción desde cero
 
@@ -113,7 +113,42 @@ dotnet run --no-build --launch-profile http -- --compare-databases=true
 
 Esperado por paso: destino Test permitido; migraciones aplicadas y siembra cargada; `OK T3B-03` sobre Test; comparación con columnas/tipos/nullabilidad, FK/borrado, CHECK, índices, **todos los valores de las 14 tablas y el historial** iguales entre Dev/Test. La comparación es de lectura y no imprime datos ni cadenas. Debe ejecutarse desde la configuración Dev, sin el argumento use-test-database.
 
-Si Test ya existe, update solo aplica lo pendiente: eso **no demuestra por sí solo** que se creó desde cero. No borrar su contenido para forzar una evidencia; comprobar primero su uso. Para comparar la siembra, ambas bases deben estar sin datos añadidos por el usuario. La prueba de reconstrucción destructiva queda para T3B-05 en una base de prueba confirmada.
+Si Test ya existe, update solo aplica lo pendiente: eso **no demuestra por sí solo** que se creó desde cero. Para comparar la siembra, ambas bases deben estar sin datos añadidos por el usuario. Usar el procedimiento T3B-05 únicamente tras confirmar que Test es exclusiva y descartable.
+
+## Reconstrucción y cierre del bloque Daniel (T3B-05)
+
+La ejecución completa de referencia terminó con **OK T3B-05** el 13 de noviembre de 2026 en el equipo de Daniel: Test reconstruida, dos migraciones/14 tablas/107 filas idénticas, update repetido sin cambios, 42 comparaciones HTTP y Dev intacta. Ejecutar **solo cuando Test sea una base exclusiva y descartable**, sin datos de trabajo de nadie. Se elimina únicamente **InnovationHub_Tarea3_Test**. Dev no se borra ni se migra con este script. Detener otros procesos que utilicen Test durante la comprobación; las huellas requieren datos estables.
+
+Requisitos: SDK/EF fijados, Node, Docker activo, dependencias Express instaladas y ambas bases Dev/Test con las dos migraciones y siembra equivalentes. Si Test todavía no existe en tu equipo, primero confirmar su destino y ejecutar el update de la sección anterior; no apuntar el secreto a otra base para evitar una guarda. El secreto debe apuntar a **InnovationHub_Tarea3_Dev** para comparar y comprobar que Dev queda intacta.
+
+Desde `servidor-net`:
+
+```sh
+node scripts/verify-rebuild.mjs --confirm=InnovationHub_Tarea3_Test
+```
+
+Procedimiento y resultado esperado:
+
+1. Restaura herramienta/paquetes con lockfile, verifica versiones y compila con advertencias como errores.
+2. Demuestra que la guarda de reconstrucción rechaza Dev. En Test comprueba el nombre exacto, las dos migraciones y ausencia de tablas/vistas/procedimientos/funciones/triggers/secuencias/sinónimos ajenos al modelo. Compara esquema y todas las filas con Dev y ejecuta las pruebas de restricciones con rollback. Si algo difiere, se detiene **antes de drop**; no desactivar la guarda ni cambiar los resultados para continuar.
+3. Guarda en memoria huellas SHA-256 de esquema, datos e historial, sin imprimir sus valores privados. Ejecuta el comando EF que exige la consigna:
+
+   ```sh
+   dotnet ef database drop --force --no-build -- --environment Development --use-test-database=true
+   ```
+
+4. Confirma mediante `master` que Test ya no existe. Inicia un host .NET temporal, sin hacer peticiones, y vuelve a comprobar que Test sigue ausente: arrancar el host no crea ni migra la base. Cierra ese host.
+5. Ejecuta `dotnet ef database update --no-build -- --environment Development --use-test-database=true`; comprueba las dos migraciones y que el esquema, las 107 filas y el historial coinciden exactamente con la huella previa. Repite update y exige la misma huella, sin duplicados.
+6. Repite el núcleo/dominio (32 rechazos esperados y casos positivos, siempre con rollback). Ejecuta dos veces el verificador de contrato, cada vez con servidores nuevos: **42 comparaciones HTTP/JSON** en total. Test conserva la misma huella tras cada ejecución; Dev debe conservar su huella original.
+7. Compara finalmente Dev/Test y comprueba que no hay cambios pendientes del modelo. Esperado al terminar: **`OK T3B-05`**. Ese resultado no equivale a la aceptación en el equipo de Francisco ni completa SQL/investigación/etiqueta.
+
+Los pasos se ejecutan secuencialmente y se detienen ante un fallo. Una invocación sin la confirmación exacta o con argumentos adicionales se rechaza antes de lanzar herramientas. El script no recibe ni modifica credenciales; los procesos usan el secreto local. Los logs externos se capturan sin volcarlos al fallar para evitar exponer datos de conexión. Si hay error, revisar localmente el comando de la etapa indicada y compartir solo el mensaje redactado.
+
+Si se interrumpe **después de drop**, Test puede quedar ausente o con migraciones pendientes; Dev permanece como referencia. Tras resolver la causa, comprobar el destino Test y aplicar el update anterior para recuperar la siembra. No ejecutar un drop sobre Dev ni cambiar user-secrets como recuperación. La huella cubre columnas/tipos/nulabilidad/defaults, FK/borrado, CHECK, índices y valores de las 14 tablas más historial; no sustituye un respaldo ni certifica configuraciones externas del servidor SQL.
+
+Las guardas y las huellas reutilizan la conexión abierta de EF. SqlClient oculta la contraseña al leer ConnectionString después de abrirla con `Persist Security Info=false`; por eso se conserva esa protección y se evita construir una segunda conexión desde esa cadena saneada.
+
+La verificación espera exactamente las dos migraciones actuales. Una futura corrección legítima del modelo exige actualizar el verificador y la documentación con su migración real, no ocultar diferencias ni editar migraciones ya compartidas. La aceptación y las tareas restantes están en la [guía de Francisco](../docs/handoff-francisco-tarea3.md).
 
 ## Ejecutar el host HTTP actual
 
@@ -166,17 +201,18 @@ Esperado: **21 comparaciones aprobadas** y `OK T3B-04`. Cierra .NET, Express, co
 ## Organización
 
 - `Program.cs`: host, DI, modos de terminal y registro de las dos lecturas públicas.
-- `Modelos/`: nueve entidades; navegaciones y claves públicas.
+- `Modelos/`: catorce entidades; navegaciones y claves públicas.
 - `Datos/Configuraciones/`: límites, índices, CHECK, M:N y delete behaviors explícitos.
 - `Datos/CoreSeed.cs` y `DomainSeed.cs`: HasData fijo, independiente de JSON/rutas externas en ejecución.
 - `Datos/InnovationHubContext.cs`: DbSet y aplicación de configuración/seed.
 - `Migrations/`: dos migraciones evolutivas reales, metadatos y snapshot generados por EF.
-- `Verificacion/`: pruebas SQL del núcleo/dominio, comprobación de destino y comparación incremental/limpia.
+- `Verificacion/`: pruebas SQL del núcleo/dominio, comprobación de destino, comparación incremental/limpia y guardas/huellas de reconstrucción.
 - `scripts/configure-local-connection.py`: configuración privada asistida de la conexión.
 - `.config/dotnet-tools.json`, `global.json`, csproj y lockfile: versiones reproducibles.
 - `Lecturas/PublicReadEndpoints.cs`: Select asíncrono, proyección contractual y controles mínimos de acceso anónimo.
 - `requests.http`: 14 casos ejecutables contra el host.
 - `scripts/verify-read-contract.mjs`: comparación HTTP/JSON real con Express+MongoDB temporal y .NET+SQL Server Test; controla su limpieza.
-- Próximos: cierre/handoff de Daniel (05), `sql/consultas.sql` y experimentos de Francisco (06–07).
+- `scripts/verify-rebuild.mjs`: cierre secuencial con destino Test explícito, drop/update, huellas y dos ejecuciones del contrato.
+- Próximos: revisión/commit de 05 y recepción de Francisco; después `sql/consultas.sql`, experimentos y cierre (06–08).
 
 Plan/criterios/checklists: [Tarea 3, parte B](../docs/tarea3-parte-b.md). Incorporación del compañero: [guía de Francisco](../docs/handoff-francisco-tarea3.md). La fuente PDF ya está [extraída y cacheada](../docs/fuentes/consigna-tarea3.md); no reconvertirla para retomar.

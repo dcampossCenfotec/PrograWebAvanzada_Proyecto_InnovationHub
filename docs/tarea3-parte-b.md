@@ -127,17 +127,17 @@ Entregable: las únicas dos rutas de negocio de esta fase, reproducibles sin ses
 
 Mensaje propuesto: `test(servidor-net): verificar reconstruccion y preparar handoff de Tarea 3`
 
-Cambios: verificación reproducible bajo `servidor-net/` (scripts o pruebas de integración apropiadas), validación de reconstrucción y estado del modelo; entregar a Francisco IDs/totales de seed, comandos, rutas, esquema estable y resultados reales. Actualizar el estado de este plan y README, sin atribuir pruebas no ejecutadas a una revisión manual. No incorporar credenciales ni salidas privadas a evidencias.
+Cambios: `servidor-net/scripts/verify-rebuild.mjs` y modos de terminal para destino Test/huellas/ausencia de base; validación de reconstrucción y estado del modelo; entregar a Francisco IDs/totales de seed, comandos, rutas, esquema estable y resultados reales. Actualizar el estado de este plan y README, sin atribuir pruebas no ejecutadas a una revisión manual. No incorporar credenciales ni salidas privadas a evidencias.
 
 Checklist y pruebas:
 
-- [ ] Confirmar nombre de base **de prueba exclusiva** antes del procedimiento destructivo; no usar bases de Avance 2 ni bases compartidas.
-- [ ] Ejecutar `dotnet ef database drop --force` y `dotnet ef database update` con ese destino; comprobar las dos filas de historial, tablas, restricciones y HasData.
-- [ ] Repetir `database update`: no duplica seed. Reiniciar host: GET conserva resultados y no ejecuta migraciones automáticamente.
-- [ ] Verificación HTTP completa de 04 con SQL Server real; comparar con Express usando fixtures equivalentes, sin resetear su base de desarrollo.
-- [ ] Restauración con lockfile, build y prueba de modelo aprobados; registrar comandos/resultados y limitaciones reales.
-- [ ] Handoff enumera rutas/IDs, nombres de tablas/restricciones, datos esperados, qué no tocar, pendientes exactos de Francisco y protocolo para cualquier corrección.
-- [ ] Francisco puede reconstruir en su equipo antes de aceptar el handoff; si falla, reportar el fallo concreto y corregir la base antes de iniciar SQL/investigación.
+- [x] Confirmar nombre de base **de prueba exclusiva** antes del procedimiento destructivo; no usar bases de Avance 2 ni bases compartidas.
+- [x] Ejecutar `dotnet ef database drop --force` y `dotnet ef database update` con ese destino; comprobar las dos filas de historial, tablas, restricciones y HasData.
+- [x] Repetir `database update`: no duplica seed. Reiniciar host: GET conserva resultados y no ejecuta migraciones automáticamente.
+- [x] Verificación HTTP completa de 04 con SQL Server real; comparar con Express usando fixtures equivalentes, sin resetear su base de desarrollo.
+- [x] Restauración con lockfile, build y prueba de modelo aprobados; registrar comandos/resultados y limitaciones reales.
+- [x] Handoff enumera rutas/IDs, nombres de tablas/restricciones, datos esperados, qué no tocar, pendientes exactos de Francisco y protocolo para cualquier corrección.
+- [ ] **Recepción de Francisco, externa a esta ejecución:** reconstruir en su equipo antes de aceptar el handoff; si falla, reportar el fallo concreto y corregir la base antes de iniciar SQL/investigación. No marcar esta recepción a partir de las pruebas de Daniel.
 
 Entregable: bloque Daniel terminado y base verificable para 06/07. No crear todavía la etiqueta final.
 
@@ -201,11 +201,11 @@ Entregable final: repositorio del proyecto etiquetado, texto de enlaces preparad
 
 ## Guía de incorporación de Francisco
 
-La [guía de Francisco para Tarea 3](handoff-francisco-tarea3.md) explica el entorno, organización documental, recepción de T3B-05, sus tres commits, pruebas, resultados esperados, prompts y cierre. La guía se crea ahora; no implica que Daniel haya completado el handoff técnico.
+La [guía de Francisco para Tarea 3](handoff-francisco-tarea3.md) explica el entorno, organización documental, recepción de T3B-05, sus tres commits, pruebas, resultados esperados, prompts y cierre. La guía incluye el procedimiento de recepción y los datos técnicos de Daniel; no implica aceptación ni pruebas ejecutadas en el equipo de Francisco.
 
 ## Estado real y protocolo de continuación
 
-T3B-01 registrado como `3731609`, T3B-02 como `08d6431` y T3B-03 como `11c48f4`. **T3B-04 implementado y verificado el 13 de noviembre de 2026; pendiente de commit/push**. T3B-05–08 pendientes. Hay modelo completo de 14 tablas/107 filas y dos GET de visitante; autenticación y CRUD .NET siguen fuera de esta tarea. Las evidencias anteriores son históricas de cada incremento. Daniel tiene pendiente T3B-05 para entregar el handoff; las tareas de Francisco siguen siendo 06–08.
+T3B-01 registrado como `3731609`, T3B-02 como `08d6431`, T3B-03 como `11c48f4` y T3B-04 como `b317e31`. **T3B-05 implementado y verificado el 13 de noviembre de 2026; todavía no registrado**. El bloque técnico de Daniel está listo para revisión y commit. La recepción en el equipo de Francisco sigue pendiente. Hay modelo completo de 14 tablas/107 filas y dos GET de visitante; autenticación y CRUD .NET siguen fuera de esta tarea. Las evidencias anteriores son históricas de cada incremento. Las tareas de Francisco siguen siendo 06–08.
 
 Verificación ejecutada de T3B-01:
 
@@ -248,5 +248,18 @@ Verificación ejecutada de T3B-04 (13 de noviembre, Costa Rica):
 - El script administra puertos libres y su contenedor Mongo 8.0.34-noble sin volúmenes. Contenedor y servidores temporales cerrados; no se usó Mongo de desarrollo ni se cambiaron secretos/filas SQL. La imagen pública quedó en caché para repetir la prueba.
 - Modelo sin cambios pendientes; comparación Dev/Test posterior de solo lectura confirma que esquema y siembra permanecen idénticos. No se ejecutó reconstrucción destructiva ni se adelantaron consultas/investigación de Francisco.
 - Documentación actualizada con rutas, limitaciones de visitante/sin sesión, comandos de prueba y organización. React/Express productivo y el registro histórico de Avance 2 permanecen sin cambios.
+
+Verificación ejecutada de T3B-05 (13 de noviembre de 2026, Costa Rica):
+
+- T3B-04 registrado como b317e31, árbol limpio al comenzar. Añadidos `scripts/verify-rebuild.mjs`, guardas de destino/ausencia y huellas de esquema/datos/historial; sin cambios de modelo, migraciones, seed ni dependencias.
+- Diagnóstico y corrección del error 18456 del verificador: SQLCMD autenticó con las credenciales locales ya guardadas. El fallo se producía al copiar ConnectionString después de consultar el historial: SqlClient ya había ocultado la contraseña. Las guardas y huellas ahora reutilizan la conexión de EF, conservando `Persist Security Info=false` y cerrándola en finally. Se comprobó además que el asistente conserva seis contraseñas sintéticas con caracteres especiales, sin publicar valores privados.
+- SDK 10.0.404, herramienta EF 10.0.15, tool restore, restore locked y build estricto aprobados, 0 errores/advertencias. Sintaxis Node correcta. Invocaciones sin confirmación exacta, con destino Dev o argumentos adicionales rechazadas antes de lanzar herramientas; guarda .NET rechaza Dev antes de abrir conexión.
+- Ejecución completa: `node scripts/verify-rebuild.mjs --confirm=InnovationHub_Tarea3_Test` terminó con **OK T3B-05**. Primero confirmó Test exclusiva, historial con las dos migraciones, ausencia de objetos ajenos, esquema/datos equivalentes a Dev y pruebas de dominio con rollback.
+- Ejecutó `dotnet ef database drop --force --no-build -- --environment Development --use-test-database=true` exclusivamente en Test y confirmó su ausencia desde master. Inició un host temporal sin consultar endpoints y confirmó que Test siguió ausente: el arranque no crea ni migra la base.
+- Aplicó ambas migraciones desde cero y repitió database update. Las huellas de columnas/tipos/nullabilidad/defaults, FK/borrado, CHECK, índices, todos los valores de las 14 tablas (107 filas) e historial permanecieron idénticas a la referencia inicial. Dos rondas de núcleo/dominio (antes y después de reconstruir) aprobaron 32 rechazos esperados por ronda y casos positivos, con rollback y siembra intacta.
+- Dos arranques independientes del verificador HTTP aprobaron **42 comparaciones de status/JSON completo** contra Express+MongoDB temporales y .NET+SQL Server Test: 21 por arranque, incluidos los 14 casos de requests.http. Las verificaciones de proyección sin columnas privadas ni N+1 permanecieron aprobadas.
+- Test conservó su huella tras cada ejecución HTTP; Dev conservó su huella inicial. Comparación final Dev/Test aprobada y modelo sin cambios pendientes. Contenedores y hosts temporales cerrados; SQL Server y las bases exclusivas quedan disponibles.
+- Handoff ampliado con IDs/estados/HTTP, tablas, restricciones, migraciones, preparación, recuperación y checklist de recepción. **Recepción de Francisco pendiente**: no se atribuyen pruebas a su equipo ni se adelantan sus consultas SQL, investigación o etiqueta final.
+- Revisados enlaces locales, diff sin errores de espacios y ausencia de artefactos privados versionados. Revisión acotada del historial .NET sin literales de contraseña SQL detectados; no equivale a una auditoría completa de secretos del repositorio. El registro histórico API05 y las aplicaciones React/Express permanecen sin cambios.
 
 Para retomar: leer este documento, el README .NET y el estado Git; usar la extracción cacheada, sin reconvertir el PDF. No comenzar otro incremento sin la indicación correspondiente de Daniel.

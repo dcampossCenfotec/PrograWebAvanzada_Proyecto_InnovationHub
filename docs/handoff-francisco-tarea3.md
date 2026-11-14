@@ -4,7 +4,7 @@
 
 Esta guía es específica de **Tarea 3**. El anterior `handoff-francisco.md` trata del Avance 2: sirve como historia, no como lista de tareas pendientes de esta entrega.
 
-**Estado actualizado (13 de noviembre de 2026):** T3B-01/02/03 registrados como `3731609`, `08d6431` y `11c48f4`. T3B-04 implementado y verificado (pendiente de commit): dos GET de visitante y 21 comparaciones HTTP/JSON reales con Express+MongoDB y .NET+SQL Server. El modelo tiene 14 tablas/107 filas y dos migraciones aplicadas. El handoff T3B-05 todavía está pendiente. Las tareas de implementación de Francisco empiezan después de recibir y verificar T3B-05. No ejecutar comandos de migraciones inexistentes ni presentar los resultados previstos como evidencia obtenida.
+**Estado actualizado (13 de noviembre de 2026):** T3B-01/02/03/04 registrados como `3731609`, `08d6431`, `11c48f4` y `b317e31`. T3B-05 implementado y verificado en el equipo de Daniel, pendiente de revisión y commit. La ejecución completa terminó con OK T3B-05: reconstrucción de Test, siembra equivalente, update idempotente y 42 comparaciones HTTP; Dev quedó intacta. El modelo tiene 14 tablas/107 filas, dos migraciones y dos GET de visitante. Las tareas de implementación de Francisco empiezan después de recibir y verificar T3B-05; esta guía no declara su recepción aprobada. No ejecutar comandos de migraciones inexistentes ni presentar los resultados previstos como evidencia obtenida.
 
 La consigna pide un modelo SQL del dominio completo, dos migraciones reales, HasData, cuatro consultas SQL, dos GET de lectura e investigación. No pide terminar toda la API .NET ni migrar React. La fecha es **22 de noviembre, 23:55**. Parte A es individual en otro repositorio: cada uno la termina y etiqueta por su cuenta.
 
@@ -17,7 +17,7 @@ Daniel implementa T3B-01 a 05. Tú eres responsable de **T3B-06, 07 y 08**, con 
 | `docs/tarea3-parte-b.md` | Plan maestro: reparto, dependencias, mensajes de commit, checklist y pruebas de las ocho tareas |
 | `docs/fuentes/consigna-tarea3.md` | Extracción cacheada del PDF por páginas; no volver a convertirlo salvo discrepancia |
 | `servidor-net/README.md` | Versiones, secreto por nombre, comandos y estado operativo de .NET |
-| `docs/modelo-datos.md` | Modelo MongoDB y futura sección «Modelo relacional»: tablas, PK/FK, restricciones y borrados |
+| `docs/modelo-datos.md` | Modelo MongoDB y sección «Modelo relacional» ya completa: tablas, PK/FK, restricciones y borrados |
 | `docs/api-contract.md` | JSON, campos y reglas de las rutas del Avance 2 |
 | `servidor/src/dto/initiative.dto.js` y `services/initiative-access.js` | Referencia ejecutable de DTO y permisos; cuidado con la identidad por defecto del DTO |
 | `servidor-net/Modelos`, `Datos`, `Migrations` | Entidades, configuración/seed y evolución SQL; modelo completo implementado en 02–03 |
@@ -63,6 +63,57 @@ Si necesitas levantar el proyecto JavaScript para comparar, sigue su README; en 
 Siembra actual: 5 usuarios, 8 categorías, 10 competencias, 8 iniciativas, 7 UserSkills, 7 UserInterests, 16 InitiativeSkills, 13 InitiativeTags, 0 sesiones, **5 solicitudes, 12 periodos, 13 eventos, 1 proyecto y 2 tecnologías**. Total107; miembros activos11/retirados1. El proyecto de Orientación laboral usa tres activos y estimado2 (espacios0); los retirados no se cuentan como actuales.
 
 Antes de tus consultas, ejecuta `dotnet run --no-build --launch-profile http -- --verify-domain=true`; esperado: `OK T3B-03` tras 32 rechazos esperados y casos positivos con rollback. `--compare-databases=true` compara Dev incremental con Test de siembra limpia sin imprimir valores. Ambos destinos se configuraron en el equipo de Daniel, **no se transfieren tus secretos por Git**. `--use-test-database=true` apunta solo a InnovationHub_Tarea3_Test y no cambia el secreto; consulta el README antes de crearla en tu equipo.
+
+## Datos y contrato de la entrega de Daniel
+
+Rama de referencia: **main**. Último incremento registrado al preparar T3B-05: **b317e31**. El commit de 05 lo comunicará Daniel después de registrarlo; no inventar su hash ni confundir el de 04 con la entrega de 05. No crear todavía `tarea-3`.
+
+Las migraciones son `20261113021734_InicialUsuariosIniciativas` y `20261113035919_AgregarSolicitudesEquiposProyectos`. El diccionario/ER y el comportamiento de **las 20 FK** están en `docs/modelo-datos.md`, sección Modelo relacional; las configuraciones ejecutables están en `Datos/Configuraciones/`. No hay migraciones ni cambios de seed nuevos en 05.
+
+Tablas recibidas: Users, Sessions, Categories, Skills, UserSkills, UserInterests, Initiatives, InitiativeSkills, InitiativeTags, ParticipationRequests, Memberships, MembershipEvents, Projects y ProjectTechnologies; además `__EFMigrationsHistory`. Totales por tabla: README .NET; 107 filas de dominio, 14 PK, una clave alternativa de solicitudes, 20 FK, 60 CHECK y 31 índices secundarios (sin contar los índices que respaldan PK/clave alternativa).
+
+Los usuarios sintéticos no tienen contraseña ni una sesión .NET: Ana `11111111-1111-4111-8111-111111111111`, Luis `22222222-2222-4222-8222-222222222222`, Carla `33333333-3333-4333-8333-333333333333`, Diego `44444444-4444-4444-8444-444444444444` y Elena `55555555-5555-4555-8555-555555555555`. No intentar iniciar sesión contra esta API parcial.
+
+GET de categorías: `/api/categories` → 200, ocho categorías activas. Para el otro GET usar `/api/initiatives/{id}` **sin Authorization**:
+
+| ID exacto | Iniciativa | Visibilidad/estado | HTTP visitante | Activos/espacios si hay detalle |
+| --- | --- | --- | --- | --- |
+| 10000000-0000-4000-8000-000000000001 | Huertos escolares | public/published | 200 | 1/4 |
+| 10000000-0000-4000-8000-000000000002 | Accesibilidad urbana | public/forming_team | 200 | 2/2 |
+| 10000000-0000-4000-8000-000000000003 | Reto de reciclaje inteligente | restricted/published | 401 | — |
+| 10000000-0000-4000-8000-000000000004 | Mentorías tecnológicas | institutional/published | 401 | — |
+| 10000000-0000-4000-8000-000000000005 | Banco de alimentos | public/archived | 404 | — |
+| 10000000-0000-4000-8000-000000000006 | Datos de calidad del aire | private/published | 404 | — |
+| 10000000-0000-4000-8000-000000000007 | Lectura compartida | public/draft | 404 | — |
+| 10000000-0000-4000-8000-000000000008 | Orientación laboral | public/converted | 200 | 3/0 |
+
+Proyecto `50000000-0000-4000-8000-000000000001` → iniciativa terminada en `008`, estado planning, tecnologías React y Node.js ordenadas. No existe GET de proyectos en esta fase. Las solicitudes `20000000-0000-4000-8000-000000000001` a `...005` tienen estados accepted, cancelled, rejected, pending y accepted, respectivamente. El intento rechazado y el pendiente son de Luis para Mentorías: no borrar el anterior. Las dos aceptadas originan las membresías de Elena/Accesibilidad y Carla/Orientación. El periodo retirado de Luis/Orientación es `30000000-0000-4000-8000-000000000012` y no cuenta como activo.
+
+Restricciones útiles para preparar tus casos (consultar columnas exactas en el diccionario): `UX_Users_EmailNormalized`, `UX_Requests_Pending`, `UX_Memberships_Active`, `CK_UserSkills_Level`, `CK_Requests_State`, `CK_Requests_Decision`, `CK_Memberships_Retirement`, `CK_Projects_Calendar` y FK compuesta `FK_Memberships_ParticipationRequests_SourceRequestId_InitiativeId_UserId`. Estos nombres no son una quinta consulta de entrega: tú debes escribir, comentar y ejecutar tus cuatro bloques SQL.
+
+## Recepción en tu equipo antes de T3B-06/07
+
+El verificador de cierre y la entrega técnica están preparados; la ejecución completa en SQL Server fue aprobada en el equipo de Daniel el 13 de noviembre de 2026. La reproducción y aceptación en tu equipo siguen pendientes. Después de recibir el commit de 05, instala/configura tu entorno como arriba. Aplica ambas migraciones en Dev y Test usando únicamente bases exclusivas. Desde servidor-net ejecuta:
+
+```sh
+dotnet run --no-build --launch-profile http -- --check-sql-target=true
+dotnet ef database update -- --environment Development
+dotnet run --no-build --launch-profile http -- --check-sql-target=true --use-test-database=true
+dotnet ef database update -- --environment Development --use-test-database=true
+node scripts/verify-rebuild.mjs --confirm=InnovationHub_Tarea3_Test
+```
+
+Esperado: destino Dev/Test confirmado, dos migraciones aplicadas y **OK T3B-05**. El último comando **borra Test** después de comprobar su destino y su equivalencia con Dev; no ejecutarlo con datos propios ni con otros procesos usando esa base. Restaura/compila, comprueba las guardas, reconstruye Test, verifica update repetido, 32 rechazos con rollback y 42 comparaciones HTTP en dos arranques. El README .NET explica el procedimiento y recuperación si se interrumpe. Ninguna contraseña viaja con Git.
+
+Checklist de recepción (lo completa Francisco con resultados propios):
+
+- [ ] Tengo el hash real de 05 y un árbol de trabajo preservado antes de actualizar.
+- [ ] SDK/herramienta/dependencias correctos y secreto local configurado en privado.
+- [ ] Dev/Test exclusivas; ejecución completa termina con OK T3B-05 en mi equipo.
+- [ ] Puedo explicar al menos un GET→Select→SQL y el vínculo del equipo del proyecto.
+- [ ] Informé a Daniel el commit recibido, resultado y cualquier discrepancia sin secretos.
+
+Si falla una guarda por diferencias de seed, no copiar o borrar filas para hacerla pasar; identificar si son datos de trabajo propios o un defecto reproducible y coordinar con Daniel. No afirmar recibido el handoff a partir de la evidencia del equipo de Daniel.
 
 ## Tu primer commit: T3B-06, consultas SQL
 

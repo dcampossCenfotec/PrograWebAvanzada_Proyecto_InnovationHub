@@ -73,21 +73,35 @@ internal static class MigrationComparison
         foreach (var table in Tables)
         {
             // Identificadores procedentes exclusivamente de esta lista cerrada.
-            var order = table switch
-            {
-                "UserSkills" => "[UserId],[SkillId]",
-                "UserInterests" => "[UserId],[Position]",
-                "InitiativeSkills" => "[InitiativeId],[SkillId]",
-                "InitiativeTags" => "[InitiativeId],[Position]",
-                "ProjectTechnologies" => "[ProjectId],[Position]",
-                "__EFMigrationsHistory" => "[MigrationId]",
-                _ => "[Id]",
-            };
-            var sql = $"SELECT * FROM [dbo].[{table}] ORDER BY {order} FOR JSON PATH,INCLUDE_NULL_VALUES";
+            var sql = DataQuery(table);
             CoreVerification.Require(await FingerprintAsync(incremental, sql) == await FingerprintAsync(clean, sql),
                 $"Diferencias de datos en {table}; usa siembra limpia sin datos adicionales.");
         }
         Console.WriteLine("OK T3B-03: siembra completa e historial de migraciones idénticos tras ambas rutas de construcción.");
+    }
+
+    internal static async Task<string> FingerprintDatabaseAsync(SqlConnection connection)
+    {
+        var hashes = new List<string>();
+        foreach (var sql in SchemaQueries) hashes.Add(await FingerprintAsync(connection, sql));
+        foreach (var table in Tables) hashes.Add(await FingerprintAsync(connection, DataQuery(table)));
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join("\n", hashes))));
+    }
+
+    private static string DataQuery(string table)
+    {
+        if (!Tables.Contains(table)) throw new InvalidOperationException("Tabla fuera de la lista de verificación.");
+        var order = table switch
+        {
+            "UserSkills" => "[UserId],[SkillId]",
+            "UserInterests" => "[UserId],[Position]",
+            "InitiativeSkills" => "[InitiativeId],[SkillId]",
+            "InitiativeTags" => "[InitiativeId],[Position]",
+            "ProjectTechnologies" => "[ProjectId],[Position]",
+            "__EFMigrationsHistory" => "[MigrationId]",
+            _ => "[Id]",
+        };
+        return $"SELECT * FROM [dbo].[{table}] ORDER BY {order} FOR JSON PATH,INCLUDE_NULL_VALUES";
     }
 
     private static async Task<string> FingerprintAsync(SqlConnection connection, string sql)

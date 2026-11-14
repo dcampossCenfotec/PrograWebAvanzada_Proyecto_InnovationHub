@@ -9,7 +9,11 @@ var verifyCore = builder.Configuration.GetValue<bool>("verify-core");
 var verifyDomain = builder.Configuration.GetValue<bool>("verify-domain");
 var compareDatabases = builder.Configuration.GetValue<bool>("compare-databases");
 var checkTarget = builder.Configuration.GetValue<bool>("check-sql-target");
-if (verifyCore || verifyDomain || compareDatabases || checkTarget)
+var rebuildTarget = builder.Configuration.GetValue<bool>("verify-rebuild-target");
+var fingerprint = builder.Configuration.GetValue<bool>("database-fingerprint");
+var checkAbsent = builder.Configuration.GetValue<bool>("check-test-absent");
+var rebuildMode = rebuildTarget || fingerprint || checkAbsent;
+if (verifyCore || verifyDomain || compareDatabases || checkTarget || rebuildMode)
     builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
 
 // Development carga ConnectionStrings:InnovationHub desde user-secrets.
@@ -31,10 +35,30 @@ builder.Services.AddDbContext<InnovationHubContext>(options => options.UseSqlSer
 var app = builder.Build();
 
 // Modos de terminal de verificación; no añaden endpoints a la API.
-if (verifyCore || verifyDomain || compareDatabases || checkTarget)
+if (verifyCore || verifyDomain || compareDatabases || checkTarget || rebuildMode)
 {
     await using var scope = app.Services.CreateAsyncScope();
     var context = scope.ServiceProvider.GetRequiredService<InnovationHubContext>();
+    if (rebuildMode)
+    {
+        try
+        {
+            if (rebuildTarget) await RebuildVerification.CheckTargetAsync(context);
+            else if (fingerprint) await RebuildVerification.FingerprintAsync(context);
+            else await RebuildVerification.CheckAbsentAsync(context);
+        }
+        catch (InvalidOperationException error)
+        {
+            Console.Error.WriteLine(error.Message);
+            Environment.ExitCode = 1;
+        }
+        catch (SqlException error)
+        {
+            Console.Error.WriteLine($"SQL Server rechazó la verificación (error {error.Number}); revisa localmente conexión y destino.");
+            Environment.ExitCode = 1;
+        }
+        return;
+    }
     if (compareDatabases) await MigrationComparison.RunAsync(context);
     else if (verifyDomain) await DomainVerification.RunAsync(context);
     else if (verifyCore) await CoreVerification.RunAsync(context);
