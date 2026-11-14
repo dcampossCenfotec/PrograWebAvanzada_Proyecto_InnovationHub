@@ -113,13 +113,13 @@ README: rutas soportadas, URL/puerto, cómo ejecutar requests.http y límites de
 
 Checklist y pruebas:
 
-- [ ] Catálogo responde 200 y `{data:[...]}` con IDs/nombres y orden idénticos a Express bajo el mismo conjunto de datos.
-- [ ] Detalle público responde 200; comparar JSON estructural completo con Express (incluidas listas, nulls, texto de IDs, fechas y capacidades), sin depender del orden de propiedades de un objeto JSON.
-- [ ] Skills muestra ≥2 vínculos M:N de la siembra; memberCount ignora retirados y availableSpaces nunca es negativo.
-- [ ] ID inexistente/privada/borrador/archivada no expone detalles; institucional/restringida anónima exige sesión como Express. ID inválido se maneja sin provocar 500.
-- [ ] No se devuelve ningún dato sensible; sin ciclos JSON y sin asumir que visitante equivale al propietario.
-- [ ] Inspeccionar SQL/log: operaciones async, filtros y proyección en SQL; no `ToList` antes de filtrar/paginar ni N+1 por cada competencia.
-- [ ] requests.http funciona contra el host real; pruebas de contrato y build aprobados.
+- [x] Catálogo responde 200 y `{data:[...]}` con IDs/nombres y orden idénticos a Express bajo el mismo conjunto de datos.
+- [x] Detalle público responde 200; comparar JSON estructural completo con Express (incluidas listas, nulls, texto de IDs, fechas y capacidades), sin depender del orden de propiedades de un objeto JSON.
+- [x] Skills muestra ≥2 vínculos M:N de la siembra; memberCount ignora retirados y availableSpaces nunca es negativo.
+- [x] ID inexistente/privada/borrador/archivada no expone detalles; institucional/restringida anónima exige sesión como Express. ID inválido se maneja sin provocar 500.
+- [x] No se devuelve ningún dato sensible; sin ciclos JSON y sin asumir que visitante equivale al propietario.
+- [x] Inspeccionar SQL/log: operaciones async, filtros y proyección en SQL; no `ToList` antes de filtrar/paginar ni N+1 por cada competencia.
+- [x] requests.http funciona contra el host real; pruebas de contrato y build aprobados.
 
 Entregable: las únicas dos rutas de negocio de esta fase, reproducibles sin sesión.
 
@@ -205,7 +205,7 @@ La [guía de Francisco para Tarea 3](handoff-francisco-tarea3.md) explica el ent
 
 ## Estado real y protocolo de continuación
 
-T3B-01 registrado como `3731609` y T3B-02 como `08d6431`. **T3B-03 implementado y verificado contra SQL Server real el 12 de noviembre de 2026; pendiente de revisión de Daniel y commit/push**. T3B-04–08 pendientes. Las dos migraciones están aplicadas en Dev y Test; el modelo completo tiene 14 tablas y 107 filas de dominio. Todavía no hay GET ni autenticación/CRUD .NET. Las notas de 01/02 siguientes son evidencia histórica, no el estado actual. Las casillas se marcan solo tras comprobar cada resultado.
+T3B-01 registrado como `3731609`, T3B-02 como `08d6431` y T3B-03 como `11c48f4`. **T3B-04 implementado y verificado el 13 de noviembre de 2026; pendiente de commit/push**. T3B-05–08 pendientes. Hay modelo completo de 14 tablas/107 filas y dos GET de visitante; autenticación y CRUD .NET siguen fuera de esta tarea. Las evidencias anteriores son históricas de cada incremento. Daniel tiene pendiente T3B-05 para entregar el handoff; las tareas de Francisco siguen siendo 06–08.
 
 Verificación ejecutada de T3B-01:
 
@@ -238,4 +238,15 @@ Verificación ejecutada de T3B-03 (12 de noviembre, Costa Rica):
 - Documentación actualizada: ER/diccionario de 14 tablas, las 20 FK con borrado, mapa de colecciones/arrays/campos derivados y relaciones requeridas. Dueño/equipo del proyecto y referencias de iniciativa/persona del evento no se duplican.
 - Dev/Test y contenedor SQL quedan disponibles para revisión. La reconstrucción destructiva de 05, los GET de 04, SQL/investigación de Francisco y la etiqueta final siguen pendientes.
 
-Antes de cada commit/push: resumir cambios, indicar pasos de prueba con **resultado esperado en cada paso** y distinguir pruebas ejecutadas de pendientes. El mensaje de commit se ajustará al cambio final. No continuar acumulando otros incrementos sin el punto de revisión acordado con Daniel. Para retomar: leer este documento, el README de servidor-net y el estado Git; usar la extracción cacheada, sin reconvertir el PDF.
+Verificación ejecutada de T3B-04 (13 de noviembre, Costa Rica):
+
+- T3B-03 estaba registrado y el árbol limpio al comenzar. Dos endpoints en Lecturas/PublicReadEndpoints.cs, Select async con CancellationToken, AsNoTracking, filtro de acceso SQL y AsSingleQuery para listas acotadas; ningún cambio de modelo/migraciones/semilla.
+- Build con advertencias como errores aprobado: 0 errores/advertencias. requests.http contiene 14 casos y lo ejecuta directamente el verificador de contrato, además de siete casos adicionales.
+- `node scripts/verify-read-contract.mjs`: **21 comparaciones HTTP/status/JSON completo aprobadas**, referencia Express con controladores/servicios/repositorios y MongoDB reales frente a .NET con SQL Server Test. Sin mocks; datos de lectura equivalentes a HasData. Se compara objeto JSON sin exigir orden de propiedades, manteniendo el orden de arrays.
+- Probados: catálogo, tres detalles públicos (incluida convertida), competencias M:N ordenadas, fechas con milisegundos/Z, IDs textuales, flags de visitante, miembros activos excluyendo retirados y espacios cero cuando estimado superado. También 400/401/404 por visibilidad, borrador/archivo, UUID inexistente/inválido, queries y encabezados/precedencia de autenticación inválida.
+- Inspección de SQL real: un comando por éxito, sin N+1; no se seleccionaron Email/EmailNormalized/PasswordHash/TokenHash. El conteo de comandos total coincide con los casos, incluidas consultas mínimas de acceso para errores.
+- El script administra puertos libres y su contenedor Mongo 8.0.34-noble sin volúmenes. Contenedor y servidores temporales cerrados; no se usó Mongo de desarrollo ni se cambiaron secretos/filas SQL. La imagen pública quedó en caché para repetir la prueba.
+- Modelo sin cambios pendientes; comparación Dev/Test posterior de solo lectura confirma que esquema y siembra permanecen idénticos. No se ejecutó reconstrucción destructiva ni se adelantaron consultas/investigación de Francisco.
+- Documentación actualizada con rutas, limitaciones de visitante/sin sesión, comandos de prueba y organización. React/Express productivo y el registro histórico de Avance 2 permanecen sin cambios.
+
+Para retomar: leer este documento, el README .NET y el estado Git; usar la extracción cacheada, sin reconvertir el PDF. No comenzar otro incremento sin la indicación correspondiente de Daniel.

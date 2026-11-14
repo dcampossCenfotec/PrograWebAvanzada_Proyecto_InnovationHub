@@ -1,3 +1,4 @@
+using InnovationHub.ServidorNet.Lecturas;
 using Microsoft.Data.SqlClient;
 using InnovationHub.ServidorNet.Datos;
 using InnovationHub.ServidorNet.Verificacion;
@@ -41,5 +42,5 @@ if (verifyCore || verifyDomain || compareDatabases || checkTarget)
     return;
 }
 
-// T3B-04 incorporará las dos rutas de lectura del contrato del Avance 2.
+app.MapPublicReads();
 await app.RunAsync();

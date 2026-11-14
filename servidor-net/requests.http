@@ -1,0 +1,45 @@
+@baseUrl = http://127.0.0.1:5080
+@publicId = 10000000-0000-4000-8000-000000000001
+
+### 200: ocho categorías activas, orden nameNormalized/id, sin paginación.
+GET {{baseUrl}}/api/categories
+
+### 200: Huertos escolares; skills Diseño/Sostenibilidad, miembros 1, espacios 4.
+GET {{baseUrl}}/api/initiatives/{{publicId}}
+
+### 200: Accesibilidad urbana; dos activos, espacios 2.
+GET {{baseUrl}}/api/initiatives/10000000-0000-4000-8000-000000000002
+
+### 200: convertida; tres activos, retirado excluido, estimado 2 y espacios 0.
+GET {{baseUrl}}/api/initiatives/10000000-0000-4000-8000-000000000008
+
+### 401: restringida para visitante.
+GET {{baseUrl}}/api/initiatives/10000000-0000-4000-8000-000000000003
+
+### 401: institucional para visitante.
+GET {{baseUrl}}/api/initiatives/10000000-0000-4000-8000-000000000004
+
+### 404: archivada, sin detalles.
+GET {{baseUrl}}/api/initiatives/10000000-0000-4000-8000-000000000005
+
+### 404: privada, sin detalles.
+GET {{baseUrl}}/api/initiatives/10000000-0000-4000-8000-000000000006
+
+### 404: borrador, sin detalles.
+GET {{baseUrl}}/api/initiatives/10000000-0000-4000-8000-000000000007
+
+### 404: UUID válido inexistente.
+GET {{baseUrl}}/api/initiatives/99999999-9999-4999-8999-999999999999
+
+### 400 VALIDATION_ERROR: UUID mal formado.
+GET {{baseUrl}}/api/initiatives/invalido
+
+### 400 INVALID_QUERY: el catálogo no admite parámetros.
+GET {{baseUrl}}/api/categories?page=1
+
+### 400 INVALID_QUERY: el detalle no admite parámetros.
+GET {{baseUrl}}/api/initiatives/{{publicId}}?extra=1
+
+### 401: autenticación no implementada en esta fase; consumir sin Authorization.
+GET {{baseUrl}}/api/initiatives/{{publicId}}
+Authorization: Bearer token-invalido-de-prueba

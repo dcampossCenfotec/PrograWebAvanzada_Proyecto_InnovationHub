@@ -1,6 +1,6 @@
 # Innovation Hub — servidor .NET de Tarea 3, parte B
 
-Estado: **T3B-03, modelo relacional completo y dos migraciones**. Implementa usuarios, sesiones, catálogos, iniciativas, solicitudes, membresías, eventos y proyectos con sus relaciones y HasData. Los dos GET se incorporarán en T3B-04. Esta API parcial no sustituye Express ni cambia el cliente React. No incluye Swagger porque la consigna no lo exige.
+Estado: **T3B-04, modelo completo y dos GET públicos compatibles con Express**. Implementa el modelo relacional, dos migraciones/HasData y las lecturas de categorías y detalle de iniciativa para visitantes. La verificación de cierre/handoff corresponde a T3B-05. Esta API parcial no sustituye Express ni cambia el cliente React. No incluye Swagger porque la consigna no lo exige.
 
 ## Versiones y compilación
 
@@ -121,11 +121,51 @@ Si Test ya existe, update solo aplica lo pendiente: eso **no demuestra por sí s
 dotnet run --no-build --launch-profile http
 ```
 
-Esperado: escucha en **http://127.0.0.1:5080**. Por ahora todas las rutas, incluidas `/api/categories` y `/swagger`, devuelven **404**, porque los dos endpoints se incorporan en 04. No se abre la conexión ni se aplica una migración por arrancar el host. Detener con Ctrl+C.
+Esperado: escucha en **http://127.0.0.1:5080**. Los dos GET siguientes responden según contrato. No se aplica una migración por arrancar el host; cada GET consulta SQL Server. Swagger no está implementado. Detener con Ctrl+C.
+
+## Dos GET del contrato (T3B-04)
+
+| Ruta | Resultado |
+| --- | --- |
+| GET `/api/categories` | 200, `{data:[{id,name}]}`, categorías activas ordenadas por NameNormalized/Id, sin paginación. |
+| GET `/api/initiatives/{id}` | 200 para iniciativa pública visible; incluye competencias M:N ordenadas, dueño seguro, etiquetas, fechas UTC, capacidades de visitante, miembros activos y espacios calculados ≥0. |
+
+Para el detalle, institucional/restringida anónima devuelve **401**; privada/borrador/archivada/inexistente **404**; UUID inválido o query no admitida **400**. El mínimo de validación/errores está acotado a estas dos rutas: no se ha construido el middleware ni la capa de validación de la API final.
+
+Consumir el detalle **sin Authorization**: todavía no hay autenticación .NET y cualquier encabezado de ese tipo devuelve 401. No se simula un dueño ni se validan tokens del servidor Express. El catálogo de categorías es público y no intenta autenticar ese encabezado, como Express. Esta fase no sustituye Express ni cambia el cliente React/CORS.
+
+Abrir `requests.http` con un cliente HTTP compatible, o ejecutar la comparación automática que lo usa como fuente de casos. Con HasData limpio se esperan: Huertos (`...001`) 1 miembro/4 espacios; Accesibilidad (`...002`) 2/2; Orientación laboral convertida (`...008`) 3/0, excluyendo al periodo retirado. Cada uno devuelve dos competencias en el orden original; capacidades de edición, borrado, solicitud y conversión en false para visitante.
+
+`Select` limita las columnas; `AsNoTracking` evita rastreo de lecturas y `AsSingleQuery` resuelve las dos listas pequeñas acotadas en una consulta, sin N+1. Las fechas se formatean a milisegundos UTC con Z; System.Text.Json representa Guid como texto canónico. La consulta exitosa filtra visibilidad/estado en SQL. Si no hay resultado, otra proyección mínima de visibilidad/estado decide 401/404 sin cargar contenido privado. Referencias: [proyección eficiente](https://learn.microsoft.com/ef/core/performance/efficient-querying), [consultas asíncronas](https://learn.microsoft.com/ef/core/querying/async).
+
+## Verificación automática del contrato HTTP
+
+Requiere Docker activo, Node compatible con `servidor/package.json`, dependencias Express instaladas, binario .NET compilado y las dos migraciones aplicadas en **InnovationHub_Tarea3_Test**. El secreto local sigue siendo el mismo; el script selecciona Test en memoria. Si faltan dependencias JS, desde servidor-net:
+
+```sh
+cd ../servidor
+npm ci --cache /private/tmp/innovation-hub-npm-cache
+cd ../servidor-net
+```
+
+Preparación de .NET y de la base exclusiva (comprobar el nombre antes de update):
+
+```sh
+dotnet build --no-restore --warnaserror
+dotnet run --no-build --launch-profile http -- --check-sql-target=true --use-test-database=true
+dotnet ef database update -- --environment Development --use-test-database=true
+node scripts/verify-read-contract.mjs
+```
+
+El script levanta MongoDB **8.0.34-noble** temporal, sin volumen y publicado solo en loopback con puerto libre; Express y el binario .NET usan también puertos locales libres. Inserta fixtures sin contraseña para lecturas en una base Mongo temporal (no prueba logins), crea los módulos/controladores/servicios/repositorios reales de Express y consulta .NET contra SQL Server Test. No usa mocks ni cambia bases Mongo de desarrollo.
+
+Ejecuta los **14 casos de requests.http** y siete adicionales: UUID versión/variante incorrecta, UUID con letras mayúsculas inexistente, query repetida/no admitida, precedencia de errores y encabezados de autenticación inválidos. Compara status y JSON completo; comprueba campos privados, fechas, flags, orden, miembros y espacios. Inspecciona las trazas reales del host: una consulta por lectura exitosa, sin columnas privadas ni N+1; los fallos de acceso pueden usar una segunda consulta mínima.
+
+Esperado: **21 comparaciones aprobadas** y `OK T3B-04`. Cierra .NET, Express, conexión Mongo y su propio contenedor mediante finally. No modifica la siembra SQL ni escribe secretos. La primera ejecución puede descargar la imagen Mongo; no requiere ejecutar el compose de desarrollo. El script usa binario Debug `bin/Debug/net10.0/InnovationHub.ServidorNet.dll`, por lo que hay que compilar después de cambiar el código.
 
 ## Organización
 
-- `Program.cs`: host, DI y modos de terminal; todavía sin GET.
+- `Program.cs`: host, DI, modos de terminal y registro de las dos lecturas públicas.
 - `Modelos/`: nueve entidades; navegaciones y claves públicas.
 - `Datos/Configuraciones/`: límites, índices, CHECK, M:N y delete behaviors explícitos.
 - `Datos/CoreSeed.cs` y `DomainSeed.cs`: HasData fijo, independiente de JSON/rutas externas en ejecución.
@@ -134,6 +174,9 @@ Esperado: escucha en **http://127.0.0.1:5080**. Por ahora todas las rutas, inclu
 - `Verificacion/`: pruebas SQL del núcleo/dominio, comprobación de destino y comparación incremental/limpia.
 - `scripts/configure-local-connection.py`: configuración privada asistida de la conexión.
 - `.config/dotnet-tools.json`, `global.json`, csproj y lockfile: versiones reproducibles.
-- Próximos: `requests.http`/GET (04), `sql/consultas.sql` y experimentos de Francisco (06–07).
+- `Lecturas/PublicReadEndpoints.cs`: Select asíncrono, proyección contractual y controles mínimos de acceso anónimo.
+- `requests.http`: 14 casos ejecutables contra el host.
+- `scripts/verify-read-contract.mjs`: comparación HTTP/JSON real con Express+MongoDB temporal y .NET+SQL Server Test; controla su limpieza.
+- Próximos: cierre/handoff de Daniel (05), `sql/consultas.sql` y experimentos de Francisco (06–07).
 
 Plan/criterios/checklists: [Tarea 3, parte B](../docs/tarea3-parte-b.md). Incorporación del compañero: [guía de Francisco](../docs/handoff-francisco-tarea3.md). La fuente PDF ya está [extraída y cacheada](../docs/fuentes/consigna-tarea3.md); no reconvertirla para retomar.

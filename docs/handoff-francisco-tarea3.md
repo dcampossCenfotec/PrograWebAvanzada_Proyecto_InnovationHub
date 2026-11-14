@@ -4,7 +4,7 @@
 
 Esta guía es específica de **Tarea 3**. El anterior `handoff-francisco.md` trata del Avance 2: sirve como historia, no como lista de tareas pendientes de esta entrega.
 
-**Estado actualizado (12 de noviembre de 2026):** T3B-01 registrado como `3731609` y T3B-02 como `08d6431`. Daniel implementó y probó T3B-03: modelo completo de 14 tablas/107 filas con dos migraciones aplicadas en Dev y en Test creado desde cero; pendientes su revisión y commit de 03. Los GET y el handoff T3B-05 todavía no están entregados. Las tareas de implementación de Francisco empiezan después de recibir y verificar T3B-05. No ejecutar comandos de migraciones inexistentes ni presentar los resultados previstos como evidencia obtenida.
+**Estado actualizado (13 de noviembre de 2026):** T3B-01/02/03 registrados como `3731609`, `08d6431` y `11c48f4`. T3B-04 implementado y verificado (pendiente de commit): dos GET de visitante y 21 comparaciones HTTP/JSON reales con Express+MongoDB y .NET+SQL Server. El modelo tiene 14 tablas/107 filas y dos migraciones aplicadas. El handoff T3B-05 todavía está pendiente. Las tareas de implementación de Francisco empiezan después de recibir y verificar T3B-05. No ejecutar comandos de migraciones inexistentes ni presentar los resultados previstos como evidencia obtenida.
 
 La consigna pide un modelo SQL del dominio completo, dos migraciones reales, HasData, cuatro consultas SQL, dos GET de lectura e investigación. No pide terminar toda la API .NET ni migrar React. La fecha es **22 de noviembre, 23:55**. Parte A es individual en otro repositorio: cada uno la termina y etiqueta por su cuenta.
 
@@ -21,7 +21,7 @@ Daniel implementa T3B-01 a 05. Tú eres responsable de **T3B-06, 07 y 08**, con 
 | `docs/api-contract.md` | JSON, campos y reglas de las rutas del Avance 2 |
 | `servidor/src/dto/initiative.dto.js` y `services/initiative-access.js` | Referencia ejecutable de DTO y permisos; cuidado con la identidad por defecto del DTO |
 | `servidor-net/Modelos`, `Datos`, `Migrations` | Entidades, configuración/seed y evolución SQL; modelo completo implementado en 02–03 |
-| `servidor-net/requests.http` | Pruebas de los dos GET; se incorpora en 04 |
+| `servidor-net/requests.http` | 14 casos de los dos GET, ya implementados en 04 |
 | `servidor-net/sql/consultas.sql` | Tu entrega de 06, todavía por escribir |
 | `docs/investigacion-efcore.md` | Tu entrega de 07, todavía por escribir |
 | `pruebas/fixtures/` | Datos sintéticos compartidos; verificar los IDs/totales finales contra HasData |
@@ -76,7 +76,7 @@ Ejecuta sobre SQL Server, compara cada resultado con lo esperado y repite el arc
 
 Prompt para comenzar con tu asistente:
 
-> Trabaja solo T3B-06 de docs/tarea3-parte-b.md. Lee docs/handoff-francisco-tarea3.md, la sección Modelo relacional de docs/modelo-datos.md y el HasData real. Primero comprueba que recibí T3B-05 y que compila. Implementa servidor-net/sql/consultas.sql con los cuatro casos requeridos y resultados esperados de la siembra. Ejecuta en una base exclusiva sin exponer secretos. Aísla y revierte la violación intencional. No modifiques el modelo para hacer pasar un resultado incorrecto. Dame resumen, pruebas ejecutadas y pasos con esperado antes de commit/push. No hagas T3B-07 todavía.
+> Trabaja solo T3B-06 de docs/tarea3-parte-b.md. Lee docs/handoff-francisco-tarea3.md, la sección Modelo relacional de docs/modelo-datos.md y el HasData real. Primero comprueba que recibí T3B-05 y que compila. Implementa servidor-net/sql/consultas.sql con los cuatro casos requeridos y resultados esperados de la siembra. Ejecuta en una base exclusiva sin exponer secretos. Aísla y revierte la violación intencional. No modifiques el modelo para hacer pasar un resultado incorrecto. Dame resumen, pruebas ejecutadas y pasos con resultados esperados antes de commit/push. No hagas T3B-07 todavía.
 
 ## Tu segundo commit: T3B-07, investigación
 
@@ -98,7 +98,7 @@ Fuentes oficiales de partida (consultarlas y citar las que apoyen la respuesta):
 
 Prompt:
 
-> Implementa solo T3B-07 según el plan y handoff de Tarea 3. Usa el modelo existente para un experimento repetible de Select frente a Include/AsNoTracking, entidad M:N con nivel y Skip/Take en SQL. No añadas rutas públicas ni reescribas Express. Ejecuta las consultas reales y registra SQL/captura sin secretos. Redacta docs/investigacion-efcore.md con máximo dos páginas y citas oficiales learn.microsoft.com/ef/core por respuesta. Distingue observado de previsto. Antes de commit/push dame cambios, pruebas y pasos reproducibles con resultados esperados.
+> Implementa solo T3B-07 según el plan y handoff de Tarea 3. Usa el modelo existente para un experimento repetible de Select frente a Include/AsNoTracking, entidad M:N con nivel y Skip/Take en SQL. No añadas rutas públicas ni reescribas Express. Ejecuta las consultas reales y registra SQL/captura sin secretos. Redacta docs/investigacion-efcore.md con máximo dos páginas y citas oficiales learn.microsoft.com/ef/core por respuesta. Distingue observado de previsto. Antes de commit/push dame cambios, pruebas ejecutadas y pasos reproducibles con resultados esperados.
 
 ## Tu tercer commit: T3B-08, cierre
 
@@ -114,7 +114,13 @@ Prepara el texto para Moodle con los **dos enlaces**: proyecto + repositorio per
 
 Prompt:
 
-> Revisa y completa T3B-08. No marques nada aprobado sin ejecutarlo. Usa exclusivamente una base de prueba confirmada para drop/update; verifica GET, SQL e investigación, ambos autores en servidor-net y ausencia de secretos/bin/obj/.env/node_modules. Actualiza README y estado del plan. Entrega resumen, evidencias y pasos con esperado. Prepara commit y comandos de etiqueta tarea-3 sobre el resultado final; solicita la revisión y autorización de publicación antes de publicar. La Parte A y Moodle requieren confirmación independiente, no los declares completos.
+> Revisa y completa T3B-08. No marques nada aprobado sin ejecutarlo. Usa exclusivamente una base de prueba confirmada para drop/update; verifica GET, SQL e investigación, ambos autores en servidor-net y ausencia de secretos/bin/obj/.env/node_modules. Actualiza README y estado del plan. Entrega resumen, evidencias reales y pasos con resultados esperados. Prepara commit y comandos de etiqueta tarea-3 sobre el resultado final; solicita la revisión y autorización de publicación antes de publicar. La Parte A y Moodle requieren confirmación independiente, no los declares completos.
+
+## Verificación de los GET antes del handoff
+
+En servidor-net, `node scripts/verify-read-contract.mjs` levanta/cierra Express y MongoDB temporales y el binario .NET contra SQL Server Test. Requiere build Debug, dependencias Express instaladas y las migraciones de Test ya aplicadas; no crea datos SQL ni usa Mongo de desarrollo. Ejecución de referencia: 21 comparaciones aprobadas (14 de requests.http +7 adicionales) y SQL sin columnas privadas ni N+1. No debes reimplementar ese verificador para cumplir tus cuatro consultas SQL: T3B-06 y 07 siguen siendo entregables propios.
+
+Las dos rutas .NET son para **visitante**. No hay autenticación implementada: omitir Authorization al pedir detalle; categorías sigue siendo público. No apuntar todavía React a esta API parcial. Los comandos/esperados completos están en el README .NET.
 
 ## Si aparece un defecto o cambia el alcance
 
